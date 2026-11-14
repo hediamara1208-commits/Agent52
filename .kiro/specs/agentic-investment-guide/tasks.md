@@ -8,6 +8,21 @@ Hosting decision: the UI is a React single-page app on AWS Amplify Hosting with 
 
 Completed tasks 1.1, 3.1, 3.3, 6.1, and 7.1 keep their text and status. Where the S3-primary data architecture or the tolerant Persona_File changes their behavior, a follow-up task reworks them (1.3 and 1.8 for 1.1, 3.7 for 3.1, 3.8 for 3.3, 6.5 and 6.6 for 6.1, 2.5 for in-progress 2.1). Task 7.1 mentions a Companion API and Requirement 14.9: that reference is historical, because Requirement 14 was removed, and no task depends on it.
 
+## Hackathon execution order (2026-11-14)
+
+The Delivery Tiers in the requirements document decide what is built. Tasks marked `*` are optional and Kiro may skip them. Work in four parallel tracks, one owner per track and per folder. Pull before each task, push after each task.
+
+| Track | Owner | Order |
+| --- | --- | --- |
+| A: data and toolkit | | 2.1, 2.5, 1.3, 1.4, 1.6, 1.8 (lean), 2.2, 21.1, 22.1, 23.1, 3.7, 3.8, 4.1, 21.2, 21.3, 23.2, 4.2, 4.3, 4.7 |
+| B: agents and tribunal | | 6.2, 6.6, 6.7, 7.3, 7.4, 7.5, 7.6, 7.8, 7.9, 7.10, 8.1, 8.2, 22.2, 8.3, 24.1, 9.1, 9.2, 17.1, 9.4, then gate 1, then 17.3, 26.1, 25.1, 25.2, 27.1 |
+| C: front end | | 11.1 first (the SessionView schema is the contract between tracks), then 11.2, 11.3, 11.4, 11.5 against fixture SessionViews, 24.2, 26.2, 28.2 |
+| D: AWS and deliverables | | 12.1, 12.7, 12.8, 12.12, 12.13, 12.15 (lean), 12.17, 18.1, 18.2, 28.1, 18.3, 17.2, 17.4, 17.5, 17.6, 18.4, 18.5, 18.6 (lean), 18.7, then gate 2, then 12.2, 27.2, 28.3 |
+
+Gates (local time): Saturday 23:00, `python -m guide.run_session` runs Robert end to end; Sunday 09:00, hosting gate (option b if option a is not working end to end); Sunday 12:30, feature freeze with the five demo cases on the deployed URL; Sunday 20:00, demo video recorded; Sunday 23:59, code, `demo/sessions/`, and Replay_Mode pushed.
+
+Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and every task whose requirements are all in Tier 3.
+
 ## Tasks
 
 - [ ] 1. Set up project structure, configuration, and data access
@@ -47,17 +62,20 @@ Completed tasks 1.1, 3.1, 3.3, 6.1, and 7.1 keep their text and status. Where th
     - **Property 40: Parquet round trip**
     - **Validates: Requirements 18.1, 18.2, 18.3**
 
-  - [ ] 1.8 Rework `data/loader.py` into an S3-primary `SnapshotStore` and create `data/cache.py` (follow-up to 1.1)
-    - `DataSource` protocol becomes `snapshot` plus `read_table(table)`; `SnapshotStore.pin()` resolves the pointer once with `IfNoneMatch` on the cached ETag, loads and validates the manifest, and returns a `PinnedSnapshot`
-    - `PinnedSnapshot.read_table` reads only the pinned manifest's Parquet entries by `VersionId`, cache-first with SHA-256 verification; mismatch discards and re-downloads once, then `DataIntegrityError(file)`
-    - `LocalCache`: pointer and ETag, manifests, content-addressed objects with a (key, version_id) index
-    - `classify_s3_error`: unreachable (connection error, timeouts, 5xx after retries, no credentials) gives a verified Cache_Fallback with `served_from="cache_fallback"` and cause; denied gives `DataConfigError`; no verified cache gives `DatasetUnavailable(location)`
-    - Keep `LocalSource` for tests and seeding only; remove `S3Source` and `get_source` after moving callers to `SnapshotStore`
-    - _Requirements: 8.5, 8.6, 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.7, 17.8, 17.9, 17.13, 17.16, 18.9_
+  - [ ] 1.8 Rework `data/loader.py` into a lean S3-primary `SnapshotStore` and create `data/cache.py` (follow-up to 1.1, Tier 2 lean)
+    - `SnapshotStore.pin()` reads the Current_Snapshot_Pointer and the Snapshot_Manifest once per session (plain GET, no conditional request) and returns a `PinnedSnapshot`
+    - `PinnedSnapshot.read_table` reads the pinned Parquet files by key, cache-first in `cache_dir`, and verifies the SHA-256 checksum of the manifest; a mismatch re-downloads once, then raises `DataIntegrityError(file)`
+    - Access denied raises `DataConfigError(resource)`; any other S3 error raises `DatasetUnavailable(location)`; no Cache_Fallback in Tier 2
+    - Keep `LocalSource` for tests and seeding only
+    - The full version (ETag-conditional pointer, VersionId reads, Cache_Fallback classification) is task 1.10
+    - _Requirements: 8.5, 8.6, 17.1, 17.2, 17.3, 17.7, 17.9, 18.9_
 
   - [ ]* 1.9 Write property test for cache validity
     - **Property 42: Cache validity**
     - **Validates: Requirements 17.4, 17.6, 17.7**
+
+  - [ ]* 1.10 Full SnapshotStore (Tier 3): ETag-conditional pointer, VersionId reads, verified Cache_Fallback with `served_from`, `classify_s3_error`
+    - _Requirements: 17.4, 17.5, 17.6, 17.8, 17.10 to 17.13_
 
 - [ ] 2. Implement Investor_Contract, schema validation, and Profiler
   - [~] 2.1 Create `contract/schema.json` and `contract/validate.py`
@@ -484,10 +502,12 @@ Completed tasks 1.1, 3.1, 3.3, 6.1, and 7.1 keep their text and status. Where th
     - **Property 48: Athena queries are snapshot-scoped and injection-safe**
     - **Validates: Requirements 19.6, 19.7**
 
-  - [ ] 12.15 Create `ingest/writer.py` (Snapshot_Writer)
-    - `write_snapshot(draft, s3, glue, athena, config, expected_pointer_etag)` in order: Python validation, raw CSV and Parquet with `IfNoneMatch="*"` (collect `VersionId` and SHA-256), Glue partitions, Athena validation (disagreement rejects; unavailable recorded as `skipped`), manifest (write-once), pointer with `IfMatch`
+  - [ ] 12.15 Create `ingest/writer.py` (Snapshot_Writer, Tier 2 lean)
+    - `write_snapshot(draft, s3, glue, athena, config)` in order: Python validation, raw CSV and Parquet (collect SHA-256), Glue partitions, Athena row-count and duplicate queries (recorded as `skipped` if Athena is unavailable), manifest, then pointer last
+    - Refuse to write when the Snapshot_Id prefix already exists (one `ListObjectsV2` check)
     - Return `WriteResult` with status, failed step, and violations; the pointer changes only at the last step
-    - _Requirements: 18.1, 18.5, 18.6, 18.10, 19.2, 19.3, 19.4, 20.2_
+    - The full version (`IfNoneMatch`, `IfMatch` on the pointer, VersionId capture, Athena and Python disagreement gate) is task 12.25
+    - _Requirements: 18.1, 18.5, 18.6, 19.2, 20.6, 20.7_
 
   - [ ]* 12.16 Write property test for commit gating and snapshot immutability
     - Use `moto` for S3 and Glue and `Stubber` for Athena; inject failures at each step of the Seed_Import_Job
@@ -656,9 +676,10 @@ Completed tasks 1.1, 3.1, 3.3, 6.1, and 7.1 keep their text and status. Where th
     - Amplify Hosting app and branch for manual deployment; the script builds `frontend/`, writes `config.json` from the stack outputs, zips `dist/`, and runs `aws amplify create-deployment` and `start-deployment`
     - _Requirements: 22.1, 26.2_
 
-  - [ ] 18.6 Create `infra/stacks/ops_stack.py` (monitoring, invocation logging, budget)
-    - Log groups with 30-day retention; one dashboard (five custom metrics, API 5xx); three alarms to one SNS topic with an email subscription; Bedrock model invocation logging through an AWS-SDK custom resource; AWS Budgets monthly budget with 80 percent actual and 100 percent forecast notifications
-    - _Requirements: 25.3, 25.4, 25.5, 25.6, 25.7_
+  - [ ] 18.6 Create `infra/stacks/ops_stack.py` (Tier 2 lean)
+    - Log groups with 30-day retention for the Session_API and the Agent_Runtime; Bedrock model invocation logging to a CloudWatch log group through an AWS-SDK custom resource
+    - Dashboard, alarms, SNS topic, and AWS Budgets are task 18.12
+    - _Requirements: 25.3, 25.6_
 
   - [ ] 18.7 Wire all MVP stacks in `infra/app.py`, add outputs, and complete `make deploy`, `make seed`, `make destroy`
     - Outputs: UI URL, Session_API URL, Cognito identifiers, Agent_Runtime ARN, Primary_Store bucket, Athena_Workgroup; `make deploy` builds the front end, runs `cdk deploy --all`, publishes the front end, and prints the UI URL; `make seed` runs `python -m guide.ingest.seed` against the new bucket; `make destroy` removes everything except the Primary_Store bucket
@@ -680,6 +701,9 @@ Completed tasks 1.1, 3.1, 3.3, 6.1, and 7.1 keep their text and status. Where th
     - Sign in a test Cognito user, post a session for Robert, poll until `completed`, validate the SessionView against the schema, and check that a second user receives 404 for the same session
     - _Requirements: 22.3, 22.5, 22.7, 22.8, 26.7_
 
+  - [ ]* 18.12 Dashboard, alarms, SNS, X-Ray, and AWS Budgets (Tier 3)
+    - _Requirements: 25.4, 25.5, 25.7, 25.8_
+
 - [ ] 19. Snapshot_Pipeline (optional stretch, Req. 24)
   - [ ]* 19.1 Create `pipeline/handlers.py` (validate, write, athena_validate, commit Lambdas)
     - Each handler calls the `seed_snapshot` library functions; applies Requirements 20.2, 20.3, and 20.8 before any write; any failure returns the failing step and leaves the pointer unchanged
@@ -697,8 +721,69 @@ Completed tasks 1.1, 3.1, 3.3, 6.1, and 7.1 keep their text and status. Where th
     - Same column names, row count, and values for every Dataset table
     - _Requirements: 24.6_
 
+  - [ ]* 12.25 Full Snapshot_Writer (Tier 3): `IfNoneMatch="*"` writes, `IfMatch` pointer commit, VersionId capture, Athena and Python disagreement gate
+    - _Requirements: 18.10, 19.3, 19.4_
+
 - [ ] 20. Final deployment checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 21. Base portfolios and risk evidence (Req. 28)
+  - [ ] 21.1 Add `base_portfolio` to the three Persona_Templates, `personas.schema.json`, and `contract/portfolio.py::propose(base, asset, weight)`
+    - Robert: XBB.TO 0.40, ZST.TO 0.15, XIU.TO 0.15, SPY 0.15, JNJ 0.08, RY.TO 0.07; Amira and Mateo: team assumptions with rationale; weights sum to 1
+    - _Requirements: 28.1, 28.2, 28.7_
+  - [ ] 21.2 Add `risk_contribution`, `portfolio_comparison`, and `max_weight_within_contract` to `toolkit/metrics.py` with Converse tool specs
+    - `max_weight_within_contract` steps by 0.5 percentage points and becomes the source of numeric conditions in `rules.decide`
+    - _Requirements: 28.3, 28.4, 28.5, 5.3_
+  - [ ] 21.3 Write the Robert oracle test on the starter data
+    - Base max drawdown -10.4 %, +30 % TSLA max drawdown -30.1 % (tolerance 0.3 points), TSLA share of variance 86.7 % (tolerance 1 point)
+    - _Requirements: 28.6_
+
+- [ ] 22. Soft preferences decided through the debate (Req. 29)
+  - [ ] 22.1 Add `soft_preferences` to the contract schema and to the three Persona_Templates with verbatim excerpts
+    - _Requirements: 29.1_
+  - [ ] 22.2 Extend `agents/judge.py` and `rules.decide`
+    - Party A and Party B in an order seeded by the session id, role words stripped, equal claim count; per-preference JSON validated by schema; role mapped back by code; `not_satisfied` turns accept into accept with conditions; code forbids any upgrade; Trace records the order
+    - _Requirements: 29.2, 29.3, 29.4, 29.5, 5.9_
+  - [ ]* 22.3 Write property test: no Soft_Preference assessment upgrades a Verdict, and the Hard_Rule result always wins
+    - _Requirements: 29.4, 5.9_
+
+- [ ] 23. Documented ESG exclusion list (Req. 32)
+  - [ ] 23.1 Create `data/esg_exclusions.csv` (31 rows) and its entry in `docs/data_sources.md`; list it in the Snapshot_Manifest
+    - _Requirements: 32.1, 32.2, 32.5_
+  - [ ] 23.2 Add the `esg_exclusion` Hard_Rule and the `exclusion_cost` Exhibit
+    - _Requirements: 32.3, 32.4, 10.6_
+
+- [ ] 24. Ruling answers and demo cases (Req. 33)
+  - [ ] 24.1 Extend `agents/clerk.py` and the SessionView with the four answers built by code
+    - _Requirements: 33.1, 33.4_
+  - [ ] 24.2 Create `demo/cases.yaml` with the five cases and expected outcomes; add the four-answers card to Friendly_Mode
+    - _Requirements: 33.2, 33.3, 33.4_
+
+- [ ] 25. Precedents (Req. 31)
+  - [ ] 25.1 Create `tribunal/precedents.py` (`put_precedent`, `closest`) on the Session_Store partition `precedent`, with an in-memory implementation for tests
+    - _Requirements: 31.1, 31.3_
+  - [ ] 25.2 Pass the closest Precedent to the Judge; check in code that a named differing field exists; create `scripts/seed_precedents.py`
+    - _Requirements: 31.2, 31.4_
+
+- [ ] 26. Appeal (Req. 30)
+  - [ ] 26.1 Accept `appeal_of` and `change` in `POST /sessions`; create `tribunal/appeal.py::diff_sessions`
+    - _Requirements: 30.2, 30.3, 30.4_
+  - [ ] 26.2 Add the Appeal control and the side-by-side `AppealView` to the UI
+    - _Requirements: 30.1, 30.3_
+
+- [ ] 27. Benchmark (Req. 34)
+  - [ ] 27.1 Create `guide/bench/` (`baseline.py`, `run.py`, Wilson intervals, Confidence_Labels, call-count guard)
+    - _Requirements: 34.1, 34.2, 34.3, 34.5_
+  - [ ] 27.2 Write `bench/cases.yaml` (at least five extra cases), run N=5 on AWS before Sunday 16:00, commit `docs/benchmark.md` and `docs/benchmark.json`
+    - _Requirements: 34.1, 34.4_
+
+- [ ] 28. Demo resilience and jury access (Req. 35)
+  - [ ] 28.1 Create `scripts/create_demo_user.sh` and document the jury credentials step in the README (password from the environment, never committed)
+    - _Requirements: 35.1_
+  - [ ] 28.2 Add the `?replay=1` route and `npm run build:replay` with the "Replay of a recorded session" label
+    - _Requirements: 35.3, 35.4, 35.5_
+  - [ ] 28.3 Create `scripts/export_demo.py`; export every demo and Benchmark session to `demo/sessions/` before Sunday 23:59
+    - _Requirements: 35.2_
 
 ## Notes
 
@@ -722,23 +807,23 @@ Completed tasks 1.1, 3.1, 3.3, 6.1, and 7.1 keep their text and status. Where th
 {
   "waves": [
     { "id": 0, "tasks": ["1.1", "7.1"] },
-    { "id": 1, "tasks": ["1.3", "1.4", "1.6", "2.1", "3.1", "3.3", "6.1", "7.2", "12.3"] },
+    { "id": 1, "tasks": ["1.3", "1.4", "1.6", "2.1", "3.1", "3.3", "6.1", "7.2", "12.3", "23.1"] },
     { "id": 2, "tasks": ["1.5", "1.7", "1.8", "2.4", "2.5", "3.4", "3.5", "3.6", "3.7", "3.8", "6.2", "6.5", "7.3", "7.8", "9.1", "12.4", "12.8", "12.12", "12.13", "18.1"] },
     { "id": 3, "tasks": ["1.2", "1.9", "2.2", "3.2", "4.1", "6.3", "6.4", "6.6", "7.4", "7.11", "12.1", "12.7", "12.9", "12.11", "12.14", "12.15", "17.6", "18.2"] },
-    { "id": 4, "tasks": ["2.3", "2.6", "2.7", "2.8", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "6.7", "6.8", "7.5", "12.6", "12.17", "14.1", "15.1", "19.3"] },
-    { "id": 5, "tasks": ["6.9", "7.6", "7.7", "7.9", "8.1", "8.2", "12.16", "12.21", "12.23", "14.2", "14.3", "15.2", "17.9", "19.1", "19.4"] },
-    { "id": 6, "tasks": ["7.10", "8.3", "8.5", "12.24", "14.4", "14.5", "15.3", "17.10"] },
-    { "id": 7, "tasks": ["8.4", "8.6", "8.7", "11.1", "11.2", "15.4"] },
+    { "id": 4, "tasks": ["2.3", "2.6", "2.7", "2.8", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "6.7", "6.8", "7.5", "12.6", "12.17", "14.1", "15.1", "19.3", "21.1", "22.1", "28.1"] },
+    { "id": 5, "tasks": ["6.9", "7.6", "7.7", "7.9", "8.1", "8.2", "12.16", "12.21", "12.23", "14.2", "14.3", "15.2", "17.9", "19.1", "19.4", "21.2", "23.2"] },
+    { "id": 6, "tasks": ["7.10", "8.3", "8.5", "12.24", "14.4", "14.5", "15.3", "17.10", "21.3", "22.2"] },
+    { "id": 7, "tasks": ["8.4", "8.6", "8.7", "11.1", "11.2", "15.4", "24.1", "22.3"] },
     { "id": 8, "tasks": ["9.2", "11.3", "11.6", "11.12", "15.5", "17.2"] },
-    { "id": 9, "tasks": ["9.3", "9.4", "9.5", "9.6", "9.7", "9.8", "11.4", "17.3", "17.5", "17.7"] },
-    { "id": 10, "tasks": ["11.5", "11.7", "11.8", "11.9", "17.1", "17.8"] },
-    { "id": 11, "tasks": ["11.10", "11.11", "14.6", "15.6", "17.4"] },
+    { "id": 9, "tasks": ["9.3", "9.4", "9.5", "9.6", "9.7", "9.8", "11.4", "17.3", "17.5", "17.7", "24.2", "25.1", "27.1"] },
+    { "id": 10, "tasks": ["11.5", "11.7", "11.8", "11.9", "17.1", "17.8", "25.2", "26.1"] },
+    { "id": 11, "tasks": ["11.10", "11.11", "14.6", "15.6", "17.4", "26.2", "28.2"] },
     { "id": 12, "tasks": ["14.7", "18.3"] },
     { "id": 13, "tasks": ["12.20", "18.4"] },
     { "id": 14, "tasks": ["18.5", "18.6"] },
     { "id": 15, "tasks": ["18.7", "18.8", "18.9", "18.10"] },
-    { "id": 16, "tasks": ["12.2", "18.11", "19.2"] },
-    { "id": 17, "tasks": ["12.5", "12.22"] }
+    { "id": 16, "tasks": ["12.2", "18.11", "19.2", "27.2", "28.3"] },
+    { "id": 17, "tasks": ["12.5", "12.22", "1.10", "12.25", "18.12"] }
   ]
 }
 ```
