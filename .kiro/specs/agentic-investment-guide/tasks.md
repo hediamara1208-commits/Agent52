@@ -14,7 +14,7 @@ The Delivery Tiers in the requirements document decide what is built. Tasks mark
 
 | Track | Owner | Order |
 | --- | --- | --- |
-| A: data and toolkit | | 2.1, 2.5, 1.3, 1.4, 1.6, 1.8 (lean), 2.2, 21.1, 22.1, 23.1, 3.7, 3.8, 4.1, 21.2, 21.3, 23.2, 4.2, 4.3, 4.7 |
+| A: data and toolkit | | 1.11, 2.1, 2.5, 1.3, 1.4, 1.6, 1.8 (lean), 2.2, 21.1, 22.1, 23.1, 3.7, 3.8, 4.1, 21.2, 21.3, 23.2, 4.2, 4.3, 4.7 |
 | B: agents and tribunal | | 6.2, 6.6, 6.7, 7.3, 7.4, 7.5, 7.6, 7.8, 7.9, 7.10, 29.1, 29.2, 29.3, 29.4, 8.3, 29.5, 29.6, 24.1, 9.1, 17.1, 9.4, then gate 1, then 17.3, 26.1, 25.1, 25.2, 27.1, 29.7 |
 | C: front end | | 11.1 first (the SessionView schema is the contract between tracks), then 11.2, 11.3, 11.4, 11.5 against fixture SessionViews, 24.2, 26.2, 28.2 |
 | D: AWS and deliverables | | 12.1, 12.7, 12.8, 12.12, 12.13, 12.15 (lean), 12.17, 18.1, 18.2, 28.1, 18.3, 17.2, 17.4, 17.5, 17.6, 18.4, 18.5, 18.6 (lean), 18.7, then gate 2, then 12.2, 27.2, 28.3 |
@@ -76,6 +76,9 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 
   - [ ]* 1.10 Full SnapshotStore (Tier 3): ETag-conditional pointer, VersionId reads, verified Cache_Fallback with `served_from`, `classify_s3_error`
     - _Requirements: 17.4, 17.5, 17.6, 17.8, 17.10 to 17.13_
+
+  - [ ] 1.11 Extend `Config` in `guide/config.py` with `model_ids` (advocate, investigator, judge; empty falls back to `model_id`), `advocate_scope` (`size_only` or `universe`, validated), and `agent_timeout_seconds` (positive); the keys already exist in `config.yaml`
+    - _Requirements: 4.9, 8.7, 36.3_
 
 - [ ] 2. Implement Investor_Contract, schema validation, and Profiler
   - [x] 2.1 Create `contract/schema.json` and `contract/validate.py`
@@ -234,7 +237,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - _Requirements: 9.8, 21.4, 21.5, 21.6, 21.7, 21.8_
 
   - [ ] 6.7 Create the Instruction_Files and Skill_Files
-    - `guide/agents/instructions/{profiler,advocate,investigator,judge}.md` (the Clerk is a code template and has no Instruction_File) with the sections Role, Goals, Allowed tools, Output JSON format, Forbidden behaviors, Citation rule, Guidance-only rule, Tone, and Included skills; stretch agents get their own file when built
+    - `guide/agents/instructions/{advocate,investigator,judge}.md` (the Profiler and the Clerk are code and have no Instruction_File) with the sections Role, Goals, Allowed tools, Output JSON format, Forbidden behaviors, Citation rule, Guidance-only rule, Tone, and Included skills; stretch agents get their own file when built
     - `guide/agents/skills/{citing_exhibits,guidance_only,data_limits,plain_language,persona_handling}.md` with the content listed in the design; every Instruction_File lists `guidance_only`
     - No credentials or secrets; every file forbids instructions to place, route, prefill, or trigger an order, transfer, or brokerage or bank action
     - _Requirements: 21.1, 21.2, 21.3, 21.9, 21.11, 21.12, 21.13, 21.14_
@@ -267,10 +270,10 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5, 4.6**
 
   - [ ] 7.5 Create `tribunal/rules.py` with `evaluate_rules` and `decide`
-    - Rules: per-asset cap, asset-class cap, crypto cap, sector cap, max volatility, max drawdown, ESG (unverified when scores absent), speculative limit (crypto plus assets above `speculative_volatility_threshold`)
-    - Bisection over position size for numeric conditions; reject when no positive size passes; tension statement for low-to-moderate risk personas exceeding the per-asset cap
-    - Log each rule check to the Trace
-    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.9, 5.10_
+    - Rules on the proposed portfolio: per-asset cap (equity and crypto only, not ETFs), asset-class caps, sector caps, crypto cap, max volatility, max drawdown, speculative limit (crypto plus assets above `speculative_volatility_threshold` 0.45), ESG exclusion from `data/esg_exclusions.csv` when the contract lists `fossil_fuel_screen`
+    - Verdict: all pass gives accept; otherwise `max_weight_within_contract` (task 21.2, 0.5-point grid) gives accept with conditions; an ESG failure or no positive size gives reject; tension statement for low-to-moderate personas exceeding the per-asset cap
+    - Log each rule check to the Trace; reproduce the expected Verdicts of the design table "Demo cases"
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.9, 5.10, 5.13, 5.14, 5.15, 32.3_
 
   - [ ]* 7.6 Write property test for Judge determinism and verdict consistency
     - **Property 13: Judge determinism and verdict consistency**
@@ -287,7 +290,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - _Requirements: 5.11, 5.12, 13.1, 13.6_
 
   - [ ] 7.9 Create `tribunal/sensitivity.py`
-    - Vary position size and horizon over `sensitivity_ranges` from config, and the 2022 drawdown period; report threshold or "no change in tested range"; store each result as an Exhibit
+    - Vary position size (0.5-point grid, same as `max_weight_within_contract`) and each Investor_Contract value used by a failing rule over `sensitivity_ranges`, and the 2022 drawdown period; report threshold or "no change in tested range" (horizon is used by no rule, so report it as no change); store each result as an Exhibit
     - _Requirements: 6.5, 6.6, 6.7_
 
   - [ ]* 7.10 Write property test for sensitivity thresholds
@@ -729,8 +732,10 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 
 - [ ] 21. Base portfolios and risk evidence (Req. 28)
   - [ ] 21.1 Add `base_portfolio` to the three Persona_Templates, `personas.schema.json`, and `contract/portfolio.py::propose(base, asset, weight)`
-    - Robert: XBB.TO 0.40, ZST.TO 0.15, XIU.TO 0.15, SPY 0.15, JNJ 0.08, RY.TO 0.07; Amira and Mateo: team assumptions with rationale; weights sum to 1
-    - _Requirements: 28.1, 28.2, 28.7_
+    - Values from the design table "Proposed Contract_Values": Robert XBB.TO 0.40, ZST.TO 0.15, XIU.TO 0.15, SPY 0.15, JNJ 0.08, RY.TO 0.07; Amira QQQ 0.25, SPY 0.20, XIU.TO 0.15, NVDA 0.10, MSFT 0.10, BTC-USD 0.10, SHOP.TO 0.05, XBB.TO 0.05; Mateo XIU.TO 0.25, XBB.TO 0.25, SPY 0.15, ESGV 0.15, RY.TO 0.10, MSFT 0.05, AGG 0.05; basis `assumption` with rationale
+    - Mateo `esg_exclusions: ["fossil_fuel_screen"]` with basis `assumption` and the rationale of the design table
+    - _Requirements: 28.1, 28.2, 28.7, 32.3_
+
   - [ ] 21.2 Add `risk_contribution`, `portfolio_comparison`, and `max_weight_within_contract` to `toolkit/metrics.py` with Converse tool specs
     - `max_weight_within_contract` steps by 0.5 percentage points and becomes the source of numeric conditions in `rules.decide`
     - _Requirements: 28.3, 28.4, 28.5, 5.3_
@@ -756,7 +761,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 - [ ] 24. Ruling answers and demo cases (Req. 33)
   - [ ] 24.1 Extend `agents/clerk.py` and the SessionView with the four answers built by code
     - _Requirements: 33.1, 33.4_
-  - [ ] 24.2 Create `demo/cases.yaml` with the five cases and expected outcomes; add the four-answers card to Friendly_Mode
+  - [ ] 24.2 Create `demo/cases.yaml` with the five cases, the `canadian_heavy` Custom_Profile, the Robert Appeal, and the expected Verdicts and maximum weights of the design table "Demo cases"; add a code-only test of every expected Verdict; add the four-answers card to Friendly_Mode
     - _Requirements: 33.2, 33.3, 33.4_
 
 - [ ] 25. Precedents (Req. 31)
@@ -766,7 +771,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - _Requirements: 31.2, 31.4_
 
 - [ ] 26. Appeal (Req. 30)
-  - [ ] 26.1 Accept `appeal_of` and `change` in `POST /sessions`; create `tribunal/appeal.py::diff_sessions`
+  - [ ] 26.1 Accept `appeal_of` and `change` (position size, period, or one Investor_Contract value) in `POST /sessions`; create `tribunal/appeal.py::diff_sessions`
     - _Requirements: 30.2, 30.3, 30.4_
   - [ ] 26.2 Add the Appeal control and the side-by-side `AppealView` to the UI
     - _Requirements: 30.1, 30.3_
@@ -824,7 +829,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 {
   "waves": [
     { "id": 0, "tasks": ["1.1", "7.1"] },
-    { "id": 1, "tasks": ["1.3", "1.4", "1.6", "2.1", "3.1", "3.3", "6.1", "7.2", "12.3", "23.1"] },
+    { "id": 1, "tasks": ["1.3", "1.4", "1.6", "2.1", "3.1", "3.3", "6.1", "7.2", "12.3", "23.1", "1.11"] },
     { "id": 2, "tasks": ["1.5", "1.7", "1.8", "2.4", "2.5", "3.4", "3.5", "3.6", "3.7", "3.8", "6.2", "6.5", "7.3", "7.8", "9.1", "12.4", "12.8", "12.12", "12.13", "18.1"] },
     { "id": 3, "tasks": ["1.2", "1.9", "2.2", "3.2", "4.1", "6.3", "6.4", "6.6", "7.4", "7.11", "12.1", "12.7", "12.9", "12.11", "12.14", "12.15", "17.6", "18.2"] },
     { "id": 4, "tasks": ["2.3", "2.6", "2.7", "2.8", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "6.7", "6.8", "7.5", "12.6", "12.17", "14.1", "15.1", "19.3", "21.1", "22.1", "28.1"] },

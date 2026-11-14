@@ -45,7 +45,7 @@ Gates (local time, America/Montreal):
 ## Glossary
 
 - **Guide_System**: The complete Agentic Investment Guide application, including agents, tools, UI, and AWS integration.
-- **Profiler_Agent**: The agent that converts a Persona_Template, an edited template, or a custom-profile form into an Investor_Contract. It reads templates and form values only and does not invent persona facts.
+- **Profiler_Agent**: The deterministic code component (named "agent" for history; it makes no model call) that converts a Persona_Template, an edited template, or a custom-profile form into an Investor_Contract. It reads templates and form values only and does not invent persona facts.
 - **Investigator_Agent**: The agent that reads every option with its Risk_Panel and the Investor_Contract and states, with Exhibits, which risks are material for this investor and why. It computes nothing itself.
 - **Advocate_Agent**: The agent that identifies the goal behind an Investment_Request and proposes up to three Options that serve it, citing Exhibits. It never decides whether an Option passes the Hard_Rules.
 - **Judge_Agent**: The agent that weighs the Soft_Preferences, compares the verified Options using the Investigator_Agent findings, and writes the narrative of the Verdict decided by code.
@@ -196,7 +196,7 @@ Gates (local time, America/Montreal):
 6. WHEN a claim is rejected, THE Guide_System SHALL return it to the originating agent for revision, up to 2 revision attempts, and THEN SHALL remove the claim and record the removal in the Trace.
 7. THE Guide_System SHALL verify that every number in an agent output equals the value of the cited Exhibit after rounding the Exhibit value to the number of decimals stated in the output.
 8. THE Advocate_Agent and THE Investigator_Agent SHALL use the same Toolkit and the same Exhibit_Registry, and each SHALL make at most 6 Toolkit calls per Tribunal_Session.
-9. WHERE configuration sets `advocate_scope` to `size_only`, THE Advocate_Agent SHALL propose only smaller position sizes of the requested asset; WHERE it is `universe`, it MAY propose other assets of the assets_universe table.
+9. WHERE the configuration key `advocate_scope` is `size_only` (the default), THE Advocate_Agent SHALL propose only smaller position sizes of the requested asset; WHERE it is `universe`, it MAY propose other assets of the assets_universe table.
 
 ### Requirement 5: Judge and Governance
 
@@ -216,6 +216,9 @@ Gates (local time, America/Montreal):
 10. WHEN the Investor_Contract has a risk level of `low_to_moderate` and the Investment_Request exceeds a per-asset cap, THE Judge_Agent SHALL state the tension between the request and the Investor_Contract in the Verdict.
 11. WHEN the Judge_Agent evaluates arguments, THE Guide_System SHALL check each Advocate_Agent, Investigator_Agent, and Judge_Agent output and the Clerk Ruling against the Guidance_Only_Rule and SHALL record a pass or fail result in the Trace.
 12. IF an agent output fails the Guidance_Only_Rule check, THEN THE Judge_Agent SHALL remove the offending statement from the Ruling and SHALL record the removal in the Trace.
+13. THE per-asset cap SHALL apply only to assets whose asset_class is `equity` or `crypto`; diversified ETFs SHALL be limited by the per-asset-class caps and the portfolio rules only.
+14. THE speculative-asset set SHALL contain every crypto asset and every asset whose annualized volatility in CAD over the analysis period exceeds `speculative_volatility_threshold` (0.45 by default), computed as an Exhibit.
+15. IF the ESG exclusion rule fails, THEN THE Verdict SHALL be reject, because no position size satisfies an exclusion.
 
 ### Requirement 6: Clerk Ruling and Sensitivity
 
@@ -502,7 +505,7 @@ Gates (local time, America/Montreal):
 
 #### Acceptance Criteria
 
-1. THE Guide_System SHALL provide for each of the Profiler_Agent (free-text intake only), Advocate_Agent, Investigator_Agent, and Judge_Agent, and for each enabled stretch agent, one Instruction_File at `guide/agents/instructions/<agent>.md`.
+1. THE Guide_System SHALL provide for each of the Advocate_Agent, Investigator_Agent, and Judge_Agent, and for each enabled stretch agent, one Instruction_File at `guide/agents/instructions/<agent>.md`; the Profiler and the Clerk are code and have none.
 2. THE Instruction_File SHALL contain the sections role, goals, allowed tools, output JSON format, forbidden behaviors, citation rule, guidance-only rule, tone, and included skills.
 3. THE Guide_System SHALL provide the Skill_Files `citing_exhibits.md`, `guidance_only.md`, `data_limits.md`, `plain_language.md`, and `persona_handling.md` at `guide/agents/skills/<skill>.md`.
 4. THE Instruction_Loader SHALL compose the System_Prompt of an agent from the agent's Instruction_File followed by the Skill_Files listed in the Instruction_File, in the listed order.
@@ -524,7 +527,7 @@ Gates (local time, America/Montreal):
 #### Acceptance Criteria
 
 1. THE UI SHALL be a single-page web application built from the `frontend/` directory of the repository and hosted on AWS Amplify Hosting.
-2. WHEN a user opens the UI without a valid Identity_Provider session, THE UI SHALL display the sign-in page and SHALL display no Tribunal_Session data.
+2. WHEN a user opens the UI without a valid Identity_Provider session, THE UI SHALL display the sign-in page and SHALL display no Tribunal_Session data, except in the Replay_Mode of Requirement 35, which renders only the exported demo SessionViews.
 3. THE Session_API SHALL authorize every request with a JSON Web Token issued by the Identity_Provider.
 4. IF a request to the Session_API carries no valid token, THEN THE Session_API SHALL return HTTP 401 and SHALL create or return no Tribunal_Session data.
 5. WHEN the UI submits a profile and an Investment_Request, THE Session_API SHALL store a Tribunal_Session record with status `running` in the Session_Store and SHALL return the session identifier within 3 seconds.
@@ -654,7 +657,7 @@ Gates (local time, America/Montreal):
 
 #### Acceptance Criteria
 
-1. WHEN a Tribunal_Session is complete, THE UI SHALL offer an Appeal control that lets the user change exactly one input among position size, horizon in years, maximum drawdown, and analysis period.
+1. WHEN a Tribunal_Session is complete, THE UI SHALL offer an Appeal control that lets the user change exactly one input: the position size, the analysis period, or any single Investor_Contract value (for example `speculative_limit`, `max_drawdown`, or `per_asset_cap`).
 2. WHEN an Appeal is submitted, THE Guide_System SHALL run a new Tribunal_Session with the changed input, linked to the original session identifier, and SHALL leave the original Tribunal_Session unchanged.
 3. THE UI SHALL display the original and the Appeal Verdicts side by side with the changed input, the Hard_Rules whose result changed, the Soft_Preference assessments that changed, and the Exhibits whose value changed.
 4. THE Session_API SHALL expose the Appeal as a parameter of the create-session operation and SHALL add no other operation.
@@ -689,8 +692,8 @@ Gates (local time, America/Montreal):
 #### Acceptance Criteria
 
 1. THE Ruling SHALL contain, in addition to the sections of Requirement 6, four headed answers: "Which data?", "Why this choice?", "Which limits?", and "What would change the answer?", each built from Exhibits, rule results, and the Assumptions and Limits sections.
-2. THE Guide_System SHALL ship five demo cases in `demo/cases.yaml`: Robert "30% in TSLA"; Amira "30% in TSLA"; Mateo "10% in XOM"; Amira "40% in BTC-USD"; and a Canadian-heavy Base_Portfolio requesting "20% in SPY" to improve diversification.
-3. THE expected outcome of each demo case SHALL be recorded in `demo/cases.yaml`, and at least one demo case SHALL be expected to end in accept or accept with conditions on diversification grounds.
+2. THE Guide_System SHALL ship five demo cases in `demo/cases.yaml`: Robert "30% in TSLA"; Amira "30% in TSLA"; Mateo "10% in XOM"; Amira "40% in BTC-USD"; and the `canadian_heavy` Custom_Profile (Mateo's contract with an all-Canadian Base_Portfolio) requesting "20% in SPY".
+3. THE expected Verdict and maximum weight of each demo case SHALL be recorded in `demo/cases.yaml` as listed in the design ("Demo cases"), the set SHALL contain at least one accept, one accept with conditions, and one reject, and a test SHALL check every expected Verdict with code only (no model call).
 4. THE Friendly_Mode SHALL present the four answers of 33.1 in plain language of at most 60 words each, with Exhibit links.
 
 ### Requirement 34: Evaluation Benchmark
@@ -727,7 +730,7 @@ Gates (local time, America/Montreal):
 
 1. THE Tribunal_Orchestrator SHALL run, in this order and once each: the Profiler (code), the Risk_Panel and Hard_Rules of the request (code), the Advocate_Agent, the Risk_Panel and Hard_Rules of each Option (code), the Investigator_Agent, the Judge_Agent, and the Clerk template with the citation, guidance-only, and Guardrail checks (code).
 2. THE agents SHALL never call one another; THE Tribunal_Orchestrator SHALL be the only component that passes data between stages.
-3. THE Guide_System SHALL make at most 3 agent invocations per Tribunal_Session, not counting citation revisions bounded by Requirement 4.6, and SHALL apply a configured timeout to each invocation.
+3. THE Guide_System SHALL make at most 3 agent invocations per Tribunal_Session, not counting citation revisions bounded by Requirement 4.6, and SHALL stop each invocation after `agent_timeout_seconds` from configuration.
 4. THE Guide_System SHALL validate every agent output against a JSON schema and SHALL treat an invalid output as a failed stage.
 5. IF the Advocate_Agent fails, THEN THE Ruling SHALL offer only the request and the maximum weight within the contract computed by code.
 6. IF the Investigator_Agent fails, THEN THE Ruling SHALL show the Risk_Panels without the material-risk explanation.
