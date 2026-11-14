@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.cache/
+.venv/
+node_modules/
+cdk.out/
+.pytest_cache/
+.hypothesis/
