@@ -29,7 +29,7 @@ AWS Amplify Hosting serves static and server-rendered JavaScript web apps (React
 | (b) Streamlit container | Streamlit in a container on App Runner or ECS Fargate behind CloudFront, Cognito in front | Unchanged, no API layer | Lowest: UI tasks stay Python | App Runner or Fargate, CloudFront, Cognito | Fallback |
 | (c) Amplify Gen 2 | Amplify Gen 2 defines auth, data, and hosting in TypeScript, with a custom backend | Unchanged behind an API | High, and splits infrastructure across two tools | Amplify, Cognito, AppSync or API | Rejected |
 
-Decision: option (a).
+Decision: option (a), under a hard gate. At Sunday 09:00 local time, IF option (a) has not completed one Tribunal_Session end to end on AWS, THEN the team switches to option (b) on App Runner, which reads the same `SessionView` and calls the same `run_session`, and stops work on option (a). The Session_API and the Session_Store remain usable by option (b).
 
 - It keeps the Python core (agents, Toolkit, Judge, Clerk) unchanged: the SPA only renders one `SessionView` JSON document and calls three API operations.
 - It follows the team's own Amplify suggestion and uses AWS services that jurors can see: Amplify, Cognito, API Gateway, DynamoDB, AgentCore Runtime.
@@ -44,7 +44,7 @@ Why AgentCore Runtime and not Lambda for the orchestrator: a session can exceed 
 
 ### AWS service map
 
-Legend: MVP means deployed by `make deploy` and used in the demo. Stretch means switched on by a CDK context flag and built only if time remains. Not adopted means evaluated and rejected for the reason given.
+Legend: MVP means deployed by `make deploy` and used in the demo. The Delivery Tiers of the requirements document override this table: an MVP row marked "lean" is built only in its Tier 2 form. Stretch means switched on by a CDK context flag and built only if time remains. Not adopted means evaluated and rejected for the reason given.
 
 | Service | Role in the system | Requirement | Status |
 | --- | --- | --- | --- |
@@ -52,21 +52,21 @@ Legend: MVP means deployed by `make deploy` and used in the demo. Stretch means 
 | Amazon Cognito (user pool, app client) | Sign-in and JWTs for the UI and the Session_API | 22.2 to 22.4 | MVP |
 | Amazon API Gateway (REST) | Session_API with a Cognito authorizer | 22.3 to 22.11 | MVP |
 | AWS Lambda | Session_API handlers (Python) | 22.5 to 22.9 | MVP |
-| Amazon DynamoDB | Session_Store: SessionViews, Custom_Profiles, 7-day TTL | 22.5 to 22.12 | MVP |
+| Amazon DynamoDB | Session_Store: SessionViews, Custom_Profiles, 7-day TTL; shared Precedent partition | 22.5 to 22.12, 31 | MVP |
 | Amazon Bedrock AgentCore Runtime | Agent_Runtime for the orchestrator, agents, and Toolkit | 23.1 to 23.3 | MVP |
 | Amazon ECR | Container image of the Agent_Runtime (CDK image asset) | 23.1 | MVP |
 | Amazon Bedrock Converse API | Every agent call, with tool use | 2.8, 8.1 | MVP |
 | Amazon Bedrock Guardrails | Challenge_Rules and Guidance_Only_Rule on every call | 5.7, 13.5 | MVP |
 | AgentCore Memory | Contracts and summaries, keyed by user and profile | 8.4, 23.4 | MVP |
 | AgentCore Observability (OpenTelemetry) | Spans for agent calls, tool calls, Judge checks | 8.3, 23.5 | MVP |
-| Amazon S3 | Primary_Store: versioned, SSE-S3, deny-delete bucket policy; Athena results bucket | 17, 18 | MVP |
+| Amazon S3 | Primary_Store: versioned, SSE-S3, deny-delete bucket policy; one pinned snapshot with checksums (Tier 2); conditional pointer, VersionId reads, and Cache_Fallback deferred (Tier 3); Athena results bucket | 17, 18 | MVP (lean) |
 | AWS Glue Data Catalog | Explicit tables partitioned by `snapshot_id` | 18.4, 18.5 | MVP |
 | Amazon Athena | Validation cross-checks and exploration, never an Exhibit read path | 19 | MVP |
 | AWS IAM | One least-privilege role per component | 8.9 to 8.12, 25.1, 25.2 | MVP |
-| Amazon CloudWatch and SNS | Log groups, one dashboard, three alarms, EMF metrics | 25.3 to 25.5 | MVP |
+| Amazon CloudWatch | Log groups with 30-day retention and Bedrock model invocation logs (Tier 2); dashboard, alarms, and SNS topic deferred (Tier 3) | 25.3, 25.6 (25.4, 25.5 deferred) | MVP (lean) |
 | Bedrock model invocation logging | Prompt and response audit log in CloudWatch | 25.6 | MVP |
-| AWS X-Ray | Active tracing of the Session_API Lambdas | 25.8 | MVP |
-| AWS Budgets | Monthly cost budget with 80 percent and forecast alerts | 25.7 | MVP |
+| AWS X-Ray | Active tracing of the Session_API Lambdas | 25.8 | Stretch (Tier 3) |
+| AWS Budgets | Monthly cost budget with 80 percent and forecast alerts | 25.7 | Stretch (Tier 3) |
 | AWS CDK (Python) and CloudFormation | All resources, one-command deploy | 26 | MVP |
 | AgentCore Gateway | Toolkit functions as MCP tools | 23.7, 23.8 | Stretch |
 | AgentCore Identity | JWT inbound authorization on the Agent_Runtime | 23.9 | Stretch |
@@ -81,7 +81,7 @@ Legend: MVP means deployed by `make deploy` and used in the demo. Stretch means 
 | AWS Lake Formation | Not adopted: one account, one data owner, and IAM plus the bucket policy already express the permissions; Lake Formation would add a second permission model | none | Not adopted |
 | AWS Secrets Manager | Not adopted: the system holds no secret; credentials come from the AWS credential chain and roles | 25.13 | Not adopted |
 
-Demo-facing statement: the video should show, in this order, the Amplify-hosted UI and the Cognito sign-in; a Tribunal_Session for Robert and one for Amira with the courtroom scene; the AgentCore Observability view and the Trace of one session (spans, Instruction_Hash, Snapshot_Id); the Bedrock Guardrail blocking an order instruction; the S3 bucket with the pinned snapshot, the Glue tables, and one Athena validation query; and the CloudWatch dashboard. The AWS Budgets alarm, the CDK stacks list, and the Session_Store item can appear as one-second cutaways. Stretch services are shown only if they are built.
+Demo-facing statement (5 minutes): (1) Cognito sign-in with the demo user and the Amplify-hosted UI, 15 s; (2) Robert "30% in TSLA" in Friendly_Mode: courtroom, one claim struck by the Citation_Validator, Verdict accept with conditions or reject with the computed maximum weight, then one Appeal (horizon 10 years) side by side, 90 s; (3) Amira with the same request: a different Verdict that cites Robert's Precedent, 40 s; (4) Mateo "10% in XOM": ESG exclusion with its source and the exclusion-cost Exhibit, 30 s; (5) the accepted diversification case, 15 s; (6) Advanced_Mode: one statement traced to its Exhibit, source file, and Snapshot_Id, then the AgentCore Observability view and one Guardrail block, 40 s; (7) data platform: S3 snapshot, Glue tables, one Athena validation query, 20 s; (8) the Benchmark slide from `docs/benchmark.md`, 20 s; closing, 20 s. Stretch services appear only if they are built.
 
 ### Technology choices
 
@@ -1060,6 +1060,63 @@ def build_alerts(events, portfolio, registry, as_of) -> list[Alert]
 - `detect_stress_events` is a pure function: a Stress_Event occurs when drawdown from the prior peak exceeds the configured threshold.
 - Flight_Director pauses at a Stress_Event. Copilot explains with Exhibits computed as of that date and asks hold, sell, or buy more.
 - Behavior_Analyst logs each decision with date and drawdown. At session end it compares the contract `max_drawdown` with the drawdown at the first sell and proposes an updated contract. The update is stored in AgentCore Memory only after explicit user approval.
+
+## Hackathon extensions (Req. 28 to 35)
+
+These extensions carry the originality of the project: the debate decides something (29), the investor can appeal (30), rulings stay consistent across profiles (31), and the tribunal is measured against a single assistant (34). They reuse the existing components and add no AWS service.
+
+### Base portfolios and risk evidence (Req. 28)
+
+`personas.yaml` gains `base_portfolio` per Persona (basis `assumption`, rationale). Proposed portfolio: `{t: w_t * (1 - x)} + {asset: x}` (added to the scaled weight when the asset is already held). New functions in `toolkit/metrics.py`, each registered as a Converse tool and returning one Exhibit:
+
+```python
+risk_contribution(registry, weights, start, end, as_of=None) -> Exhibit | ToolError
+portfolio_comparison(registry, base, proposed, start, end, as_of=None) -> Exhibit | ToolError
+max_weight_within_contract(registry, asset, contract, base, start, end, step=0.005) -> Exhibit | ToolError
+```
+
+Alignment follows Req. 3.3 (dates on which every held asset has a price). Test oracle on the starter data, Robert Base_Portfolio XBB.TO 40 / ZST.TO 15 / XIU.TO 15 / SPY 15 / JNJ 8 / RY.TO 7, CAD, daily rebalanced, 1,227 aligned returns:
+
+| Portfolio | Vol | Max DD | Worst 252 d | 2022 | TSLA share of variance |
+| --- | --- | --- | --- | --- | --- |
+| Base | 6.5 % | -10.4 % | -5.9 % | -6.1 % | 0 % |
+| +5 % TSLA | 7.8 % | -11.8 % | -9.4 % | -9.5 % | 26.6 % |
+| +30 % TSLA | 20.1 % | -30.1 % | -27.4 % | -26.0 % | 86.7 % |
+
+`max_weight_within_contract` replaces the bisection of task 7.5 as the source of numeric conditions, so every condition is itself an Exhibit.
+
+### Soft preferences decided through the debate (Req. 29)
+
+`InvestorContract.soft_preferences: list[{id, text, provenance, excerpt}]`. Examples, with their verbatim excerpts from section 3 of the Context_Document: Robert "entreprises établies, modèle d'affaires compréhensible" and "stabilité et qualité"; Amira "veut une certaine diversification et éviter de miser exclusivement sur la tech"; Mateo "équilibre croissance/stabilité" and "peu intéressé par le hautement spéculatif". Mateo's ESG exclusion is a Hard_Rule (Req. 32), not a Soft_Preference. Decision flow in `tribunal/rules.py::decide` and `agents/judge.py`:
+
+1. `evaluate_rules` on Hard_Rules (code). If no positive size passes, Verdict `reject` and the Soft_Preferences are still assessed for the Ruling but cannot change the Verdict.
+2. The Judge receives `{"party_a": ..., "party_b": ...}`. `random.Random(session_id).random() < 0.5` decides the order (reproducible per session, recorded in the Trace). Role words ("Prosecutor", "Defense", "for", "against") are stripped from the claims, and each argument is truncated to the same number of claims.
+3. The Judge returns JSON `[{preference_id, assessment, deciding_party, exhibits}]`, validated against a schema; `deciding_party` is mapped back to the role by the orchestrator, never by the model.
+4. `not_satisfied` turns `accept` into `accept_with_conditions` with a narrative condition. Code enforces that no assessment upgrades a Verdict.
+
+### Appeal (Req. 30)
+
+`POST /sessions` accepts `appeal_of: <session_id>` and `change: {field, value}` with `field` in `position_size`, `horizon_years`, `max_drawdown`, `period`. The handler copies the original inputs from the Session_Store, applies one change, and starts a new session. `tribunal/appeal.py::diff_sessions(a, b)` returns changed Hard_Rule results, changed Soft_Preference assessments, and Exhibits whose metric matches but whose value differs. The UI renders `AppealView` with the two Verdicts side by side.
+
+### Precedents (Req. 31)
+
+Session_Store items with partition key `owner = "precedent"` and sort key `asset#<ticker>#<session_id>`. `tribunal/precedents.py`: `put_precedent(view)`, `closest(asset, weight)`. The Judge prompt receives the closest Precedent and the list of contract fields that differ; the Judge must name at least one differing field when the Verdicts differ, and the orchestrator checks that the named field exists. `scripts/seed_precedents.py` runs the five demo cases once after deployment.
+
+### ESG exclusion list (Req. 32)
+
+`data/esg_exclusions.csv` (31 rows), written by hand from a cited public methodology and recorded in `docs/data_sources.md`. Loaded by the Data_Loader and listed in the Snapshot_Manifest. The `esg_exclusion` Hard_Rule is evaluated when the contract lists exclusions. `exclusion_cost(registry, excluded, replacement, start, end)` returns an Exhibit; the replacement is the non-excluded asset of the same asset class with the highest return correlation to the excluded asset (itself computed and cited).
+
+### Ruling answers and demo cases (Req. 33)
+
+`agents/clerk.py` adds a `questions` block with four answers built by code from the Ruling: Which data (tables, period, Snapshot_Id, currency), Why this choice (deciding rules and Soft_Preferences), Which limits (Limits section and data_limits skill), What would change the answer (Sensitivity_Analysis and the Appeal hint). `demo/cases.yaml` holds the five cases with the expected outcome; the Canadian-heavy case uses a Base_Portfolio of XIU.TO, RY.TO, TD.TO, ENB.TO, and XBB.TO and requests 20 % SPY.
+
+### Benchmark (Req. 34)
+
+`guide/bench/` with `cases.yaml` (at least five more cases with expected outcomes, including requests that respect the contract), `baseline.py` (one Converse call: system prompt "You are an investment assistant", the Investor_Contract as JSON, the request; same model and Guardrail; no tools), and `run.py` (N runs per case and arm, Wilson intervals, Confidence_Labels, `docs/benchmark.md` and `docs/benchmark.json`). Numbers in Baseline outputs are counted as unverifiable because no Exhibit exists. Budget guard: the command prints the planned number of Bedrock calls and asks for confirmation above 300.
+
+### Demo resilience and jury access (Req. 35)
+
+`scripts/create_demo_user.sh` creates the Cognito demo user (admin-create-user with a permanent password read from the environment at run time, never committed). `scripts/export_demo.py` writes `demo/sessions/<case>.json` (SessionView, Trace, Precedents). The front end has a `?replay=1` route that loads these files from `public/replay/` through the same SessionView types, so both modes and the Appeal view render without the API. `npm run build:replay` produces a static bundle that opens from the file system; it is the fallback for the Friday pitch, when the AWS accounts no longer exist.
 
 ## Data Models
 

@@ -24,6 +24,24 @@ Evaluation of the ideaHedi.md concept, reflected in scope decisions:
 - Risks: seven or eight agents increase cost, latency, and demo complexity, while the jury favors simple, focused, verifiable approaches. The Flight Simulator needs a replay engine, stress-event detection, and persistent memory, which is a large build. Replay requires strict look-ahead control. Language models may invent numbers unless figures come from tools. The 5-year window and the survivorship-biased universe limit the strength of any conclusion. The dataset has no ESG scores, news, or fundamentals.
 - Scope decisions: the Tribunal is the MVP; the Flight Simulator is optional stretch; all numerical facts come from deterministic tools that emit numbered Exhibits; agents may only cite Exhibits; Prosecutor and Defense are two role prompts over a shared toolkit, not separate infrastructure. Data scope follows licensing: sources limited to personal use are excluded, and the persona list is a flexible template set rather than a fixed trio.
 
+## Hackathon Delivery Tiers (scope decision, 2026-11-14)
+
+Remaining build time is about 20 working hours: feature freeze Sunday 12:30, code and application deadline Sunday 23:59, AWS accounts closed Monday 13:59, finalist pitch Friday 2026-11-20 with no AWS account. The official grid weighs Solution 20 %, Agentic and explainability 20 %, Data 20 %, AWS 15 % (an eligibility condition: the integration must be real and each service justified; the brief explicitly discourages multiplying services to impress), Pitch 15 %, and UX 10 %. Requirements are delivered in three tiers. A Tier 3 item starts only after every Tier 1 and Tier 2 item works on the deployed URL.
+
+| Tier | Purpose | Requirements and criteria |
+| --- | --- | --- |
+| Tier 1: demo-critical | What the jury sees; scores Solution, Agentic, Data, UX | 1 to 7, 9.1 to 9.6, 9.8, 10.1 to 10.9, 11, 13, 16, 21, 28 to 35 |
+| Tier 2: AWS showcase, lean | Real, justified AWS integration that the demo shows | 8.1 to 8.9; 17.1 to 17.3 and 17.14 (one pinned snapshot read from S3, checksums in the manifest); 18.1 to 18.5, 18.7 to 18.9; 19.2 (row-count and duplicate checks), 19.5, 19.6, 19.8; 20.1, 20.4 to 20.7, 20.11; 22; 23.1 to 23.6; 25.3 and 25.6 (log retention and model invocation logging); 26.1 to 26.5, 26.7 |
+| Tier 3: deferred | Not visible in a 5-minute demo or not scored | 8.10 to 8.14 as template assertions (least privilege itself stays, through CDK grant helpers); 9.7; 17.4 to 17.13, 17.15, 17.16 (ETag-conditional pointer, VersionId reads, Cache_Fallback); 18.6, 18.10; 19.1 scanned-bytes cutoff, 19.3, 19.4, 19.7; 20.2, 20.3, 20.8 to 20.10; 23.7 to 23.9; 24; 25.1, 25.2 as template assertions, 25.4, 25.5, 25.7 to 25.13; 26.6; 27; 10.10 to 10.20; 12; 15 |
+
+Gates (local time, America/Montreal):
+
+1. Saturday 23:00: `python -m guide.run_session` runs Robert "30% in TSLA" end to end on the local machine with real Bedrock calls and prints a SessionView that validates against the schema.
+2. Sunday 09:00: hosting gate. IF the path Amplify, Cognito, Session_API, and Agent_Runtime does not complete one Tribunal_Session end to end, THEN the team switches to option (b) of the design (a Python UI in a container on AWS App Runner reading the same SessionView) and stops work on option (a).
+3. Sunday 12:30: feature freeze. The five demo cases of Requirement 33 run on the deployed URL.
+4. Sunday 20:00: the demo video is recorded on the deployed application.
+5. Sunday 23:59: code, exported SessionViews, and Replay_Mode (Requirement 35) are pushed to GitHub.
+
 ## Glossary
 
 - **Guide_System**: The complete Agentic Investment Guide application, including agents, tools, UI, and AWS integration.
@@ -97,6 +115,17 @@ Evaluation of the ideaHedi.md concept, reflected in scope decisions:
 - **S3_Build_Script**: (Optional, future) The new script `data/build_dataset_s3.py`, a command-line wrapper around the Seed_Import_Job that builds a dated Dataset_Snapshot in S3 from provided CSV files.
 - **AWS_Service_Map**: The table in the design document that lists each AWS service, its role in the Guide_System, the requirement it serves, and whether it is MVP or stretch.
 
+- **Base_Portfolio**: A fictional portfolio defined per Persona in the Persona_File, with weights summing to 1, into which an Investment_Request is inserted.
+- **Hard_Rule**: An Investor_Contract rule with a numeric limit or an exclusion list, decided by deterministic code.
+- **Soft_Preference**: A stated preference of the investor that cannot be reduced to a number (for example Robert's "entreprises établies, modèle d'affaires compréhensible"), weighed by the Judge_Agent from the Prosecutor_Agent and Defense_Agent arguments.
+- **Appeal**: A rerun of a completed Tribunal_Session with exactly one changed input, displayed beside the original.
+- **Precedent**: A stored summary of a completed Tribunal_Session (Persona, asset, position size, Verdict, deciding rules, Exhibit values) that later Tribunal_Sessions cite.
+- **ESG_Exclusion_List**: The documented file `data/esg_exclusions.csv` that marks each universe asset as excluded or not under a cited public methodology. It is a proxy, not an ESG score.
+- **Baseline_Agent**: A single Bedrock agent with one prompt, the same model and the same Investor_Contract, no Toolkit and no debate, used only as the control arm of the Benchmark.
+- **Benchmark**: The repeatable evaluation of Requirement 34 that compares the Guide_System with the Baseline_Agent on fixed cases.
+- **Confidence_Label**: One of `Measured` (repeated runs, automatic check), `Indicative` (measured, too few runs to prove the difference), or `Context` (no measurement), attached to each Benchmark result.
+- **Replay_Mode**: A UI mode that renders exported SessionViews from static JSON files without calling the Session_API, Bedrock, or any AWS service.
+
 ## Requirements
 
 ### Requirement 1: Investor Contract Creation
@@ -146,7 +175,7 @@ Evaluation of the ideaHedi.md concept, reflected in scope decisions:
 6. WHEN a Toolkit function is called with an As_Of_Date, THE Toolkit SHALL exclude every price and macro observation dated after the As_Of_Date.
 7. WHEN an Exhibit involves CNQ.TO and its period includes 2022-08-22, THE Guide_System SHALL attach a note stating that the 1.021 split factor likely reflects a special distribution and is unverified.
 8. WHEN an Exhibit includes a result derived from the Dataset, THE Guide_System SHALL attach the survivorship-bias limitation to the Ruling.
-9. IF a request depends on ESG scores, news, or company fundamentals, THEN THE Guide_System SHALL report that the Dataset does not contain this information and SHALL label any related argument as unsupported by Exhibits.
+9. IF a request depends on ESG scores, news, or company fundamentals, THEN THE Guide_System SHALL report that the Dataset does not contain this information and SHALL label any related argument as unsupported by Exhibits; the documented ESG_Exclusion_List of Requirement 32 is a cited proxy and is not an ESG score.
 10. THE Guide_System SHALL maintain a Data_Source_Document listing, for each source, its origin, retrieval date, processing (including the CSV to Parquet conversion and the Dataset_Snapshot layout), limitations, terms of use, and whether the terms permit use in this project.
 11. WHERE external data is added to the Dataset, THE Guide_System SHALL add an entry for that data to the Data_Source_Document before any Exhibit uses the data.
 12. IF no FX rate exists on or before a date for which a USD price must be converted, THEN THE Toolkit SHALL exclude that date from the computation and SHALL record the excluded dates in the Exhibit processing notes.
@@ -180,7 +209,7 @@ Evaluation of the ideaHedi.md concept, reflected in scope decisions:
 6. IF evidence for a rule is still missing after the evidence requests, THEN THE Judge_Agent SHALL list the rule as unverified in the Verdict.
 7. THE Guide_System SHALL apply a Guardrail to every model input and output that blocks real-trade instructions, personalized financial advice, return predictions, and any output that violates the Guidance_Only_Rule.
 8. IF the Guardrail blocks a model output, THEN THE Guide_System SHALL record the block in the Trace and display a message stating which Challenge_Rule applied.
-9. THE Judge_Agent SHALL compute the pass or fail result of each Investor_Contract rule with deterministic code, and THE Judge_Agent SHALL use the language model only for the narrative of the Verdict.
+9. THE Judge_Agent SHALL compute the pass or fail result of each Hard_Rule with deterministic code. THE Judge_Agent SHALL use the language model only to weigh Soft_Preferences as specified in Requirement 29 and to write the narrative of the Verdict, and a Soft_Preference judgment SHALL never turn a failed Hard_Rule into a pass.
 10. WHEN the Investor_Contract has a risk level of `low_to_moderate` and the Investment_Request exceeds a per-asset cap, THE Judge_Agent SHALL state the tension between the request and the Investor_Contract in the Verdict.
 11. WHEN the Judge_Agent evaluates arguments, THE Judge_Agent SHALL check each Prosecutor_Agent, Defense_Agent, and Clerk_Agent output against the Guidance_Only_Rule and SHALL record a pass or fail result in the Trace.
 12. IF an agent output fails the Guidance_Only_Rule check, THEN THE Judge_Agent SHALL remove the offending statement from the Ruling and SHALL record the removal in the Trace.
@@ -278,7 +307,7 @@ Evaluation of the ideaHedi.md concept, reflected in scope decisions:
 3. THE Guide_System SHALL include a test that verifies each number in a Ruling matches its cited Exhibit.
 4. THE Guide_System SHALL include a test that runs a Tribunal_Session for Robert with the request "30% in TSLA" and verifies that the Verdict is not an unconditional accept.
 5. THE Guide_System SHALL include a test that runs a Tribunal_Session for Amira with a crypto-heavy request and verifies that the Judge_Agent applies a per-asset-class cap.
-6. THE Guide_System SHALL include a test that runs a Tribunal_Session for Mateo and verifies that the Ruling reports the absence of ESG scores in the Dataset.
+6. THE Guide_System SHALL include a test that runs a Tribunal_Session for Mateo with the request "10% in XOM" and verifies that the ESG_Exclusion_List rule fails with its cited source, that the Ruling cites the exclusion-cost Exhibit, and that the Ruling reports the absence of ESG scores in the Dataset.
 7. THE Guide_System SHALL include a test that verifies the CNQ.TO split-anomaly note is attached to any Exhibit whose period includes 2022-08-22.
 8. THE Guide_System SHALL include a sensitivity test that verifies the reported threshold flips the Verdict when applied.
 9. THE Guide_System SHALL include a test that verifies the shipped Persona_Templates exist for amira, mateo, and robert, that every source excerpt of the shipped Persona_Templates occurs verbatim in the Context_Document, and that the quoted Persona_Facts of the shipped Persona_Templates equal a fixture transcribed from section 3 of the Context_Document, and a test that verifies that a Persona_File with an added, duplicated, edited, or removed Persona entry loads without error and that an invalid entry is reported per field.
@@ -303,7 +332,7 @@ Evaluation of the ideaHedi.md concept, reflected in scope decisions:
 1. THE Guide_System SHALL include a README documenting dependencies, data sources, configuration, startup and reproduction instructions, deployment of the data templates, seeding of the baseline Dataset_Snapshot, running the Seed_Import_Job, and deploying the CDK_App with one command.
 2. THE Guide_System SHALL include technical documentation covering methods, justification of technologies, assets used, processing, assumptions, the explainability mechanism with one worked example linking a conclusion to Exhibits and Trace entries, validations, limits, and planned improvements.
 3. THE Guide_System SHALL include a one-page summary covering the problem, the agentic approach, originality, data sources, explanation capability, and user benefits.
-4. THE Guide_System SHALL include a demo script for a video of about 5 minutes showing two contrasting Personas end to end, with Robert and Amira as the default pair, and showing the pinned S3 snapshot, the Glue tables, an Athena validation query, and the Trace and Observability view.
+4. THE Guide_System SHALL include a demo script for a video of about 5 minutes showing the five demo cases of Requirement 33 (at minimum Robert with one Appeal, Amira citing Robert's Precedent, and Mateo), the pinned S3 snapshot, the Glue tables, an Athena validation query, the Trace and Observability view, and the Benchmark result of Requirement 34.
 5. THE Guide_System SHALL state in the README and the one-page summary that the system is a simulation, is not personalized financial advice, and does not predict returns.
 6. THE Guide_System SHALL run the demo video against the real S3 Primary_Store.
 7. WHERE a Cache_Fallback demonstration is included in the demo, THE demo script SHALL present it as a separate scenario clearly labelled as a fallback demonstration.
@@ -589,3 +618,98 @@ Evaluation of the ideaHedi.md concept, reflected in scope decisions:
 8. WHERE the S3_Build_Script is implemented, WHEN the script runs twice on identical input files with the same label and retrieval timestamp, THE S3_Build_Script SHALL produce Parquet files and Snapshot_Manifest entries with identical SHA-256 checksums.
 9. WHERE the S3_Build_Script is implemented, IF the Snapshot_Id already exists in the Primary_Store, THEN THE S3_Build_Script SHALL report the existing Snapshot_Id and SHALL write nothing.
 10. WHERE the S3_Build_Script is implemented, WHEN the user passes `--prefill-cache`, THE S3_Build_Script SHALL copy the pointer, the Snapshot_Manifest, and the Parquet files into the Local_Cache.
+
+### Requirement 28: Base Portfolios and Risk Evidence
+
+**User Story:** As an investor, I want my request judged against the portfolio I already hold, so that the evidence shows its real effect on me.
+
+#### Acceptance Criteria
+
+1. THE Persona_File SHALL define one Base_Portfolio for each shipped Persona_Template, with tickers from the assets_universe table, weights summing to 1, and the Contract_Value_Basis `assumption` with a rationale.
+2. WHEN an Investment_Request adds a position of weight w in an asset, THE Toolkit SHALL build the proposed portfolio by multiplying every Base_Portfolio weight by (1 - w) and adding the requested asset at weight w, and WHERE the asset is already held, adding w to its scaled weight.
+3. THE Toolkit SHALL provide `risk_contribution(weights, start, end)` that returns, in CAD, each asset's percentage share of the total portfolio variance, and SHALL store the result as an Exhibit.
+4. THE Toolkit SHALL provide `portfolio_comparison(base, proposed, start, end)` that returns, for the Base_Portfolio and the proposed portfolio, the annualized volatility, maximum drawdown, worst rolling 252-trading-day return, calendar-year 2022 return, and annualized return, stored as one Exhibit.
+5. THE Toolkit SHALL provide `max_weight_within_contract(asset, contract, base, start, end)` that returns the largest position size, in steps of 0.5 percentage points, for which every Hard_Rule passes, or 0 when no positive size passes, stored as an Exhibit.
+6. FOR the Robert Base_Portfolio (XBB.TO 40 %, ZST.TO 15 %, XIU.TO 15 %, SPY 15 %, JNJ 8 %, RY.TO 7 %, daily rebalanced, CAD, dates on which every held asset has a price, 2021-11-12 to 2026-11-12), THE Toolkit SHALL reproduce, within 0.3 percentage points, a maximum drawdown of -10.4 % for the Base_Portfolio and -30.1 % with 30 % TSLA, and a TSLA share of variance of 86.7 % within 1 percentage point.
+7. THE Ruling SHALL state that the Base_Portfolio is a fictional assumption.
+
+### Requirement 29: Soft Preferences Decided Through the Debate
+
+**User Story:** As a juror, I want the Prosecutor and Defense arguments to change the outcome, so that the multi-agent design is not decorative.
+
+#### Acceptance Criteria
+
+1. THE Investor_Contract SHALL hold a list of Soft_Preferences, each with an identifier, a text, and a provenance, and THE shipped Persona_Templates SHALL each define at least two Soft_Preferences taken from section 3 of the Context_Document with their verbatim excerpts.
+2. WHEN every Hard_Rule passes, or passes under a numeric condition, THE Judge_Agent SHALL assess each Soft_Preference as `satisfied`, `tension`, or `not_satisfied`, and SHALL record for each assessment the deciding party and the Exhibits cited.
+3. THE Judge_Agent SHALL receive the two arguments labelled "Party A" and "Party B" in an order drawn at random per Tribunal_Session, with role names removed and the same maximum length, and THE Trace SHALL record the order.
+4. IF a Soft_Preference is assessed `not_satisfied`, THEN THE Judge_Agent SHALL change a Verdict of accept into accept with conditions and SHALL state the condition in plain language, and SHALL never change a reject into an accept.
+5. THE Ruling SHALL show, for each Soft_Preference, the assessment and the argument that decided it, each linked to its Exhibits.
+
+### Requirement 30: Appeal
+
+**User Story:** As an investor, I want to change one assumption and see whether the verdict changes, so that I understand what drives the decision.
+
+#### Acceptance Criteria
+
+1. WHEN a Tribunal_Session is complete, THE UI SHALL offer an Appeal control that lets the user change exactly one input among position size, horizon in years, maximum drawdown, and analysis period.
+2. WHEN an Appeal is submitted, THE Guide_System SHALL run a new Tribunal_Session with the changed input, linked to the original session identifier, and SHALL leave the original Tribunal_Session unchanged.
+3. THE UI SHALL display the original and the Appeal Verdicts side by side with the changed input, the Hard_Rules whose result changed, the Soft_Preference assessments that changed, and the Exhibits whose value changed.
+4. THE Session_API SHALL expose the Appeal as a parameter of the create-session operation and SHALL add no other operation.
+
+### Requirement 31: Precedents
+
+**User Story:** As an investor, I want consistent rulings across profiles, so that a different verdict for a similar request is explained.
+
+#### Acceptance Criteria
+
+1. WHEN a Tribunal_Session completes, THE Guide_System SHALL store a Precedent holding the Persona or profile identifier, the asset, the position size, the Verdict, the deciding Hard_Rules, the Soft_Preference assessments, and the key Exhibit values.
+2. WHEN a new Investment_Request names an asset for which a Precedent exists, THE Judge_Agent SHALL cite the Precedent with the closest position size and SHALL name the Investor_Contract fields whose values explain any difference in Verdict.
+3. THE Guide_System SHALL store Precedents in the Session_Store table under a shared partition readable by every signed-in user, containing no user identifier other than the Persona or profile identifier.
+4. THE Guide_System SHALL seed the Precedent store with the Tribunal_Sessions of the five demo cases of Requirement 33.
+
+### Requirement 32: Documented ESG Exclusion List
+
+**User Story:** As Mateo, I want my ESG preference applied with a stated source, so that the system integrates a criterion beyond risk and return.
+
+#### Acceptance Criteria
+
+1. THE Guide_System SHALL ship the ESG_Exclusion_List `data/esg_exclusions.csv` with the columns ticker, excluded, reason, source_url, and retrieved, covering every asset of the assets_universe table, built by hand from a cited public exclusion methodology (for example the fossil-fuel and controversial-activity exclusions of the index tracked by ESGV).
+2. THE Data_Source_Document SHALL describe the ESG_Exclusion_List with its source, retrieval date, method, and the statement that it is a simplified proxy and not an ESG rating.
+3. WHERE the Investor_Contract lists ESG exclusions and the requested asset is marked excluded, THE rule engine SHALL fail the ESG Hard_Rule and THE Ruling SHALL cite the source of the exclusion.
+4. WHEN the ESG Hard_Rule fails, THE Toolkit SHALL create an exclusion-cost Exhibit comparing, over the analysis period, the annualized return and volatility of the excluded asset with those of the closest non-excluded asset of the same asset class, labelled as past data that does not predict future returns.
+5. THE ESG_Exclusion_List SHALL be loaded by the Toolkit like any other Dataset file and SHALL be named in the Snapshot_Manifest.
+
+### Requirement 33: Ruling Answers and Demo Cases
+
+**User Story:** As a juror from National Bank, I want each ruling to answer the questions a credible investment proposal must answer, so that I can judge it with the framework I already use.
+
+#### Acceptance Criteria
+
+1. THE Ruling SHALL contain, in addition to the sections of Requirement 6, four headed answers: "Which data?", "Why this choice?", "Which limits?", and "What would change the answer?", each built from Exhibits, rule results, and the Assumptions and Limits sections.
+2. THE Guide_System SHALL ship five demo cases in `demo/cases.yaml`: Robert "30% in TSLA"; Amira "30% in TSLA"; Mateo "10% in XOM"; Amira "40% in BTC-USD"; and a Canadian-heavy Base_Portfolio requesting "20% in SPY" to improve diversification.
+3. THE expected outcome of each demo case SHALL be recorded in `demo/cases.yaml`, and at least one demo case SHALL be expected to end in accept or accept with conditions on diversification grounds.
+4. THE Friendly_Mode SHALL present the four answers of 33.1 in plain language of at most 60 words each, with Exhibit links.
+
+### Requirement 34: Evaluation Benchmark
+
+**User Story:** As a juror, I want measured evidence that the tribunal behaves better than a single assistant, so that the agentic design is justified by results.
+
+#### Acceptance Criteria
+
+1. THE Guide_System SHALL provide a Benchmark command `python -m guide.bench` that runs every case of `demo/cases.yaml` and `bench/cases.yaml` (at least 10 cases in total) N times through the Guide_System and N times through the Baseline_Agent, with N read from the command line and at least 5 for the published result.
+2. THE Benchmark SHALL record, per case and per arm, the share of runs whose Verdict matches the expected outcome, the share of runs that accept a request violating a Hard_Rule (yes-man rate), the share of numbers in the output that match an Exhibit or cannot be verified, the mean latency, and the mean token count.
+3. THE Benchmark SHALL report each rate with a Wilson 95 % confidence interval and a Confidence_Label: `Measured` when the intervals of the two arms do not overlap, `Indicative` when they overlap, and `Context` for figures that are not measured.
+4. THE Benchmark SHALL write its results to `docs/benchmark.md` and `docs/benchmark.json`, and THE technical documentation and the demo SHALL use only these files for Benchmark figures.
+5. THE Baseline_Agent SHALL use the same model, the same Guardrail, and the same Investor_Contract as the Guide_System, and SHALL receive no Toolkit, no Exhibits, and no debate.
+
+### Requirement 35: Demo Resilience and Jury Access
+
+**User Story:** As a datathon team, I want the demo to work for the jury after the AWS accounts close, so that a closed account or a live failure never costs the pitch.
+
+#### Acceptance Criteria
+
+1. THE Guide_System SHALL provide a pre-created demo user in the Identity_Provider, and THE submission SHALL include its sign-in name and password for the jury.
+2. THE Guide_System SHALL export the SessionView, the Trace, and the Precedents of every demo case and every Benchmark case to `demo/sessions/` in the repository before Sunday 23:59.
+3. THE UI SHALL provide a Replay_Mode that renders the exported SessionViews, including Friendly_Mode, Advanced_Mode, and the Appeal comparison, without calling the Session_API or any AWS service.
+4. THE UI SHALL display a visible label "Replay of a recorded session" on every screen of the Replay_Mode, with the original session date and Snapshot_Id.
+5. THE repository SHALL provide a command that builds the Replay_Mode as static files that open in a browser with no server and no network access.
