@@ -1,0 +1,32 @@
+ticker,excluded,reason,source_url,retrieved
+RY.TO,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+TD.TO,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+MFC.TO,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+ENB.TO,true,Direct fossil-fuel transportation and distribution activity is excluded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+CNQ.TO,true,Direct oil and gas exploration and production activity is excluded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+CNR.TO,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+FTS.TO,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+ATD.TO,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+SHOP.TO,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+CSU.TO,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+AAPL,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+MSFT,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+NVDA,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+GOOGL,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+AMZN,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+TSLA,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+JPM,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+JNJ,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+PG,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+XOM,true,Direct oil and gas exploration production refining and distribution activity is excluded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+XIU.TO,false,ETF holdings are not assessed by this issuer-level simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+SPY,false,ETF holdings are not assessed by this issuer-level simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+QQQ,false,ETF holdings are not assessed by this issuer-level simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+ESGV,false,The fund is identified as ESG-screened in the starter universe; this proxy does not rate funds or verify holdings.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+XBB.TO,false,ETF holdings are not assessed by this issuer-level simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+ZST.TO,false,ETF holdings are not assessed by this issuer-level simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+AGG,false,ETF holdings are not assessed by this issuer-level simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+TLT,false,ETF holdings are not assessed by this issuer-level simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+GLD,false,ETF holdings are not assessed by this issuer-level simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+BTC-USD,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14
+ETH-USD,false,No direct issuer-level fossil-fuel or controversial-activity match is recorded by this simplified proxy.,https://fund-docs.vanguard.com/F4393.pdf,2026-11-14

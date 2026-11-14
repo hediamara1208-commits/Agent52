@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run Tribunal Session",
+      "trigger": "UserPromptSubmit",
+      "description": "Run end-to-end tribunal session",
+      "action": {
+        "type": "command",
+        "command": "cd /workshop/Agent52 && python -m guide.run_session \"${REQUEST:-Robert 30% in TSLA}\" \"${PERSONA:-robert}\" 2>&1 | head -100"
+      }
+    }
+  ]
+}

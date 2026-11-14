@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Current Snapshot Pointer",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["snapshot_id", "updated_at"],
+  "properties": {
+    "snapshot_id": {
+      "type": "string",
+      "pattern": "^\\d{8}T\\d{6}Z-[a-z0-9]{1,32}$"
+    },
+    "updated_at": {"type": "string", "format": "date-time"}
+  }
+}

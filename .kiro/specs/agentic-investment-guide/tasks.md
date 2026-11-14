@@ -38,13 +38,13 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - Loader with `moto`: pointer `IfNoneMatch` gives 304 and keeps the cache, a new ETag replaces it; reads come from Parquet by `VersionId`; access denied raises `DataConfigError` without fallback; unreachable with empty cache raises `DatasetUnavailable`
     - _Requirements: 8.5, 8.6, 8.7, 17.5, 17.9, 17.13, 18.9_
 
-  - [ ] 1.3 Rework `config.py` and `config.yaml` for the S3-primary data architecture (follow-up to 1.1)
+  - [x] 1.3 Rework `config.py` and `config.yaml` for the S3-primary data architecture (follow-up to 1.1)
     - Remove `data_location` and `data_dir`; `load_config` raises a clear error if `data_location` is present
     - Add `s3_bucket` (required), `s3_prefix`, `cache_dir`, `s3_connect_timeout_seconds`, `s3_read_timeout_seconds`, `s3_max_attempts`, `glue_database`, `athena_workgroup`, `athena_results_uri`, `athena_bytes_scanned_cutoff`, `seed_dir`, `persona_file`, `instruction_dir`, `sensitivity_ranges`, `speculative_volatility_threshold`, `trace_summary_max_chars`, `session_table`, `agent_runtime_arn`, `agentcore_memory_id`, `cors_origin`
     - Keep the redaction filter and the no-credentials rule unchanged; add `cache_dir` to `.gitignore`
     - _Requirements: 6.6, 8.5, 8.6, 8.7, 9.6, 17.8, 19.1, 22.11, 23.2_
 
-  - [ ] 1.4 Create `data/snapshot.py` with Snapshot_Id, manifest, and pointer models
+  - [x] 1.4 Create `data/snapshot.py` with Snapshot_Id, manifest, and pointer models
     - `SNAPSHOT_ID_RE`, `FileEntry`, `SnapshotManifest`, `SnapshotPointer`, `SnapshotInfo` (served_from `primary`, `cache`, or `cache_fallback`)
     - `data/manifest.schema.json` and `data/pointer.schema.json`; `manifest_to_json`/`manifest_from_json`, `pointer_to_json`/`pointer_from_json` with `ManifestError(fields)` on schema failure
     - _Requirements: 17.14, 17.15, 17.16, 20.2_
@@ -53,7 +53,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 39: Manifest and pointer serialization round trip**
     - **Validates: Requirements 17.14, 17.15, 17.16**
 
-  - [ ] 1.6 Create `data/parquet_io.py`
+  - [x] 1.6 Create `data/parquet_io.py`
     - `TABLE_SCHEMAS` for assets_universe, prices_daily, corporate_actions, fx_usdcad_daily, macro_rates with explicit types (date32, string, double, int64)
     - `read_csv_typed`, `csv_to_parquet` (deterministic output, row order kept, fails on missing or extra columns), `read_parquet`; add `pyarrow` to `requirements.txt`
     - _Requirements: 18.1, 18.2, 18.3_
@@ -78,7 +78,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - _Requirements: 17.4, 17.5, 17.6, 17.8, 17.10 to 17.13_
 
 - [ ] 2. Implement Investor_Contract, schema validation, and Profiler
-  - [~] 2.1 Create `contract/schema.json` and `contract/validate.py`
+  - [x] 2.1 Create `contract/schema.json` and `contract/validate.py`
     - `validate_contract` returns a list of failing fields (empty when valid)
     - _Requirements: 1.3, 1.4_
 
@@ -451,7 +451,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - Simulation, no-advice, no-prediction statements in README and summary; state the Guidance_Only_Rule (the system only guides and never performs an action, holds no credentials) in the README, technical documentation, and one-page summary
     - _Requirements: 3.10, 3.11, 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 11.10, 13.10, 20.4, 20.11, 26.7_
 
-  - [ ] 12.3 Create the static scanner `guide/guidance_scan.py`
+  - [x] 12.3 Create the static scanner `guide/guidance_scan.py`
     - Scan source and configuration text for brokerage or bank API client imports and credential patterns from a configured pattern list; return findings
     - _Requirements: 13.2, 13.3, 13.4, 13.9_
 
@@ -748,7 +748,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - _Requirements: 29.4, 5.9_
 
 - [ ] 23. Documented ESG exclusion list (Req. 32)
-  - [ ] 23.1 Create `data/esg_exclusions.csv` (31 rows) and its entry in `docs/data_sources.md`; list it in the Snapshot_Manifest
+  - [x] 23.1 Create `data/esg_exclusions.csv` (31 rows) and its entry in `docs/data_sources.md`; list it in the Snapshot_Manifest
     - _Requirements: 32.1, 32.2, 32.5_
   - [ ] 23.2 Add the `esg_exclusion` Hard_Rule and the `exclusion_cost` Exhibit
     - _Requirements: 32.3, 32.4, 10.6_

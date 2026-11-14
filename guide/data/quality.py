@@ -1,9 +1,11 @@
-"""Data-quality notes and limits (Req. 3.7, 3.8, 3.9)."""
+"""Data-quality notes and limits (Req. 3.7, 3.8, 3.9, 17.11, 20.10)."""
 from __future__ import annotations
 
 import re
 from datetime import date
 from typing import Iterable
+
+from guide.data.snapshot import SnapshotInfo
 
 CNQ_TICKER = "CNQ.TO"
 CNQ_ANOMALY_DATE = date(2022, 8, 22)
@@ -37,6 +39,25 @@ _UNSUPPORTED_PATTERNS: dict[str, re.Pattern] = {
 }
 
 
+def fallback_note(snapshot: SnapshotInfo) -> str:
+    """Return the mandatory Exhibit notice for a verified cache fallback."""
+    return (
+        "Dataset was served from the Local_Cache because the Primary_Store was unreachable "
+        f"(snapshot {snapshot.snapshot_id})."
+    )
+
+
+def snapshot_note(snapshot: SnapshotInfo) -> str:
+    """Identify the pinned snapshot and its retrieval timestamp in user-facing notes."""
+    retrieved_at = snapshot.retrieved_at.isoformat().replace("+00:00", "Z")
+    return f"Dataset snapshot {snapshot.snapshot_id} retrieved at {retrieved_at}."
+
+
+def coverage_end_note(snapshot: SnapshotInfo) -> str:
+    """Disclose that an as-of request exceeded the snapshot's data coverage."""
+    return f"data available up to {snapshot.coverage_end.isoformat()} in snapshot {snapshot.snapshot_id}"
+
+
 def cnq_note_applies(assets: Iterable[str], period_start: date, period_end: date) -> bool:
     """True when CNQ.TO is involved and the period includes 2022-08-22."""
     return CNQ_TICKER in set(assets) and period_start <= CNQ_ANOMALY_DATE <= period_end
@@ -54,7 +75,7 @@ def survivorship_bias_text() -> str:
 
 def detect_unsupported_topics(text: str) -> list[str]:
     """Names of unsupported topics (ESG scores, news, company fundamentals) found in ``text``."""
-    return [name for name, pat in _UNSUPPORTED_PATTERNS.items() if pat.search(text or "")]
+    return [name for name, pattern in _UNSUPPORTED_PATTERNS.items() if pattern.search(text or "")]
 
 
 def unsupported_notice(topics: Iterable[str]) -> str | None:

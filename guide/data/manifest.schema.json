@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Snapshot Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "source",
+    "retrieved_at",
+    "library_versions",
+    "coverage_start",
+    "coverage_end",
+    "tickers",
+    "files",
+    "carried_over",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "snapshot_id": {
+      "type": "string",
+      "pattern": "^\\d{8}T\\d{6}Z-[a-z0-9]{1,32}$"
+    },
+    "source": {"enum": ["starter", "addition"]},
+    "retrieved_at": {"type": "string", "format": "date-time"},
+    "library_versions": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
+    "coverage_start": {"type": "string", "format": "date"},
+    "coverage_end": {"type": "string", "format": "date"},
+    "tickers": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "files": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/file_entry"}
+    },
+    "carried_over": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^\\d{8}T\\d{6}Z-[a-z0-9]{1,32}$"
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "file_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["table", "kind", "key", "version_id", "sha256", "rows"],
+      "properties": {
+        "table": {
+          "enum": [
+            "assets_universe",
+            "prices_daily",
+            "corporate_actions",
+            "fx_usdcad_daily",
+            "macro_rates",
+            "esg_exclusions"
+          ]
+        },
+        "kind": {"enum": ["raw_csv", "parquet"]},
+        "key": {"type": "string", "minLength": 1},
+        "version_id": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+        "rows": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

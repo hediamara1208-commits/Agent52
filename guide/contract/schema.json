@@ -14,38 +14,94 @@
     "crypto_cap",
     "sector_caps",
     "esg_exclusions",
+    "speculative_limit",
     "provenance"
   ],
   "properties": {
-    "risk_level": { "type": "string", "enum": ["low", "moderate", "high"] },
-    "horizon_years": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
-    "max_volatility": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
-    "max_drawdown": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
-    "per_asset_cap": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
-    "per_asset_class_caps": {
-      "type": "object",
-      "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 }
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "low_to_moderate", "moderate", "high"]
     },
-    "crypto_cap": { "type": "number", "minimum": 0, "maximum": 1 },
+    "horizon_years": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "max_volatility": { "$ref": "#/$defs/fraction" },
+    "max_drawdown": { "$ref": "#/$defs/fraction" },
+    "per_asset_cap": { "$ref": "#/$defs/fraction" },
+    "per_asset_class_caps": {
+      "$ref": "#/$defs/cap_map"
+    },
+    "crypto_cap": { "$ref": "#/$defs/fraction" },
     "sector_caps": {
-      "type": "object",
-      "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 }
+      "$ref": "#/$defs/cap_map"
     },
     "esg_exclusions": {
       "type": "array",
-      "items": { "type": "string", "minLength": 1 }
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
     },
     "speculative_limit": {
-      "type": ["number", "null"],
-      "minimum": 0,
-      "maximum": 1
+      "anyOf": [
+        { "$ref": "#/$defs/fraction" },
+        { "type": "null" }
+      ]
     },
     "provenance": {
       "type": "object",
-      "additionalProperties": {
-        "type": "string",
-        "enum": ["persona", "form", "default"]
+      "additionalProperties": false,
+      "required": [
+        "risk_level",
+        "horizon_years",
+        "max_volatility",
+        "max_drawdown",
+        "per_asset_cap",
+        "per_asset_class_caps",
+        "crypto_cap",
+        "sector_caps",
+        "esg_exclusions",
+        "speculative_limit"
+      ],
+      "properties": {
+        "risk_level": { "$ref": "#/$defs/provenance" },
+        "horizon_years": { "$ref": "#/$defs/provenance" },
+        "max_volatility": { "$ref": "#/$defs/provenance" },
+        "max_drawdown": { "$ref": "#/$defs/provenance" },
+        "per_asset_cap": { "$ref": "#/$defs/provenance" },
+        "per_asset_class_caps": { "$ref": "#/$defs/provenance" },
+        "crypto_cap": { "$ref": "#/$defs/provenance" },
+        "sector_caps": { "$ref": "#/$defs/provenance" },
+        "esg_exclusions": { "$ref": "#/$defs/provenance" },
+        "speculative_limit": { "$ref": "#/$defs/provenance" }
       }
+    }
+  },
+  "$defs": {
+    "fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "cap_map": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": { "$ref": "#/$defs/fraction" }
+    },
+    "provenance": {
+      "type": "string",
+      "enum": [
+        "persona_quoted",
+        "persona_assumption",
+        "user",
+        "form",
+        "default"
+      ]
     }
   }
 }

@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 .cache/
+# Local S3 dataset cache (the configured cache_dir).
+/.cache/dataset/
 .venv/
 node_modules/
 cdk.out/

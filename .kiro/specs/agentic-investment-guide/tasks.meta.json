@@ -33,6 +33,16 @@
         "executionId": "a6556dd5-050c-4643-aa3f-e423581dd50b",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794685448466
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694227081
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694376644
       }
     ],
     "2.2 Create `personas.yaml` and `contract/profiler.py`": [
@@ -40,6 +50,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684931383
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694125305
       }
     ],
     "3.1 Create `toolkit/exhibits.py` with frozen `Exhibit` and `ExhibitRegistry`": [
@@ -81,6 +96,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684935133
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694130493
       }
     ],
     "4.2 Create `toolkit/tools.py` with Bedrock Converse `toolSpec` definitions and a tool runner": [
@@ -88,6 +108,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684936631
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694131749
       }
     ],
     "5. Checkpoint - Ensure all tests pass": [
@@ -95,6 +120,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684938490
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694133030
       }
     ],
     "6.1 Create `trace/recorder.py`": [
@@ -119,6 +149,16 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684942676
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694134338
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694524935
       }
     ],
     "7.1 Create `tribunal/request_parser.py`": [
@@ -143,6 +183,16 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684947016
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694139382
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694527553
       }
     ],
     "7.5 Create `tribunal/rules.py` with `evaluate_rules` and `decide`": [
@@ -150,6 +200,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684949140
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694140659
       }
     ],
     "7.8 Create `tribunal/guidance_only.py`": [
@@ -157,6 +212,16 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684951264
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694142026
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694528837
       }
     ],
     "7.9 Create `tribunal/sensitivity.py`": [
@@ -164,6 +229,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684953394
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694143290
       }
     ],
     "8.1 Create `agents/prosecutor.py` and `agents/defense.py`": [
@@ -171,6 +241,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684955519
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694144566
       }
     ],
     "8.2 Create `agents/judge.py`": [
@@ -178,6 +253,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684957446
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694145848
       }
     ],
     "8.3 Create `agents/clerk.py` with a Ruling template": [
@@ -185,6 +265,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684959570
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694147109
       }
     ],
     "9.1 Create `memory.py` (`MemoryStore`) wrapping AgentCore Memory": [
@@ -192,6 +277,16 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684961695
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694148477
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694530155
       }
     ],
     "9.2 Create `tribunal/orchestrator.py`": [
@@ -199,6 +294,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684963899
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694149779
       }
     ],
     "10. Checkpoint - Ensure all tests pass": [
@@ -206,6 +306,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684965679
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694151029
       }
     ],
     "11.1 Create `ui/view_model.py` with the shared `SessionView`": [
@@ -220,6 +325,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684969224
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694153507
       }
     ],
     "11.3 Create `ui/friendly.py`": [
@@ -248,6 +358,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684974273
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694158613
       }
     ],
     "12.2 Create `docs/data_sources.md`, `README.md`, technical doc, one-page summary, and demo script": [
@@ -255,6 +370,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684975491
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694159930
       }
     ],
     "12.3 Create the static scanner `guide/guidance_scan.py`": [
@@ -262,6 +382,21 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684976708
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694161240
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694228509
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694378105
       }
     ],
     "16. Final checkpoint - Ensure all tests pass": [
@@ -269,6 +404,11 @@
         "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794684977917
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694170190
       }
     ],
     "1. Set up project structure, configuration, and data access": [
@@ -283,6 +423,455 @@
         "executionId": "a6556dd5-050c-4643-aa3f-e423581dd50b",
         "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
         "timestamp": 1794685447082
+      }
+    ],
+    "1.3 Rework `config.py` and `config.yaml` for the S3-primary data architecture (follow-up to 1.1)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694120052
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694222906
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694372081
+      }
+    ],
+    "1.4 Create `data/snapshot.py` with Snapshot_Id, manifest, and pointer models": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694121539
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694224323
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694373777
+      }
+    ],
+    "1.6 Create `data/parquet_io.py`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694122793
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694225769
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694375222
+      }
+    ],
+    "1.8 Rework `data/loader.py` into a lean S3-primary `SnapshotStore` and create `data/cache.py` (follow-up to 1.1, Tier 2 lean)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694124051
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694519614
+      }
+    ],
+    "2.5 Update `contract/schema.json` for the new risk level and provenance values (follow-up to 2.1)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694126566
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694521019
+      }
+    ],
+    "3.7 Rework `toolkit/exhibits.py` to bind the pinned snapshot (follow-up to 3.1)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694127873
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694522321
+      }
+    ],
+    "3.8 Extend `toolkit/align.py` and `data/quality.py` for snapshots (follow-up to 3.3)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694129194
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694523603
+      }
+    ],
+    "6.5 Extend `trace/recorder.py` with data events and a summary length cap (follow-up to 6.1)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694135616
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694526230
+      }
+    ],
+    "6.6 Create `agents/instructions.py` (Instruction_Loader) and pass the System_Prompt and Instruction_Hash through `agents/base.py` and `trace/recorder.py` (follow-up to 6.1 and 6.2)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694136911
+      }
+    ],
+    "6.7 Create the Instruction_Files and Skill_Files": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694138149
+      }
+    ],
+    "11.1 Create `tribunal/session_view.py` with the shared `SessionView` and `tribunal/session_view.schema.json`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694152280
+      }
+    ],
+    "11.3 Create the `frontend/` project and `frontend/src/friendly/` Friendly_Mode components": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694154823
+      }
+    ],
+    "11.4 Create `frontend/src/advanced/` Advanced_Mode components": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694156098
+      }
+    ],
+    "11.5 Create `frontend/src/App.tsx`, `src/api/client.ts`, and the sign-in gate": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694157357
+      }
+    ],
+    "12.7 Create the CDK `DataStack` in `infra/stacks/data_stack.py` (S3, Glue, Athena)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694162527
+      }
+    ],
+    "12.8 Create `ingest/validate.py`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694163825
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694531463
+      }
+    ],
+    "12.12 Create `data/catalog.py` for Glue partition registration": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694165058
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694532780
+      }
+    ],
+    "12.13 Create `athena/queries.py` and saved queries in `athena/sql/`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694166340
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694534146
+      }
+    ],
+    "12.15 Create `ingest/writer.py` (Snapshot_Writer, Tier 2 lean)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694167674
+      }
+    ],
+    "12.17 Create `ingest/seed.py` (Seed_Import_Job library and CLI)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694168913
+      }
+    ],
+    "17.1 Create `tribunal/entrypoint.py` with `run_session` and the local runner `guide/run_session.py`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694171444
+      }
+    ],
+    "17.2 Create `session/store.py` (`SessionStore` and the `SessionSink` protocol)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694172724
+      }
+    ],
+    "17.3 Extend `tribunal/orchestrator.py` to publish the SessionView to a `SessionSink` (follow-up to 9.2)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694174112
+      }
+    ],
+    "17.4 Create `runtime/app.py` and `runtime/Dockerfile` (AgentCore Runtime entry point)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694175775
+      }
+    ],
+    "17.5 Create `api/handler.py` (Session_API Lambda handlers)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694177346
+      }
+    ],
+    "17.6 Extend `memory.py` to key entries by user and profile (follow-up to 9.1)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694179502
+      }
+    ],
+    "18.1 Create the CDK app skeleton `infra/app.py`, `infra/cdk.json`, `infra/requirements.txt`, and the `Makefile`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694181946
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694535410
+      }
+    ],
+    "18.2 Create `infra/stacks/auth_stack.py` (Cognito user pool and app client)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694183335
+      }
+    ],
+    "18.3 Create `infra/stacks/runtime_stack.py` (AgentCore Runtime, Memory, Application_Role)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694184657
+      }
+    ],
+    "18.4 Create `infra/stacks/api_stack.py` (Session_Store, Lambdas, REST API)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694185923
+      }
+    ],
+    "18.5 Create `infra/stacks/frontend_stack.py` and `scripts/publish_frontend.sh`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694187184
+      }
+    ],
+    "18.6 Create `infra/stacks/ops_stack.py` (Tier 2 lean)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694188425
+      }
+    ],
+    "18.7 Wire all MVP stacks in `infra/app.py`, add outputs, and complete `make deploy`, `make seed`, `make destroy`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694189693
+      }
+    ],
+    "20. Final deployment checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694190996
+      }
+    ],
+    "21.1 Add `base_portfolio` to the three Persona_Templates, `personas.schema.json`, and `contract/portfolio.py::propose(base, asset, weight)`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694192295
+      }
+    ],
+    "21.2 Add `risk_contribution`, `portfolio_comparison`, and `max_weight_within_contract` to `toolkit/metrics.py` with Converse tool specs": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694193548
+      }
+    ],
+    "21.3 Write the Robert oracle test on the starter data": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694194858
+      }
+    ],
+    "22.1 Add `soft_preferences` to the contract schema and to the three Persona_Templates with verbatim excerpts": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694196113
+      }
+    ],
+    "22.2 Extend `agents/judge.py` and `rules.decide`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694197424
+      }
+    ],
+    "23.1 Create `data/esg_exclusions.csv` (31 rows) and its entry in `docs/data_sources.md`; list it in the Snapshot_Manifest": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694198659
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694229826
+      },
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694508035
+      }
+    ],
+    "23.2 Add the `esg_exclusion` Hard_Rule and the `exclusion_cost` Exhibit": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694199907
+      }
+    ],
+    "24.1 Extend `agents/clerk.py` and the SessionView with the four answers built by code": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694201207
+      }
+    ],
+    "24.2 Create `demo/cases.yaml` with the five cases and expected outcomes; add the four-answers card to Friendly_Mode": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694202441
+      }
+    ],
+    "25.1 Create `tribunal/precedents.py` (`put_precedent`, `closest`) on the Session_Store partition `precedent`, with an in-memory implementation for tests": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694203732
+      }
+    ],
+    "25.2 Pass the closest Precedent to the Judge; check in code that a named differing field exists; create `scripts/seed_precedents.py`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694205017
+      }
+    ],
+    "26.1 Accept `appeal_of` and `change` in `POST /sessions`; create `tribunal/appeal.py::diff_sessions`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694206279
+      }
+    ],
+    "26.2 Add the Appeal control and the side-by-side `AppealView` to the UI": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694207529
+      }
+    ],
+    "27.1 Create `guide/bench/` (`baseline.py`, `run.py`, Wilson intervals, Confidence_Labels, call-count guard)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694208794
+      }
+    ],
+    "27.2 Write `bench/cases.yaml` (at least five extra cases), run N=5 on AWS before Sunday 16:00, commit `docs/benchmark.md` and `docs/benchmark.json`": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694210074
+      }
+    ],
+    "28.1 Create `scripts/create_demo_user.sh` and document the jury credentials step in the README (password from the environment, never committed)": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694211329
+      }
+    ],
+    "28.2 Add the `?replay=1` route and `npm run build:replay` with the \"Replay of a recorded session\" label": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694212607
+      }
+    ],
+    "28.3 Create `scripts/export_demo.py`; export every demo and Benchmark session to `demo/sessions/` before Sunday 23:59": [
+      {
+        "executionId": "e1d7c037-94c8-4c3f-b944-769dd48edb86",
+        "chatSessionId": "sess_35e435b8-8761-412c-9309-28bedb662c9f",
+        "timestamp": 1794694213858
       }
     ]
   }
