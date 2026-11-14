@@ -4,7 +4,7 @@
 
 The Agentic Investment Guide is a simulation-only, self-explaining multi-agent system built for the AlphaForge AI datathon 2026. It helps a fictional investor judge a concrete investment request (for example, Robert's "I want to put 30% in TSLA") against an explicit investor contract.
 
-The MVP is the Decision Tribunal. A Profiler Agent converts a persona or custom profile into a JSON Investor_Contract. A Prosecutor Agent and a Defense Agent argue for and against the request using only numbered Exhibits produced by deterministic Python tools. A Judge Agent checks the arguments against the Investor_Contract and the Challenge_Rules. A Clerk Agent writes the ruling and a sensitivity-based answer to "What would change the verdict?".
+The MVP is the Decision Tribunal. Code builds the Investor_Contract, computes every number as a numbered Exhibit, and decides every Hard_Rule. Three agents then run once each, in a fixed order set by code: the Advocate Agent finds the goal behind the request and proposes up to three options, the Investigator Agent states which risks of each option are material for this investor, and the Judge Agent weighs the Soft_Preferences, compares the options, and writes the verdict narrative. A code template (the Clerk) assembles the Ruling and the answer to "What would change the verdict?" (Requirement 36).
 
 The Guide_System is a guidance website. It only guides: it never performs an action directly or indirectly, never places, routes, prefills, or triggers orders, transfers, or brokerage or bank actions, and never holds brokerage or bank credentials. The MVP is a web application, a single-page UI hosted on AWS Amplify Hosting with Amazon Cognito sign-in, that calls a Session_API in front of the Python agents running on Amazon Bedrock AgentCore Runtime. It offers profile-based guidance in two modes: a Friendly_Mode with a visual courtroom scene and plain-language summaries, and an Advanced_Mode with full detail.
 
@@ -20,9 +20,9 @@ The Flight Simulator (Flight Director, Co-pilot, Behavior Analyst) is an optiona
 
 Evaluation of the ideaHedi.md concept, reflected in scope decisions:
 
-- Strengths: separating what the investor says from what the system enforces (Investor_Contract); adversarial Prosecutor and Defense agents counter "yes-man AI" behavior and directly address the Robert persona; the "no exhibit, no argument" rule makes explanations verifiable; the Clerk's sensitivity calculation ties explanation to computation; the AWS mapping (Bedrock Guardrails, AgentCore Memory, AgentCore Observability) covers the 15% AWS criterion.
+- Strengths: separating what the investor says from what the system enforces (Investor_Contract); an Advocate that serves the investor's goal and an Investigator that names the risks material to this investor counter "yes-man AI" behavior and directly address the Robert persona; the "no exhibit, no argument" rule makes explanations verifiable; the sensitivity calculation ties explanation to computation; the AWS mapping (Bedrock Guardrails, AgentCore Memory, AgentCore Observability) covers the 15% AWS criterion.
 - Risks: seven or eight agents increase cost, latency, and demo complexity, while the jury favors simple, focused, verifiable approaches. The Flight Simulator needs a replay engine, stress-event detection, and persistent memory, which is a large build. Replay requires strict look-ahead control. Language models may invent numbers unless figures come from tools. The 5-year window and the survivorship-biased universe limit the strength of any conclusion. The dataset has no ESG scores, news, or fundamentals.
-- Scope decisions: the Tribunal is the MVP; the Flight Simulator is optional stretch; all numerical facts come from deterministic tools that emit numbered Exhibits; agents may only cite Exhibits; Prosecutor and Defense are two role prompts over a shared toolkit, not separate infrastructure. Data scope follows licensing: sources limited to personal use are excluded, and the persona list is a flexible template set rather than a fixed trio.
+- Scope decisions: the Tribunal is the MVP; the Flight Simulator is optional stretch; all numerical facts come from deterministic tools that emit numbered Exhibits; agents may only cite Exhibits; Advocate, Investigator, and Judge are three role prompts over a shared Toolkit called once each by a code orchestrator, not separate infrastructure. Data scope follows licensing: sources limited to personal use are excluded, and the persona list is a flexible template set rather than a fixed trio.
 
 ## Hackathon Delivery Tiers (scope decision, 2026-11-14)
 
@@ -46,10 +46,12 @@ Gates (local time, America/Montreal):
 
 - **Guide_System**: The complete Agentic Investment Guide application, including agents, tools, UI, and AWS integration.
 - **Profiler_Agent**: The agent that converts a Persona_Template, an edited template, or a custom-profile form into an Investor_Contract. It reads templates and form values only and does not invent persona facts.
-- **Prosecutor_Agent**: The agent that builds the case against an Investment_Request using Exhibits only.
-- **Defense_Agent**: The agent that builds the strongest honest case for an Investment_Request using Exhibits only.
-- **Judge_Agent**: The agent that checks arguments against the Investor_Contract and Challenge_Rules and issues a Verdict.
-- **Clerk_Agent**: The agent that writes the Ruling and the sensitivity-based answer.
+- **Investigator_Agent**: The agent that reads every option with its Risk_Panel and the Investor_Contract and states, with Exhibits, which risks are material for this investor and why. It computes nothing itself.
+- **Advocate_Agent**: The agent that identifies the goal behind an Investment_Request and proposes up to three Options that serve it, citing Exhibits. It never decides whether an Option passes the Hard_Rules.
+- **Judge_Agent**: The agent that weighs the Soft_Preferences, compares the verified Options using the Investigator_Agent findings, and writes the narrative of the Verdict decided by code.
+- **Clerk**: The deterministic code template that writes the Ruling, the four answers of Requirement 33, and the sensitivity-based answer. It is not a language-model agent.
+- **Option**: The original Investment_Request or a variant proposed by the Advocate_Agent (a position size, or another asset of the universe, as allowed by configuration), each with its Risk_Panel and Hard_Rule results computed by code.
+- **Risk_Panel**: The fixed set of Exhibits that code computes for every Option: volatility, maximum drawdown, worst rolling 252-day return, 2022 return, share of variance per asset, currency exposure, sector weights, correlation of the added asset with the Base_Portfolio, and maximum weight within the contract.
 - **Flight_Director_Agent**: (Stretch) The agent that runs the historical replay and pauses at Stress_Events.
 - **Copilot_Agent**: (Stretch) The agent that explains a Stress_Event using only data available on the replay date.
 - **Behavior_Analyst_Agent**: (Stretch) The agent that compares stated and revealed risk tolerance.
@@ -81,12 +83,12 @@ Gates (local time, America/Montreal):
 - **Seed_Import_Job**: The job that writes a Dataset_Snapshot through the Snapshot_Writer from the starter files in the seed directory or from files of documented additions. Its library implementation is `guide/ingest/seed.py`. It is started from the command line, by the S3_Build_Script, or by the Snapshot_Pipeline, and it downloads no market data from the internet.
 - **Universe_Additions_File**: A file listing tickers outside the starter assets_universe that the team has documented for import, with name, asset class, market, currency, sector, source name, and the CSV file holding their data.
 - **Data_Source_Document**: The data-source document described in Requirement 3.10 and Requirement 20.
-- **Tribunal_Session**: One run of Profiler, Prosecutor, Defense, Judge, and Clerk on one Investment_Request.
+- **Tribunal_Session**: One run of the Profiler, the Advocate, the Investigator, the Judge, and the Clerk template on one Investment_Request.
 - **Verdict**: The Judge_Agent outcome: reject, accept, or accept with conditions.
-- **Ruling**: The Clerk_Agent's plain-language document with sections Facts, Assumptions, Fictional scenarios, and Limits.
+- **Ruling**: The Clerk's plain-language document with sections Facts, Assumptions, Fictional scenarios, and Limits.
 - **Challenge_Rules**: The rules that all outputs be simulation only, contain no personalized financial advice, contain no return predictions, and comply with the Guidance_Only_Rule.
 - **Guidance_Only_Rule**: The Datathon rule that the Guide_System may only guide and SHALL NOT perform any action directly or indirectly. Prohibited are placing, routing, prefilling, or triggering orders, transfers, or any brokerage or bank action, and holding brokerage or bank credentials.
-- **Friendly_Mode**: The UI mode that shows a visual courtroom scene with the Prosecutor_Agent, Defense_Agent, Judge_Agent, and Clerk_Agent and plain-language summaries.
+- **Friendly_Mode**: The UI mode that shows a visual courtroom scene with the Advocate_Agent, Investigator_Agent, and Judge_Agent, the Options compared, and plain-language summaries.
 - **Advanced_Mode**: The UI mode that shows full detail: Exhibits, per-rule table, Sensitivity_Analysis results, Trace, and JSON export.
 - **Session_State**: The inputs, Investor_Contract, Tribunal_Session progress, Verdict, Ruling, Exhibits, and Trace of one Tribunal_Session, held in the Session_Store as a SessionView and mirrored in the browser view.
 - **Alert**: (Stretch) A notification, labelled as guidance, that a Dataset-derived market event affects the simulated portfolio.
@@ -117,7 +119,7 @@ Gates (local time, America/Montreal):
 
 - **Base_Portfolio**: A fictional portfolio defined per Persona in the Persona_File, with weights summing to 1, into which an Investment_Request is inserted.
 - **Hard_Rule**: An Investor_Contract rule with a numeric limit or an exclusion list, decided by deterministic code.
-- **Soft_Preference**: A stated preference of the investor that cannot be reduced to a number (for example Robert's "entreprises établies, modèle d'affaires compréhensible"), weighed by the Judge_Agent from the Prosecutor_Agent and Defense_Agent arguments.
+- **Soft_Preference**: A stated preference of the investor that cannot be reduced to a number (for example Robert's "entreprises établies, modèle d'affaires compréhensible"), weighed by the Judge_Agent using the Advocate_Agent goal analysis and the Investigator_Agent findings.
 - **Appeal**: A rerun of a completed Tribunal_Session with exactly one changed input, displayed beside the original.
 - **Precedent**: A stored summary of a completed Tribunal_Session (Persona, asset, position size, Verdict, deciding rules, Exhibit values) that later Tribunal_Sessions cite.
 - **ESG_Exclusion_List**: The documented file `data/esg_exclusions.csv` that marks each universe asset as excluded or not under a cited public methodology. It is a proxy, not an ESG score.
@@ -180,20 +182,21 @@ Gates (local time, America/Montreal):
 11. WHERE external data is added to the Dataset, THE Guide_System SHALL add an entry for that data to the Data_Source_Document before any Exhibit uses the data.
 12. IF no FX rate exists on or before a date for which a USD price must be converted, THEN THE Toolkit SHALL exclude that date from the computation and SHALL record the excluded dates in the Exhibit processing notes.
 
-### Requirement 4: Prosecutor and Defense Arguments
+### Requirement 4: Advocate Options and Investigator Findings
 
-**User Story:** As an investor, I want a balanced adversarial analysis of my request, so that I receive more than agreement with what I asked for.
+**User Story:** As an investor, I want my real goal served and the risks that matter to me named, so that I receive more than agreement or a plain refusal.
 
 #### Acceptance Criteria
 
-1. WHEN a Tribunal_Session starts, THE Prosecutor_Agent SHALL produce an argument against the Investment_Request in which each factual claim cites at least one Exhibit number.
-2. WHEN a Tribunal_Session starts, THE Defense_Agent SHALL produce an argument for the Investment_Request in which each factual claim cites at least one Exhibit number.
-3. THE Guide_System SHALL reject any Prosecutor_Agent or Defense_Agent claim that cites no Exhibit or cites an Exhibit number absent from the Exhibit_Registry.
-4. WHEN a claim is rejected for a missing or invalid citation, THE Guide_System SHALL return the rejected claim to the originating agent for revision, up to 2 revision attempts.
-5. IF a claim still has no valid citation after 2 revision attempts, THEN THE Guide_System SHALL remove the claim from the argument and record the removal in the Trace.
-6. THE Guide_System SHALL verify that every number in an argument equals the value of the cited Exhibit after rounding the Exhibit value to the number of decimals stated in the argument.
-7. THE Defense_Agent SHALL include in the Defense argument at least one claim that cites an Exhibit computed at a position size smaller than the requested position size.
-8. THE Prosecutor_Agent and THE Defense_Agent SHALL use the same Toolkit and the same Exhibit_Registry.
+1. WHEN a Tribunal_Session starts and the Risk_Panel and Hard_Rule results of the Investment_Request exist, THE Advocate_Agent SHALL state the goal behind the request and propose at most three Options, at least one of which reduces the largest exposure shown in the Risk_Panel of the request.
+2. THE Advocate_Agent SHALL propose Options only as requests the user may test and SHALL never phrase an Option as an instruction or recommendation to buy or sell.
+3. WHEN the Advocate_Agent has proposed its Options, THE Guide_System SHALL compute the Risk_Panel and the Hard_Rule results of every Option with code and SHALL mark each Option that fails a Hard_Rule as rejected, keeping it visible.
+4. WHEN the Risk_Panels of all Options exist, THE Investigator_Agent SHALL list, for each Option, the material risks for this investor, each with the cited Exhibit and the Investor_Contract field or Soft_Preference that makes it material.
+5. THE Guide_System SHALL reject any Advocate_Agent or Investigator_Agent claim that cites no Exhibit, cites an Exhibit number absent from the Exhibit_Registry, or (for the Investigator_Agent) names no existing Investor_Contract field or Soft_Preference.
+6. WHEN a claim is rejected, THE Guide_System SHALL return it to the originating agent for revision, up to 2 revision attempts, and THEN SHALL remove the claim and record the removal in the Trace.
+7. THE Guide_System SHALL verify that every number in an agent output equals the value of the cited Exhibit after rounding the Exhibit value to the number of decimals stated in the output.
+8. THE Advocate_Agent and THE Investigator_Agent SHALL use the same Toolkit and the same Exhibit_Registry, and each SHALL make at most 6 Toolkit calls per Tribunal_Session.
+9. WHERE configuration sets `advocate_scope` to `size_only`, THE Advocate_Agent SHALL propose only smaller position sizes of the requested asset; WHERE it is `universe`, it MAY propose other assets of the assets_universe table.
 
 ### Requirement 5: Judge and Governance
 
@@ -201,17 +204,17 @@ Gates (local time, America/Montreal):
 
 #### Acceptance Criteria
 
-1. WHEN the Prosecutor_Agent and Defense_Agent arguments are complete, THE Judge_Agent SHALL evaluate the Investment_Request against each Investor_Contract rule using Exhibit values and SHALL record a pass or fail result per rule.
+1. WHEN the Investigator_Agent findings are complete, THE Judge_Agent SHALL evaluate the Investment_Request against each Investor_Contract rule using Exhibit values and SHALL record a pass or fail result per rule.
 2. THE Judge_Agent SHALL issue a Verdict of reject, accept, or accept with conditions.
 3. WHEN the Verdict is accept with conditions, THE Judge_Agent SHALL state each condition as a numeric limit, such as a maximum position size in percent.
 4. IF any Investor_Contract rule fails and no numeric condition can satisfy every failed rule, THEN THE Judge_Agent SHALL issue a Verdict of reject.
-5. IF the Judge_Agent identifies missing evidence for a rule, THEN THE Judge_Agent SHALL return a named evidence request to the Prosecutor_Agent or Defense_Agent, up to 2 times per Tribunal_Session.
-6. IF evidence for a rule is still missing after the evidence requests, THEN THE Judge_Agent SHALL list the rule as unverified in the Verdict.
+5. THE Judge_Agent SHALL make no call to another agent; IF evidence for a rule is missing, THEN THE Guide_System SHALL compute it with the Toolkit before the Judge_Agent runs.
+6. IF evidence for a rule cannot be computed, THEN THE Judge_Agent SHALL list the rule as unverified in the Verdict.
 7. THE Guide_System SHALL apply a Guardrail to every model input and output that blocks real-trade instructions, personalized financial advice, return predictions, and any output that violates the Guidance_Only_Rule.
 8. IF the Guardrail blocks a model output, THEN THE Guide_System SHALL record the block in the Trace and display a message stating which Challenge_Rule applied.
 9. THE Judge_Agent SHALL compute the pass or fail result of each Hard_Rule with deterministic code. THE Judge_Agent SHALL use the language model only to weigh Soft_Preferences as specified in Requirement 29 and to write the narrative of the Verdict, and a Soft_Preference judgment SHALL never turn a failed Hard_Rule into a pass.
 10. WHEN the Investor_Contract has a risk level of `low_to_moderate` and the Investment_Request exceeds a per-asset cap, THE Judge_Agent SHALL state the tension between the request and the Investor_Contract in the Verdict.
-11. WHEN the Judge_Agent evaluates arguments, THE Judge_Agent SHALL check each Prosecutor_Agent, Defense_Agent, and Clerk_Agent output against the Guidance_Only_Rule and SHALL record a pass or fail result in the Trace.
+11. WHEN the Judge_Agent evaluates arguments, THE Guide_System SHALL check each Advocate_Agent, Investigator_Agent, and Judge_Agent output and the Clerk Ruling against the Guidance_Only_Rule and SHALL record a pass or fail result in the Trace.
 12. IF an agent output fails the Guidance_Only_Rule check, THEN THE Judge_Agent SHALL remove the offending statement from the Ruling and SHALL record the removal in the Trace.
 
 ### Requirement 6: Clerk Ruling and Sensitivity
@@ -220,10 +223,10 @@ Gates (local time, America/Montreal):
 
 #### Acceptance Criteria
 
-1. WHEN the Judge_Agent issues a Verdict, THE Clerk_Agent SHALL produce a Ruling with the sections Facts, Assumptions, Fictional scenarios, and Limits.
-2. THE Clerk_Agent SHALL cite an Exhibit number for each statement in the Facts section.
-3. THE Clerk_Agent SHALL list in the Assumptions section the period, currency, calendar alignment choice, pinned Snapshot_Id with its retrieval date, and each Investor_Contract field with `persona_assumption` or `default` provenance used by a rule check.
-4. THE Clerk_Agent SHALL label each hypothetical item in the Fictional scenarios section as a simulation.
+1. WHEN the Judge_Agent issues a Verdict, THE Clerk SHALL produce a Ruling with the sections Facts, Assumptions, Fictional scenarios, and Limits.
+2. THE Clerk SHALL cite an Exhibit number for each statement in the Facts section.
+3. THE Clerk SHALL list in the Assumptions section the period, currency, calendar alignment choice, pinned Snapshot_Id with its retrieval date, and each Investor_Contract field with `persona_assumption` or `default` provenance used by a rule check.
+4. THE Clerk SHALL label each hypothetical item in the Fictional scenarios section as a simulation.
 5. THE Ruling SHALL include a section titled "What would change the verdict" containing at least one Sensitivity_Analysis result.
 6. WHEN the Ruling is produced, THE Toolkit SHALL run the Sensitivity_Analysis by re-evaluating the Investor_Contract rules with position size and horizon varied over the ranges and step sizes defined in configuration and with the 2022 drawdown period, and SHALL store each result as an Exhibit.
 7. THE Ruling SHALL state the threshold value at which the Verdict changes for each varied input, or state that no change occurs within the tested range.
@@ -245,7 +248,7 @@ Gates (local time, America/Montreal):
 7. THE UI SHALL provide a trace panel showing the ordered agent calls, tool calls, Exhibits created, Judge checks, and Guardrail blocks of the Tribunal_Session.
 8. THE UI SHALL display a persistent banner stating that the output is a simulation and not financial advice.
 9. THE UI SHALL provide a Friendly_Mode and an Advanced_Mode and SHALL offer a control to switch between them.
-10. WHILE the UI is in Friendly_Mode, THE UI SHALL display a courtroom scene showing the Prosecutor_Agent, Defense_Agent, Judge_Agent, and Clerk_Agent.
+10. WHILE the UI is in Friendly_Mode, THE UI SHALL display a courtroom scene showing the Advocate_Agent, Investigator_Agent, and Judge_Agent, and a table of the Options with their Hard_Rule results and material risks.
 11. WHILE the UI is in Friendly_Mode, WHEN an agent stage produces output, THE UI SHALL highlight that agent in the courtroom scene and display a plain-language summary of the output of at most 60 words.
 12. WHILE the UI is in Friendly_Mode, THE UI SHALL display the Verdict and the answer to "What would change the verdict" in plain language, with each statement linked to its Exhibit.
 13. WHILE the UI is in Advanced_Mode, THE UI SHALL display the Exhibits, the per-rule pass or fail table, the Sensitivity_Analysis results, the trace panel, and a control to export the Trace as JSON.
@@ -418,7 +421,7 @@ Gates (local time, America/Montreal):
 13. WHEN the user edits the values of a Persona_Template in the form and submits the form, THE Profiler_Agent SHALL build the Investor_Contract from the submitted values, SHALL set the provenance `user` for each field whose submitted value differs from the Persona_Template, and SHALL keep the Persona_Template provenance for each unchanged field.
 14. WHEN a custom-profile form is filled from blank, THE Profiler_Agent SHALL build the Investor_Contract from the form values and stated defaults only, with the provenance `form` or `default` and with no Persona_File value.
 15. THE Profiler_Agent SHALL read persona facts only from the Persona_File and the form values and SHALL ask no language model for persona facts.
-16. WHEN a Ruling relies on an Investor_Contract field with `persona_assumption` provenance, THE Clerk_Agent SHALL list the field, its value, and its rationale from the Persona_File in the Assumptions section, and WHERE the Persona_File has no rationale for the field, THE Clerk_Agent SHALL state that no rationale is recorded.
+16. WHEN a Ruling relies on an Investor_Contract field with `persona_assumption` provenance, THE Clerk SHALL list the field, its value, and its rationale from the Persona_File in the Assumptions section, and WHERE the Persona_File has no rationale for the field, THE Clerk SHALL state that no rationale is recorded.
 
 ### Requirement 17: Amazon S3 Primary Store and Local Cache
 
@@ -499,7 +502,7 @@ Gates (local time, America/Montreal):
 
 #### Acceptance Criteria
 
-1. THE Guide_System SHALL provide for each of the Profiler_Agent, Prosecutor_Agent, Defense_Agent, Judge_Agent, and Clerk_Agent, and for each enabled stretch agent, one Instruction_File at `guide/agents/instructions/<agent>.md`.
+1. THE Guide_System SHALL provide for each of the Profiler_Agent (free-text intake only), Advocate_Agent, Investigator_Agent, and Judge_Agent, and for each enabled stretch agent, one Instruction_File at `guide/agents/instructions/<agent>.md`.
 2. THE Instruction_File SHALL contain the sections role, goals, allowed tools, output JSON format, forbidden behaviors, citation rule, guidance-only rule, tone, and included skills.
 3. THE Guide_System SHALL provide the Skill_Files `citing_exhibits.md`, `guidance_only.md`, `data_limits.md`, `plain_language.md`, and `persona_handling.md` at `guide/agents/skills/<skill>.md`.
 4. THE Instruction_Loader SHALL compose the System_Prompt of an agent from the agent's Instruction_File followed by the Skill_Files listed in the Instruction_File, in the listed order.
@@ -633,17 +636,17 @@ Gates (local time, America/Montreal):
 6. FOR the Robert Base_Portfolio (XBB.TO 40 %, ZST.TO 15 %, XIU.TO 15 %, SPY 15 %, JNJ 8 %, RY.TO 7 %, daily rebalanced, CAD, dates on which every held asset has a price, 2021-11-12 to 2026-11-12), THE Toolkit SHALL reproduce, within 0.3 percentage points, a maximum drawdown of -10.4 % for the Base_Portfolio and -30.1 % with 30 % TSLA, and a TSLA share of variance of 86.7 % within 1 percentage point.
 7. THE Ruling SHALL state that the Base_Portfolio is a fictional assumption.
 
-### Requirement 29: Soft Preferences Decided Through the Debate
+### Requirement 29: Soft Preferences Weighed by the Judge
 
-**User Story:** As a juror, I want the Prosecutor and Defense arguments to change the outcome, so that the multi-agent design is not decorative.
+**User Story:** As a juror, I want the agents to change the outcome where code cannot decide, so that the multi-agent design is not decorative.
 
 #### Acceptance Criteria
 
 1. THE Investor_Contract SHALL hold a list of Soft_Preferences, each with an identifier, a text, and a provenance, and THE shipped Persona_Templates SHALL each define at least two Soft_Preferences taken from section 3 of the Context_Document with their verbatim excerpts.
-2. WHEN every Hard_Rule passes, or passes under a numeric condition, THE Judge_Agent SHALL assess each Soft_Preference as `satisfied`, `tension`, or `not_satisfied`, and SHALL record for each assessment the deciding party and the Exhibits cited.
-3. THE Judge_Agent SHALL receive the two arguments labelled "Party A" and "Party B" in an order drawn at random per Tribunal_Session, with role names removed and the same maximum length, and THE Trace SHALL record the order.
-4. IF a Soft_Preference is assessed `not_satisfied`, THEN THE Judge_Agent SHALL change a Verdict of accept into accept with conditions and SHALL state the condition in plain language, and SHALL never change a reject into an accept.
-5. THE Ruling SHALL show, for each Soft_Preference, the assessment and the argument that decided it, each linked to its Exhibits.
+2. THE Judge_Agent SHALL assess each Soft_Preference as `satisfied`, `tension`, or `not_satisfied` for each Option that passes the Hard_Rules, and SHALL record the Exhibits and Investigator_Agent findings it relied on.
+3. IF a Soft_Preference is assessed `not_satisfied` for the Option retained in the Verdict, THEN THE Guide_System SHALL change a Verdict of accept into accept with conditions and SHALL state the condition in plain language.
+4. THE Guide_System SHALL enforce in code that no Judge_Agent output turns a failed Hard_Rule into a pass or a reject into an accept.
+5. THE Ruling SHALL show, for each Soft_Preference, the assessment and the findings that decided it, each linked to its Exhibits.
 
 ### Requirement 30: Appeal
 
@@ -700,7 +703,9 @@ Gates (local time, America/Montreal):
 2. THE Benchmark SHALL record, per case and per arm, the share of runs whose Verdict matches the expected outcome, the share of runs that accept a request violating a Hard_Rule (yes-man rate), the share of numbers in the output that match an Exhibit or cannot be verified, the mean latency, and the mean token count.
 3. THE Benchmark SHALL report each rate with a Wilson 95 % confidence interval and a Confidence_Label: `Measured` when the intervals of the two arms do not overlap, `Indicative` when they overlap, and `Context` for figures that are not measured.
 4. THE Benchmark SHALL write its results to `docs/benchmark.md` and `docs/benchmark.json`, and THE technical documentation and the demo SHALL use only these files for Benchmark figures.
-5. THE Baseline_Agent SHALL use the same model, the same Guardrail, and the same Investor_Contract as the Guide_System, and SHALL receive no Toolkit, no Exhibits, and no debate.
+5. THE Baseline_Agent SHALL use the same model, the same Guardrail, and the same Investor_Contract as the Guide_System, and SHALL receive no Toolkit, no Exhibits, and no other agent.
+6. THE Benchmark SHALL include an ablation that reruns the Guide_System with each of the Advocate_Agent, the Investigator_Agent, and the Judge_Agent switched off in turn, and SHALL report what each removal changes: Options offered, material risks reported, and Verdicts changed by Soft_Preferences.
+7. IF the ablation shows that removing an agent changes none of these measures beyond its confidence interval, THEN THE technical documentation SHALL state it and the team SHALL consider removing the agent.
 
 ### Requirement 35: Demo Resilience and Jury Access
 
@@ -713,3 +718,18 @@ Gates (local time, America/Montreal):
 3. THE UI SHALL provide a Replay_Mode that renders the exported SessionViews, including Friendly_Mode, Advanced_Mode, and the Appeal comparison, without calling the Session_API or any AWS service.
 4. THE UI SHALL display a visible label "Replay of a recorded session" on every screen of the Replay_Mode, with the original session date and Snapshot_Id.
 5. THE repository SHALL provide a command that builds the Replay_Mode as static files that open in a browser with no server and no network access.
+
+### Requirement 36: Fixed Agent Flow, Bounds, and Fallbacks
+
+**User Story:** As a datathon team, I want a simple, bounded agent flow that always ends with a valid Ruling, so that the demo is reliable and every agent has a clear purpose.
+
+#### Acceptance Criteria
+
+1. THE Tribunal_Orchestrator SHALL run, in this order and once each: the Profiler (code), the Risk_Panel and Hard_Rules of the request (code), the Advocate_Agent, the Risk_Panel and Hard_Rules of each Option (code), the Investigator_Agent, the Judge_Agent, and the Clerk template with the citation, guidance-only, and Guardrail checks (code).
+2. THE agents SHALL never call one another; THE Tribunal_Orchestrator SHALL be the only component that passes data between stages.
+3. THE Guide_System SHALL make at most 3 agent invocations per Tribunal_Session, not counting citation revisions bounded by Requirement 4.6, and SHALL apply a configured timeout to each invocation.
+4. THE Guide_System SHALL validate every agent output against a JSON schema and SHALL treat an invalid output as a failed stage.
+5. IF the Advocate_Agent fails, THEN THE Ruling SHALL offer only the request and the maximum weight within the contract computed by code.
+6. IF the Investigator_Agent fails, THEN THE Ruling SHALL show the Risk_Panels without the material-risk explanation.
+7. IF the Judge_Agent fails, THEN THE Verdict SHALL be the code result of the Hard_Rules with a template sentence in place of the narrative.
+8. THE Ruling SHALL list which agents ran and which failed, and THE Verdict SHALL never depend on an agent succeeding.
