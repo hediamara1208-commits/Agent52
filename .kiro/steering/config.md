@@ -44,8 +44,8 @@ fileMatchPattern: "config.yaml|guide/config.py"
 
 ```yaml
 aws_region: us-east-1
-model_id: <Claude model ID from the Bedrock console>
-guardrail_id: gr-abc123
+model_id: us.anthropic.claude-sonnet-5-5
+guardrail_id: 3981l0ehd4uu
 guardrail_version: DRAFT
 s3_bucket: my-guide-data
 s3_prefix: dataset

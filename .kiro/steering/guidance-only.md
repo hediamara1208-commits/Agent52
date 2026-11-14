@@ -17,8 +17,8 @@ The Guide_System is a **simulation-only** investment tribunal. It may **only gui
 
 ## Enforcement layers
 
-1. **Guardrail** (Bedrock): Blocks order/transfer/brokerage instructions
-2. **Judge-side check** (`tribunal/guidance_only.py`): Pattern-based static check of every agent output
+1. **Guardrail** (Bedrock `verdict-guardrail`, ID in `config.yaml`): on model output, blocks order/transfer/brokerage instructions (RealTransactions) and return predictions (ReturnPredictions); prompt-attack filter on input. It has no personalized-advice topic: that topic blocked valid simulated verdicts in testing
+2. **Judge-side check** (`tribunal/guidance_only.py`): Pattern-based static check of every agent output; this layer catches personalized-advice wording ("you should buy", "I recommend you")
 3. **UI/API**: No action controls, no brokerage integrations
 4. **Static scan test** (`tests/test_guidance_scan.py`): Checks source and configuration
 

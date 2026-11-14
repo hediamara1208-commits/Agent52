@@ -806,7 +806,7 @@ def strip_violations(ruling, findings) -> tuple[Ruling, list[TraceEvent]]
 
 | Layer | Mechanism | Requirement |
 | --- | --- | --- |
-| Guardrail | Denied topics for real orders, transfers, and brokerage or bank actions on model input and output | 13.5 |
+| Guardrail | `verdict-guardrail`: denied topics RealTransactions and ReturnPredictions on model output, prompt-attack filter on input | 5.7, 13.5 |
 | Judge check | `check_guidance_only` and `strip_violations`, traced | 5.11, 5.12, 13.6 |
 | Static scan | Test that scans source and configuration for brokerage or bank API clients and credential patterns | 13.2 to 13.4, 13.9 |
 | UI | No widget whose callback places, routes, prefills, or triggers an action; a persistent guidance-only statement | 7.18, 7.19 |
@@ -1001,7 +1001,7 @@ def load_all(agents: Sequence[str], root: Path) -> Mapping[str, SystemPrompt]
 
 | Stack | Resources | Status |
 | --- | --- | --- |
-| `GuardrailStack` | Bedrock Guardrail with denied topics: real-trade instructions, any instruction or simulated execution of an order, transfer, or brokerage or bank action, personalized financial advice, return predictions | MVP |
+| `GuardrailStack` | Bedrock Guardrail with output-only denied topics RealTransactions (instruction or simulated execution of an order, transfer, or brokerage or bank action) and ReturnPredictions, plus a HIGH prompt-attack filter on input. Personalized advice is left to the code-side guidance-only check. For the hackathon the Guardrail already exists (created with the CLI, ID in `config.yaml`); the stack is optional | MVP |
 | `DataStack` | Primary_Store bucket (versioning, SSE-S3, Block Public Access, TLS-only, deny-delete policy), Athena results bucket (7-day expiry), Glue database and five tables, Athena workgroup, Seed_Import_Job role, Athena query role | MVP |
 | `AuthStack` | Cognito user pool, app client for the SPA (authorization code with PKCE, no secret) | MVP |
 | `RuntimeStack` | ECR image asset, AgentCore Runtime, AgentCore Memory, Application_Role | MVP |
@@ -1705,7 +1705,7 @@ Property tests cover Properties 1 to 54 (numbers 31, 32, and 46 are intentionall
 
 ### Integration and smoke tests
 
-Run a small number of examples against real AWS, not property-based: Guardrail blocks a trade instruction, a return prediction, and personalized advice (Req. 5.7, 5.8); Converse tool use round trip (Req. 2.8, 8.1); AgentCore Memory save and load (Req. 8.4); AgentCore trace emission (Req. 8.3, 23.5); seed the baseline snapshot to a real bucket and pin it from S3 (Req. 8.5, 17.1, 18.5); Athena row counts per table for the baseline snapshot equal the Data_Loader counts, and the validation queries pass (Req. 10.14, 19.2). After `make deploy`, a smoke script signs in a test Cognito user, posts a session for Robert, polls until `completed`, validates the SessionView against the schema, and checks that a second user cannot read it (Req. 22.3 to 22.8, 26.7). The Guardrail integration run also covers prompts and outputs that instruct or simulate an order, transfer, or brokerage or bank action (Req. 13.5). Smoke checks: no credentials in config or logs (Req. 8.7), the data-source document lists every source file (Req. 3.10, 3.11), and README and one-page summary contain the simulation disclaimers (Req. 11.5).
+Run a small number of examples against real AWS, not property-based: Guardrail blocks a trade instruction and a return prediction, and passes the Robert and Mateo demo verdict texts (Req. 5.7, 5.8); Converse tool use round trip (Req. 2.8, 8.1); AgentCore Memory save and load (Req. 8.4); AgentCore trace emission (Req. 8.3, 23.5); seed the baseline snapshot to a real bucket and pin it from S3 (Req. 8.5, 17.1, 18.5); Athena row counts per table for the baseline snapshot equal the Data_Loader counts, and the validation queries pass (Req. 10.14, 19.2). After `make deploy`, a smoke script signs in a test Cognito user, posts a session for Robert, polls until `completed`, validates the SessionView against the schema, and checks that a second user cannot read it (Req. 22.3 to 22.8, 26.7). The Guardrail integration run also covers prompts and outputs that instruct or simulate an order, transfer, or brokerage or bank action (Req. 13.5). Smoke checks: no credentials in config or logs (Req. 8.7), the data-source document lists every source file (Req. 3.10, 3.11), and README and one-page summary contain the simulation disclaimers (Req. 11.5).
 
 ### Test data
 
