@@ -6,8 +6,8 @@ Implementation language: Python 3.11 (Streamlit, boto3, pandas, jsonschema, pyte
 
 ## Tasks
 
-- [ ] 1. Set up project structure, configuration, and data access
-  - [ ] 1.1 Create the `guide/` package layout, `tests/`, `pyproject.toml`/`requirements.txt`, `config.py`, and `data/loader.py`
+- [x] 1. Set up project structure, configuration, and data access
+  - [x] 1.1 Create the `guide/` package layout, `tests/`, `pyproject.toml`/`requirements.txt`, `config.py`, and `data/loader.py`
     - Config loads from environment and `config.yaml`: region, model id, guardrail id and version, S3 bucket, data location, data dir, macro publication lags. No credential fields.
     - Implement `DataSource` protocol with `LocalSource` (/workshop/Agent52/data) and `S3Source`
     - Add a log filter that redacts AWS key patterns
@@ -18,7 +18,7 @@ Implementation language: Python 3.11 (Streamlit, boto3, pandas, jsonschema, pyte
     - _Requirements: 8.5, 8.6, 8.7_
 
 - [ ] 2. Implement Investor_Contract, schema validation, and Profiler
-  - [ ] 2.1 Create `contract/schema.json` and `contract/validate.py`
+  - [~] 2.1 Create `contract/schema.json` and `contract/validate.py`
     - `validate_contract` returns a list of failing fields (empty when valid)
     - _Requirements: 1.3, 1.4_
 
@@ -36,8 +36,8 @@ Implementation language: Python 3.11 (Streamlit, boto3, pandas, jsonschema, pyte
     - **Property 2: Invalid contracts are rejected with failing fields**
     - **Validates: Requirements 1.4**
 
-- [ ] 3. Implement Exhibits, alignment, and data-quality handling
-  - [ ] 3.1 Create `toolkit/exhibits.py` with frozen `Exhibit` and `ExhibitRegistry`
+- [x] 3. Implement Exhibits, alignment, and data-quality handling
+  - [x] 3.1 Create `toolkit/exhibits.py` with frozen `Exhibit` and `ExhibitRegistry`
     - Sequential numbering, all required fields, read-only value and inputs
     - _Requirements: 2.2, 2.3_
 
@@ -45,7 +45,7 @@ Implementation language: Python 3.11 (Streamlit, boto3, pandas, jsonschema, pyte
     - **Property 3: Exhibit completeness, sequencing, and immutability**
     - **Validates: Requirements 2.2, 2.3**
 
-  - [ ] 3.3 Create `toolkit/align.py` and `data/quality.py`
+  - [x] 3.3 Create `toolkit/align.py` and `data/quality.py`
     - As-of filtering for prices, FX, and macro; USD to CAD conversion with FX carry-forward notes
     - Date-intersection calendar alignment with method and observation count notes
     - Macro lag availability; CNQ.TO 2022-08-22 note; survivorship-bias text; unsupported-topic detection (ESG scores, news, fundamentals)
@@ -102,7 +102,7 @@ Implementation language: Python 3.11 (Streamlit, boto3, pandas, jsonschema, pyte
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. Implement Trace recorder and Bedrock agent base
-  - [ ] 6.1 Create `trace/recorder.py`
+  - [x] 6.1 Create `trace/recorder.py`
     - Events for agent calls, tool calls with Exhibit number, judge checks, guardrail blocks, removed claims; timestamp and sequence number; summaries only
     - JSON export; OpenTelemetry span emission for AgentCore Observability; `trace_chain(statement)` link chain
     - _Requirements: 8.3, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
@@ -122,7 +122,7 @@ Implementation language: Python 3.11 (Streamlit, boto3, pandas, jsonschema, pyte
     - **Validates: Requirements 9.4**
 
 - [ ] 7. Implement Tribunal governance logic
-  - [ ] 7.1 Create `tribunal/request_parser.py`
+  - [x] 7.1 Create `tribunal/request_parser.py`
     - Rule-based extraction of ticker and weight with model fallback; validate against universe; report missing asset or size
     - Expose `parse_request` for reuse by the Companion API
     - _Requirements: 7.21, 14.9_

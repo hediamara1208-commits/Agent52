@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "investor_contract.schema.json",
+  "title": "Investor_Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "risk_level",
+    "horizon_years",
+    "max_volatility",
+    "max_drawdown",
+    "per_asset_cap",
+    "per_asset_class_caps",
+    "crypto_cap",
+    "sector_caps",
+    "esg_exclusions",
+    "provenance"
+  ],
+  "properties": {
+    "risk_level": { "type": "string", "enum": ["low", "moderate", "high"] },
+    "horizon_years": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+    "max_volatility": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+    "max_drawdown": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+    "per_asset_cap": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+    "per_asset_class_caps": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 }
+    },
+    "crypto_cap": { "type": "number", "minimum": 0, "maximum": 1 },
+    "sector_caps": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 }
+    },
+    "esg_exclusions": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "speculative_limit": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["persona", "form", "default"]
+      }
+    }
+  }
+}

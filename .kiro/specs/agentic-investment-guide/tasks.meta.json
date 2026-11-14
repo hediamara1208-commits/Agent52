@@ -1,0 +1,289 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Create the `guide/` package layout, `tests/`, `pyproject.toml`/`requirements.txt`, `config.py`, and `data/loader.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684928366
+      },
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684982576
+      },
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685157415
+      }
+    ],
+    "2.1 Create `contract/schema.json` and `contract/validate.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684930075
+      },
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685163311
+      },
+      {
+        "executionId": "a6556dd5-050c-4643-aa3f-e423581dd50b",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685448466
+      }
+    ],
+    "2.2 Create `personas.yaml` and `contract/profiler.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684931383
+      }
+    ],
+    "3.1 Create `toolkit/exhibits.py` with frozen `Exhibit` and `ExhibitRegistry`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684932666
+      },
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685164542
+      },
+      {
+        "executionId": "a6556dd5-050c-4643-aa3f-e423581dd50b",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685445884
+      }
+    ],
+    "3.3 Create `toolkit/align.py` and `data/quality.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684933901
+      },
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685166305
+      },
+      {
+        "executionId": "a6556dd5-050c-4643-aa3f-e423581dd50b",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685444518
+      }
+    ],
+    "4.1 Create `toolkit/metrics.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684935133
+      }
+    ],
+    "4.2 Create `toolkit/tools.py` with Bedrock Converse `toolSpec` definitions and a tool runner": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684936631
+      }
+    ],
+    "5. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684938490
+      }
+    ],
+    "6.1 Create `trace/recorder.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684940745
+      },
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685167539
+      },
+      {
+        "executionId": "a6556dd5-050c-4643-aa3f-e423581dd50b",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685443133
+      }
+    ],
+    "6.2 Create `agents/base.py` Bedrock Converse wrapper": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684942676
+      }
+    ],
+    "7.1 Create `tribunal/request_parser.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684944890
+      },
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685168757
+      },
+      {
+        "executionId": "a6556dd5-050c-4643-aa3f-e423581dd50b",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685450076
+      }
+    ],
+    "7.3 Create `tribunal/citations.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684947016
+      }
+    ],
+    "7.5 Create `tribunal/rules.py` with `evaluate_rules` and `decide`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684949140
+      }
+    ],
+    "7.8 Create `tribunal/guidance_only.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684951264
+      }
+    ],
+    "7.9 Create `tribunal/sensitivity.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684953394
+      }
+    ],
+    "8.1 Create `agents/prosecutor.py` and `agents/defense.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684955519
+      }
+    ],
+    "8.2 Create `agents/judge.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684957446
+      }
+    ],
+    "8.3 Create `agents/clerk.py` with a Ruling template": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684959570
+      }
+    ],
+    "9.1 Create `memory.py` (`MemoryStore`) wrapping AgentCore Memory": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684961695
+      }
+    ],
+    "9.2 Create `tribunal/orchestrator.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684963899
+      }
+    ],
+    "10. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684965679
+      }
+    ],
+    "11.1 Create `ui/view_model.py` with the shared `SessionView`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684967557
+      }
+    ],
+    "11.2 Create `tribunal/summaries.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684969224
+      }
+    ],
+    "11.3 Create `ui/friendly.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684970624
+      }
+    ],
+    "11.4 Create `ui/advanced.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684971861
+      }
+    ],
+    "11.5 Create `ui/app.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684973072
+      }
+    ],
+    "12.1 Create `deploy/` templates for the Guardrail and least-privilege IAM policies": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684974273
+      }
+    ],
+    "12.2 Create `docs/data_sources.md`, `README.md`, technical doc, one-page summary, and demo script": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684975491
+      }
+    ],
+    "12.3 Create the static scanner `guide/guidance_scan.py`": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684976708
+      }
+    ],
+    "16. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794684977917
+      }
+    ],
+    "1. Set up project structure, configuration, and data access": [
+      {
+        "executionId": "be0576dd-8b86-4795-8064-1b690156400c",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685158653
+      }
+    ],
+    "3. Implement Exhibits, alignment, and data-quality handling": [
+      {
+        "executionId": "a6556dd5-050c-4643-aa3f-e423581dd50b",
+        "chatSessionId": "sess_9b1be11f-004d-4994-a139-58e34de9c077",
+        "timestamp": 1794685447082
+      }
+    ]
+  }
+}

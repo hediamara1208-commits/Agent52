@@ -1,0 +1,24 @@
+# No credentials belong in this file. AWS credentials come from the default
+# AWS credential chain (role, profile, or environment), never from config.
+aws_region: us-east-1
+model_id: ""
+guardrail_id: ""
+guardrail_version: "DRAFT"
+s3_bucket: ""
+s3_prefix: data
+data_location: local   # local | s3
+data_dir: /workshop/Agent52/data
+
+# Publication lag in days after the reference date, per macro series.
+# Monthly series carry the reference month start date; value is available
+# only after reference date + lag.
+macro_publication_lag_days:
+  CPIAUCSL: 45
+  UNRATE: 38
+  STATIC_TOTALCPICHANGE: 45
+  DFF: 1
+  DGS10: 1
+  DGS2: 1
+  BD.CDN.10YR.DQ.YLD: 1
+  BD.CDN.2YR.DQ.YLD: 1
+  V39079: 1
