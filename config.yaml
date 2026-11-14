@@ -1,16 +1,16 @@
 # No credentials belong in this file. AWS credentials come from the default
 # AWS credential chain (role, profile, or environment), never from config.
 aws_region: us-east-1
-model_id: ""   # default Claude model ID, copied from the Bedrock console
+model_id: "us.anthropic.claude-sonnet-5-5"   # US cross-region inference profile, tested with Converse on the event account
 # Per-agent model IDs (Req. 36); an empty value falls back to model_id.
 model_ids:
-  advocate: ""
-  investigator: ""
-  judge: ""
+  advocate: "us.anthropic.claude-sonnet-5-5"
+  investigator: "us.anthropic.claude-sonnet-5-5"   # us.anthropic.claude-haiku-5-5 if latency is too high
+  judge: "us.anthropic.claude-sonnet-5-5"
 # Agent flow settings (Req. 4.9, 36.3).
 advocate_scope: size_only   # size_only | universe
 agent_timeout_seconds: 60
-guardrail_id: ""
+guardrail_id: "3981l0ehd4uu"   # verdict-guardrail: output topics RealTransactions, ReturnPredictions; prompt-attack filter on input
 guardrail_version: "DRAFT"
 
 # Amazon S3 is the system of record in every environment. The local cache only

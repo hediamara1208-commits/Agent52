@@ -441,7 +441,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 - [ ] 12. AWS configuration templates, data platform, guidance-only scan, and deliverable files
   - [ ] 12.1 Create `deploy/` templates for the Guardrail and least-privilege IAM policies
     - Implemented as CDK constructs in `infra/stacks/guardrail_stack.py` and a shared `infra/iam.py` helper; the synthesized CloudFormation templates are the deployment templates
-    - Guardrail denied topics: real-trade instructions, instructions or simulated execution of any order, transfer, or brokerage or bank action, personalized financial advice, return predictions
+    - Guardrail already exists: `verdict-guardrail` (ID in `config.yaml`, version DRAFT). Output-only denied topics RealTransactions and ReturnPredictions, HIGH prompt-attack filter on input. No personalized-advice topic: it blocked valid demo verdicts; the guidance-only check covers that wording. A template is optional
     - IAM helper builds the roles of the design table: Application_Role (Bedrock on model and Guardrail ARNs; `s3:GetObject`, `s3:GetObjectVersion` on snapshot, curated, and pointer keys only; Session_Store item actions by table name; AgentCore Memory on one resource; trace and metric write), Seed_Import_Job (S3 get/put on snapshot, curated, pointer prefixes; `glue:GetTable`, `glue:BatchCreatePartition`; Athena query permissions), Athena query (workgroup, Glue read, curated read, results bucket prefix)
     - No `s3:DeleteObject`, no `*` action or resource, no brokerage or bank permissions
     - _Requirements: 5.7, 8.2, 8.9, 8.10, 8.11, 8.12, 13.5, 25.1_
@@ -467,7 +467,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - _Requirements: 13.9, 13.10, 21.10_
 
   - [ ]* 12.6 Write Guardrail integration test against real AWS
-    - Guardrail blocks a trade instruction, an order, transfer, or brokerage or bank action, a return prediction, and personalized advice
+    - Guardrail blocks a trade instruction, an order, transfer, or brokerage or bank action, and a return prediction; it passes the Robert and Mateo demo verdict texts
     - _Requirements: 5.7, 5.8, 13.5_
 
   - [ ] 12.7 Create the CDK `DataStack` in `infra/stacks/data_stack.py` (S3, Glue, Athena)
