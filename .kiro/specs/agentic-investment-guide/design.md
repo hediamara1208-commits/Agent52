@@ -452,6 +452,42 @@ def build_alerts(events, portfolio, registry, as_of) -> list[Alert]
 - Flight_Director pauses at a Stress_Event. Copilot explains with Exhibits computed as of that date and asks hold, sell, or buy more.
 - Behavior_Analyst logs each decision with date and drawdown. At session end it compares the contract `max_drawdown` with the drawdown at the first sell and proposes an updated contract. The update is stored in AgentCore Memory only after explicit user approval.
 
+### Tribunal extensions (Req. 16 to 21)
+
+These extensions make the debate decide something, add the two differentiating mechanisms (appeal and precedents), and complete the AWS deployment.
+
+**Base portfolios and risk contribution (Req. 16).** `personas.yaml` gains a `base_portfolio` per Persona. Example for Robert (fictional): XBB.TO 40 %, ZST.TO 15 %, XIU.TO 15 %, SPY 15 %, JNJ 8 %, RY.TO 7 %. `proposed = {t: w*(1-x) for t, w in base} + {asset: x}`. New tools:
+
+```python
+risk_contribution(registry, weights, start, end) -> Exhibit   # % of variance per asset, CAD
+portfolio_comparison(registry, base, proposed, start, end) -> Exhibit
+# vol, max drawdown, worst rolling 252-day return, 2022 return, annualized return, for both
+```
+
+Reference values computed on the starter data (CAD, daily rebalanced, 2021-11-12 to 2026-11-12) for Robert's base portfolio:
+
+| Portfolio | Vol | Max DD | Worst 12 m | 2022 | Ann. return |
+|---|---|---|---|---|---|
+| Base | 6.2 % | -10.4 % | -6.2 % | -6.1 % | 8.1 % |
+| +5 % TSLA | 7.5 % | -12.2 % | -9.5 % | -9.5 % | 8.8 % |
+| +30 % TSLA | 19.5 % | -31.0 % | -27.7 % | -25.8 % | 11.0 % |
+
+At 30 %, TSLA carries 87 % of portfolio variance. These values are a test oracle for the toolkit.
+
+**Hard rules and soft preferences (Req. 17).** `InvestorContract` gains `soft_preferences: list[SoftPreference]` with `id`, `text`, `source` (persona or form). Flow in `decide`:
+
+1. `evaluate_rules` on Hard_Rules (code). Fail with no feasible numeric condition: `reject`, stop.
+2. Otherwise the Judge model receives `{"party_a": ..., "party_b": ...}` (random order, role names removed, each argument capped at the same token budget) and the list of Soft_Preferences, and returns JSON `[{preference_id, assessment: "satisfied"|"tension"|"not_satisfied", deciding_party, exhibits}]`.
+3. Any `not_satisfied` soft preference downgrades `accept` to `accept_with_conditions` (with a narrative condition) but can never upgrade a hard-rule result. Conflicts are traced.
+
+**Appeal (Req. 18).** `tribunal/appeal.py`: `appeal(session, change: AppealChange) -> Session` copies the original session inputs, applies one change, reruns Toolkit, rules, Judge, and Clerk, and returns a new session. `diff_sessions(a, b)` returns changed rules, changed Exhibits, and both Verdicts. The UI shows them side by side.
+
+**Precedents (Req. 19).** `tribunal/precedents.py` with `PrecedentStore` (DynamoDB table `verdict-precedents`, partition key `asset`, sort key `session_id`; local JSON fallback). `closest(asset, weight)` returns the precedent with the nearest weight. The Judge prompt receives it and must name the contract field that explains a different verdict (for example `max_drawdown` 0.12 versus 0.40).
+
+**ESG source (Req. 20).** `data/esg_exclusions.csv` with `ticker, excluded, reason, source_url, retrieved`. Built by hand for the 31 assets from a cited public methodology; documented in `docs/data_sources.md`. The rule `esg_exclusion` becomes a Hard_Rule when the contract lists exclusions.
+
+**Deployment (Req. 21).** Dockerfile for the Streamlit app; App Runner service with an instance role (Bedrock invoke and guardrail, S3 read on the data prefix, DynamoDB read and write on the precedents table, AgentCore Memory, CloudWatch). Architecture diagram in the README.
+
 ## Data Models
 
 ### Investor_Contract JSON (excerpt)

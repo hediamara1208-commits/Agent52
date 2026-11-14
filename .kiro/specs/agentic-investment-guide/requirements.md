@@ -302,3 +302,77 @@ Evaluation of the ideaHedi.md concept, reflected in scope decisions:
 8. WHERE Alerts are enabled, THE Guide_System SHALL record each Alert in the Trace with its source Exhibit.
 9. WHERE Alerts are enabled, IF the Simulated_Portfolio holds no asset affected by a Market_Event, THEN THE Guide_System SHALL create no Alert for that Market_Event.
 10. WHERE Alerts are enabled, THE Guide_System SHALL include in each Alert a statement that the Alert is based on the Dataset and not on live news or live market data.
+
+## Scope update (review of 2026-11-14)
+
+With about 26 hours of build time left, the following scope applies:
+
+- Requirements 12 (Flight Simulator), 14 (Companion_Extension), and 15 (Alerts) are deferred and out of the MVP.
+- Requirements 16 to 21 below are part of the MVP. Requirements 16, 17, and 19 make the Prosecutor and Defense debate change the outcome and differentiate the Guide_System from existing bull/bear trading frameworks (TradingAgents, AlphaAgents) that judge a trade rather than the fit between a request and a person.
+- Property-based tests are limited to Properties 10, 12, 13, 17, and 24. Other properties are covered by example tests where time allows.
+
+### Requirement 16: Persona Base Portfolios and Risk Contribution
+
+**User Story:** As an investor, I want my request judged against the portfolio I already hold, so that the evidence shows its real effect on me.
+
+#### Acceptance Criteria
+
+1. THE Guide_System SHALL define one fictional Base_Portfolio per Persona in `personas.yaml`, with weights summing to 1 and tickers from assets_universe.csv.
+2. WHEN an Investment_Request adds a position of weight w, THE Toolkit SHALL build the resulting portfolio by scaling the Base_Portfolio weights by (1 - w) and adding the requested asset at weight w.
+3. THE Toolkit SHALL provide `risk_contribution(weights, start, end)` returning, in CAD, each asset's percentage share of total portfolio variance, and SHALL store the result as an Exhibit.
+4. THE Toolkit SHALL provide `portfolio_comparison(base, proposed, start, end)` returning, for both portfolios, annualized volatility, maximum drawdown, worst rolling 252-day return, calendar-2022 return, and annualized return, stored as one Exhibit.
+5. THE Ruling SHALL state that the Base_Portfolio is a fictional assumption.
+
+### Requirement 17: Hard Rules and Soft Preferences
+
+**User Story:** As a juror, I want the debate between agents to matter, so that the agentic design is not decorative.
+
+#### Acceptance Criteria
+
+1. THE Investor_Contract SHALL separate Hard_Rules (numeric limits checked by code) from Soft_Preferences (stated preferences that cannot be reduced to a number, such as "prefers established companies he understands" or "avoid betting only on technology").
+2. THE Judge_Agent SHALL decide Hard_Rules with deterministic code only, as in Requirement 5.9.
+3. WHEN all Hard_Rules pass or a numeric condition satisfies them, THE Judge_Agent SHALL weigh each Soft_Preference using the Prosecutor_Agent and Defense_Agent arguments and SHALL record, per Soft_Preference, which argument and which Exhibits decided it.
+4. THE Judge_Agent SHALL receive the two arguments labelled "Party A" and "Party B" in a random order, without the role names, and with the same length limit.
+5. IF a Soft_Preference judgment contradicts a Hard_Rule result, THEN THE Guide_System SHALL keep the Hard_Rule result and record the conflict in the Trace.
+
+### Requirement 18: Appeal
+
+**User Story:** As an investor, I want to change one assumption and see whether the verdict changes, so that I understand what drives the decision.
+
+#### Acceptance Criteria
+
+1. WHEN a Tribunal_Session is complete, THE UI SHALL offer an "Appeal" control that lets the user change exactly one input: position size, horizon, maximum drawdown, or analysis period.
+2. WHEN an appeal is submitted, THE Guide_System SHALL rerun the Toolkit, the rule checks, and the Judge with the changed input and SHALL keep the original session unchanged.
+3. THE UI SHALL display the original and appeal Verdicts side by side, with the changed input, the rules whose result changed, and the Exhibits that changed.
+
+### Requirement 19: Precedents (Case Law)
+
+**User Story:** As an investor, I want consistent rulings across profiles, so that a different verdict for a similar request is explained.
+
+#### Acceptance Criteria
+
+1. WHEN a Tribunal_Session completes, THE Guide_System SHALL store a Precedent with the Persona, asset, position size, Verdict, deciding rules, and Exhibit values.
+2. WHEN a new Investment_Request names an asset that has a stored Precedent, THE Judge_Agent SHALL cite the closest Precedent and SHALL state which contract difference explains any difference in Verdict.
+3. THE Guide_System SHALL store Precedents in Amazon DynamoDB when deployed and in a local JSON file when run locally.
+
+### Requirement 20: Documented ESG Exclusion Source
+
+**User Story:** As Mateo, I want my ESG preference applied with a stated source, so that the system integrates more than risk and return.
+
+#### Acceptance Criteria
+
+1. THE Guide_System SHALL include an ESG exclusion list for the assets in assets_universe.csv, built from a cited public methodology (for example, the fossil-fuel exclusions of the index tracked by ESGV), with its source, date, and method recorded in the data-source document.
+2. WHEN an Investment_Request names an asset on the ESG exclusion list and the Investor_Contract contains ESG exclusions, THE Judge_Agent SHALL treat the exclusion as a failed Hard_Rule and SHALL cite the ESG source.
+3. THE Ruling SHALL state the cost of the exclusion over the analysis period as an Exhibit (return of the excluded asset versus the proposed replacement), labelled as past data that does not predict future returns.
+4. THE Ruling SHALL state that the exclusion list is a simplified proxy and not an ESG rating.
+
+### Requirement 21: Deployment on AWS
+
+**User Story:** As a datathon team, I want the prototype running on AWS, so that the AWS criterion is met and the demo does not depend on a laptop.
+
+#### Acceptance Criteria
+
+1. THE Guide_System SHALL run the Streamlit UI as a container on AWS App Runner, or on Amazon EC2 if App Runner is unavailable.
+2. THE deployed Guide_System SHALL read the Dataset from Amazon S3 and store Precedents in Amazon DynamoDB.
+3. THE README SHALL include an architecture diagram naming each AWS service and the reason it is used.
+4. THE team SHALL record the demo video while the AWS accounts are active, before 2026-11-16 13:59 local time.

@@ -425,3 +425,46 @@ Implementation language: Python 3.11 (Streamlit, boto3, pandas, jsonschema, pyte
   ]
 }
 ```
+
+## Scope update and added tasks (review of 2026-11-14)
+
+- Tasks 13 (Companion_Extension), 14 (Alerts), and 15 (Flight Simulator) are deferred: do not start them.
+- Among optional property tests, keep only 4.7 (Property 10), 7.4 (Property 12), 7.6 (Property 13), 7.10 (Property 17), and 7.11 (Property 24). Skip the other `*` property tests unless time remains.
+- Tasks 17 to 22 below are part of the MVP. Do task 17 before 7.5 (rules) and 8.x (agents).
+
+- [ ] 17. Base portfolios and risk evidence
+  - [ ] 17.1 Add `base_portfolio` per Persona to `personas.yaml` and the proposed-portfolio builder
+    - _Requirements: 16.1, 16.2, 16.5_
+  - [ ] 17.2 Add `risk_contribution` and `portfolio_comparison` to `toolkit/metrics.py`, registered as Converse tools
+    - Test oracle: Robert +30 % TSLA gives max drawdown about -31.0 % and TSLA share of variance about 87 % (see design)
+    - _Requirements: 16.3, 16.4_
+
+- [ ] 18. Hard rules and soft preferences
+  - [ ] 18.1 Extend `contract/schema.json` and personas with `soft_preferences`
+    - _Requirements: 17.1_
+  - [ ] 18.2 Extend `decide` and the Judge prompt: anonymized, shuffled, length-capped arguments; per-preference JSON assessment; hard rules always win
+    - _Requirements: 17.2, 17.3, 17.4, 17.5_
+
+- [ ] 19. Appeal
+  - [ ] 19.1 Create `tribunal/appeal.py` with `appeal` and `diff_sessions`
+    - _Requirements: 18.2, 18.3_
+  - [ ] 19.2 Add the Appeal control and side-by-side view to the UI
+    - _Requirements: 18.1, 18.3_
+
+- [ ] 20. Precedents
+  - [ ] 20.1 Create `tribunal/precedents.py` with `PrecedentStore` (DynamoDB and local JSON) and `closest`
+    - _Requirements: 19.1, 19.3_
+  - [ ] 20.2 Pass the closest precedent to the Judge and display the citation in the Ruling
+    - _Requirements: 19.2_
+
+- [ ] 21. ESG exclusion source
+  - [ ] 21.1 Create `data/esg_exclusions.csv` with source and method, and its entry in `docs/data_sources.md`
+    - _Requirements: 20.1, 20.4_
+  - [ ] 21.2 Make ESG exclusion a Hard_Rule when the contract lists exclusions; add the exclusion-cost Exhibit
+    - _Requirements: 20.2, 20.3_
+
+- [ ] 22. Deploy on AWS
+  - [ ] 22.1 Dockerfile, App Runner service, S3 data upload, DynamoDB table, instance role
+    - _Requirements: 21.1, 21.2_
+  - [ ] 22.2 README architecture diagram; record the demo video before the accounts close
+    - _Requirements: 21.3, 21.4_
