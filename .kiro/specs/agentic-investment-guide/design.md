@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Agentic Investment Guide is a simulation-only multi-agent system. The MVP is the Decision Tribunal: five agents (Profiler, Prosecutor, Defense, Judge, Clerk) evaluate one Investment_Request against an Investor_Contract. The backend is Python 3.11 (boto3, pandas, pyarrow, `jsonschema`, `hypothesis`). The UI is a React and TypeScript single-page application hosted on AWS Amplify Hosting. A Session_API (API Gateway and Lambda) connects the UI to the Python core, which runs unchanged on Amazon Bedrock AgentCore Runtime.
+The Agentic Investment Guide is a simulation-only multi-agent system. The MVP is the Decision Tribunal: five agents (Profiler, Investigator, Advocate, Judge, Clerk) evaluate one Investment_Request against an Investor_Contract. The backend is Python 3.11 (boto3, pandas, pyarrow, `jsonschema`, `hypothesis`). The UI is a React and TypeScript single-page application hosted on AWS Amplify Hosting. A Session_API (API Gateway and Lambda) connects the UI to the Python core, which runs unchanged on Amazon Bedrock AgentCore Runtime.
 
 The Guide_System is a guidance website. It only guides: it never places, routes, prefills, or triggers an order, transfer, or brokerage or bank action, and it holds no brokerage or bank credentials. The UI offers two modes over the same data: a Friendly_Mode (default) with a courtroom scene and short plain-language summaries, and an Advanced_Mode with full detail.
 
@@ -11,7 +11,7 @@ Eight design principles drive the structure:
 1. **Numbers come only from code.** Deterministic Toolkit functions read the Dataset and emit immutable, numbered Exhibits. Agents cite Exhibits and never compute figures.
 2. **Verdicts come from code.** The Judge's pass/fail per rule and the Verdict are computed deterministically. The language model only writes narrative.
 3. **Citations are enforced.** A Citation_Validator rejects any claim without a valid Exhibit reference or whose numbers differ from the Exhibit.
-4. **Agents are thin.** Prosecutor and Defense are two role prompts over one shared Toolkit and one Exhibit_Registry. The orchestrator is plain Python behind one entry point, `run_session`, which the Agent_Runtime, the tests, and a local command-line runner all call.
+4. **Agents are thin.** Advocate, Investigator, and Judge are three role prompts over one shared Toolkit and one Exhibit_Registry, called once each in a fixed order (see "Agent flow" at the end of this document). The orchestrator is plain Python behind one entry point, `run_session`, which the Agent_Runtime, the tests, and a local command-line runner all call.
 5. **Guidance only, enforced in four layers.** The Bedrock Guardrail, a deterministic Judge check, a static code and configuration scan in the test suite, and a UI without action controls each block the Guidance_Only_Rule independently. The Session_API has no action route. The system contains no brokerage or bank client and no credential fields.
 6. **Personas are templates, not a closed list.** `personas.yaml` ships three Persona_Templates (Amira, Mateo, Robert) transcribed from `data/context.md`, with verbatim French excerpts and a `quoted` or `assumption` basis plus rationale for each shipped value. The user can edit, extend, duplicate, or replace them. The Profiler reads values from the file or the form deterministically and never asks the model for persona facts.
 7. **One system of record, pinned snapshots.** Amazon S3 holds immutable Dataset_Snapshots (raw CSV, typed Parquet, manifest). A session pins one Snapshot_Id at start and every Exhibit names it. The Local_Cache only saves downloads and, when S3 is unreachable, serves a checksum-verified copy with a visible, traced fallback notice. Snapshots come only from the licensed starter files and documented additions. The team downloads no new Yahoo Finance data.
@@ -124,8 +124,8 @@ flowchart TD
     ORCH --> PROF[Profiler Agent]
     PROF --> SCHEMA[Contract Validator]
     SCHEMA --> ORCH
-    ORCH --> PROS[Prosecutor Agent]
-    ORCH --> DEF[Defense Agent]
+    ORCH --> PROS[Investigator Agent]
+    ORCH --> DEF[Advocate Agent]
     PROS --> TK[Toolkit]
     DEF --> TK
     TK --> REG[Exhibit Registry]
@@ -171,8 +171,8 @@ sequenceDiagram
     participant R as Agent_Runtime
     participant O as Orchestrator
     participant P as Profiler
-    participant X as Prosecutor
-    participant D as Defense
+    participant X as Investigator
+    participant D as Advocate
     participant J as Judge
     participant C as Clerk
     U->>A: POST /sessions (persona or form, request text, JWT)
@@ -186,18 +186,15 @@ sequenceDiagram
     O->>P: build contract
     P-->>O: Investor_Contract (validated)
     par arguments
-        O->>X: argue against
-        O->>D: argue for
+        O->>D: Advocate: goal and Options
+        O->>O: Risk_Panel and Hard_Rules per Option (code)
+        O->>X: Investigator: material risks per Option
     end
     X-->>O: claims with citations
     D-->>O: claims with citations
     O->>O: Citation_Validator (up to 2 revisions)
     O->>J: arguments, contract
     J->>J: Rule_Engine checks
-    opt missing evidence (max 2)
-        J-->>X: evidence request
-        J-->>D: evidence request
-    end
     J-->>O: Verdict
     O->>C: verdict, exhibits
     C->>C: Sensitivity_Analysis, Ruling
@@ -288,7 +285,7 @@ guide/
   agents/instructions.py        # Instruction_Loader
   agents/instructions/*.md      # one Instruction_File per agent
   agents/skills/*.md            # shared Skill_Files
-  agents/prosecutor.py, defense.py, judge.py, clerk.py
+  agents/advocate.py, investigator.py, judge.py; clerk.py (code template, no model call)
   tribunal/orchestrator.py
   tribunal/entrypoint.py        # run_session: the single entry point used by runtime, tests, and CLI
   tribunal/session_view.py      # SessionView model, JSON (de)serialization
@@ -766,7 +763,7 @@ Rules checked: per-asset cap, per-asset-class cap, crypto cap, sector cap, maxim
 
 - All rules pass: `accept`.
 - Some fail: compute the largest position size at which every failed rule passes (bisection over position size using `portfolio_metrics`). If that size is greater than 0, return `accept_with_conditions` with a numeric maximum position. Otherwise return `reject`.
-- Rules with no evidence produce an evidence request to Prosecutor or Defense, at most twice per session. Rules still lacking evidence are listed as `unverified`.
+- The Judge makes no evidence request (Req. 5.5): missing evidence is computed by code before the Judge runs. Rules still lacking evidence are listed as `unverified`.
 - If the Persona risk level is low to moderate and the request exceeds the per-asset cap, the Verdict records a tension statement.
 
 The Judge Agent receives the computed results and writes only the narrative.
@@ -785,7 +782,7 @@ def check_guidance_only(agent: str, statements: list[str]) -> list[GuidanceFindi
 def strip_violations(ruling, findings) -> tuple[Ruling, list[TraceEvent]]
 ```
 
-`check_guidance_only` is deterministic. It matches each statement against a pattern list covering imperative order or transfer instructions ("place the order", "transfer funds", "execute the trade"), simulated execution ("order submitted", "trade confirmed"), and prefill or trigger language ("prefilled order ticket", "one-click buy"). The Judge runs it on every Prosecutor, Defense, and Clerk output and records one pass or fail event per output in the Trace. `strip_violations` removes failing statements from the Ruling and records each removal. When a failure occurs, the UI shows a message that the Guide_System only provides guidance.
+`check_guidance_only` is deterministic. It matches each statement against a pattern list covering imperative order or transfer instructions ("place the order", "transfer funds", "execute the trade"), simulated execution ("order submitted", "trade confirmed"), and prefill or trigger language ("prefilled order ticket", "one-click buy"). The Judge runs it on every Investigator, Advocate, and Clerk output and records one pass or fail event per output in the Trace. `strip_violations` removes failing statements from the Ruling and records each removal. When a failure occurs, the UI shows a message that the Guide_System only provides guidance.
 
 #### Guidance-only layers (Req. 13)
 
@@ -891,7 +888,7 @@ In the browser, a small store holds `{view: SessionView | null, mode: "friendly"
 
 #### Friendly_Mode (Req. 7.10 to 7.12, 7.17)
 
-- A courtroom scene (inline SVG component) with four seats: Prosecutor, Defense, Judge, Clerk. The seat of `view.active_agent` gets a highlight style.
+- A courtroom scene (inline SVG component) with four seats: Investigator, Advocate, Judge, Clerk. The seat of `view.active_agent` gets a highlight style.
 - After each stage, `tribunal/summaries.py` (Python, in the Agent_Runtime) produces a plain-language summary of at most 60 words for that agent and stores it in `view.summaries`. The summary is built from the stage's structured output (counts of claims, rule results, threshold values) with a template, and the model may only rephrase it; `summarize` truncates at a sentence boundary so the limit always holds. Numbers in a summary come from Exhibits and each statement keeps its Exhibit link.
 - The Verdict and the answer to "What would change the verdict" appear in plain language, each statement with an `[Exhibit N]` link.
 - A "See details" control sets `focus` to the Exhibit, rule, or Trace entry and switches to Advanced_Mode, which scrolls to and expands that item.
@@ -951,7 +948,7 @@ Bedrock Knowledge Bases are not used (see the AWS service map).
 ### Instruction_Loader (Req. 21)
 
 ```
-guide/agents/instructions/{profiler,prosecutor,defense,judge,clerk}.md   # plus flight_director, copilot, behavior_analyst when enabled
+guide/agents/instructions/{profiler,advocate,investigator,judge}.md   # plus flight_director, copilot, behavior_analyst when enabled
 guide/agents/skills/{citing_exhibits,guidance_only,data_limits,plain_language,persona_handling}.md
 ```
 
@@ -1085,14 +1082,11 @@ Alignment follows Req. 3.3 (dates on which every held asset has a price). Test o
 
 `max_weight_within_contract` replaces the bisection of task 7.5 as the source of numeric conditions, so every condition is itself an Exhibit.
 
-### Soft preferences decided through the debate (Req. 29)
+### Soft preferences weighed by the Judge (Req. 29)
 
-`InvestorContract.soft_preferences: list[{id, text, provenance, excerpt}]`. Examples, with their verbatim excerpts from section 3 of the Context_Document: Robert "entreprises établies, modèle d'affaires compréhensible" and "stabilité et qualité"; Amira "veut une certaine diversification et éviter de miser exclusivement sur la tech"; Mateo "équilibre croissance/stabilité" and "peu intéressé par le hautement spéculatif". Mateo's ESG exclusion is a Hard_Rule (Req. 32), not a Soft_Preference. Decision flow in `tribunal/rules.py::decide` and `agents/judge.py`:
+`InvestorContract.soft_preferences: list[{id, text, provenance, excerpt}]`. Examples, with their verbatim excerpts from section 3 of the Context_Document: Robert "entreprises établies, modèle d'affaires compréhensible" and "stabilité et qualité"; Amira "veut une certaine diversification et éviter de miser exclusivement sur la tech"; Mateo "équilibre croissance/stabilité" and "peu intéressé par le hautement spéculatif". Mateo's ESG exclusion is a Hard_Rule (Req. 32), not a Soft_Preference.
 
-1. `evaluate_rules` on Hard_Rules (code). If no positive size passes, Verdict `reject` and the Soft_Preferences are still assessed for the Ruling but cannot change the Verdict.
-2. The Judge receives `{"party_a": ..., "party_b": ...}`. `random.Random(session_id).random() < 0.5` decides the order (reproducible per session, recorded in the Trace). Role words ("Prosecutor", "Defense", "for", "against") are stripped from the claims, and each argument is truncated to the same number of claims.
-3. The Judge returns JSON `[{preference_id, assessment, deciding_party, exhibits}]`, validated against a schema; `deciding_party` is mapped back to the role by the orchestrator, never by the model.
-4. `not_satisfied` turns `accept` into `accept_with_conditions` with a narrative condition. Code enforces that no assessment upgrades a Verdict.
+The Judge returns JSON `[{option_id, preference_id, assessment, findings, exhibits}]`, validated against a schema. `assessment` is `satisfied`, `tension`, or `not_satisfied`. In `tribunal/rules.py::decide`, code applies: a failed Hard_Rule stays failed; `not_satisfied` on the retained Option turns `accept` into `accept_with_conditions`; nothing turns `reject` into `accept`. Conflicts are recorded in the Trace.
 
 ### Appeal (Req. 30)
 
@@ -1251,12 +1245,12 @@ The values above are illustrative. Real Exhibits hold computed values.
   "session_id": "5d1f0c2e-6b7a-4a52-9c1e-0a1b2c3d4e5f",
   "status": "running",
   "stage": "judge",
-  "stages_done": ["profiler", "prosecutor", "defense"],
+  "stages_done": ["profiler", "investigator", "advocate"],
   "active_agent": "judge",
   "snapshot": {"snapshot_id": "20261113T000000Z-starter", "source": "starter",
                "retrieved_at": "2026-11-13T00:00:00Z", "coverage_end": "2026-11-12",
                "served_from": "primary", "fallback_cause": null},
-  "summaries": {"prosecutor": "The Prosecutor cites 4 Exhibits against a 30% position in TSLA. [Exhibit 3]"},
+  "summaries": {"investigator": "The Investigator cites 4 Exhibits against a 30% position in TSLA. [Exhibit 3]"},
   "data_notices": [],
   "error": null
 }
@@ -1268,7 +1262,7 @@ The full document also holds `contract`, `exhibits`, `verdict`, `ruling`, `rule_
 
 ```markdown
 # Role
-You are the Prosecutor Agent of a simulated investment tribunal ...
+You are the Investigator Agent of a simulated investment tribunal ...
 # Goals
 # Allowed tools
 # Output JSON format
@@ -1310,7 +1304,7 @@ An ordered array of events: `{seq, ts, type, agent|tool|rule, summary, exhibit_n
 | Under 20 observations | `ToolError(INSUFFICIENT_DATA)`, no Exhibit (Req. 2.7) |
 | Missing FX rate | Carry forward last rate, note in Exhibit (Req. 3.2) |
 | Claim without valid citation | Revise up to 2 times, then remove and trace (Req. 4.4, 4.5) |
-| Missing evidence for rule | Up to 2 evidence requests, then `unverified` (Req. 5.5, 5.6) |
+| Missing evidence for rule | Computed by code before the Judge; if impossible, `unverified` (Req. 5.5, 5.6) |
 | Guardrail block | Trace entry, UI message naming the Challenge_Rule (Req. 5.8) |
 | Bedrock throttling | Retry 3 times with exponential backoff, then stage failure (Req. 8.8) |
 | Stage failure | UI shows stage and message, keeps inputs (Req. 7.20) |
@@ -1438,7 +1432,7 @@ For any request that receives `accept_with_conditions`, every condition is a num
 
 ### Property 15: Evidence requests are bounded
 
-For any Judge run with missing evidence, at most 2 evidence requests are issued per session, and every rule still lacking evidence afterward appears as unverified in the Verdict.
+(Superseded by Req. 36: the Judge issues no evidence request.) For any Judge run with missing evidence, at most 2 evidence requests are issued per session, and every rule still lacking evidence afterward appears as unverified in the Verdict.
 
 **Validates: Requirements 5.5, 5.6**
 
@@ -1492,7 +1486,7 @@ For any sequence of recorded decisions with drawdowns, the revealed tolerance eq
 
 ### Property 24: Guidance-only enforcement
 
-For any set of Prosecutor, Defense, and Clerk statements in which some statements instruct, request, or simulate an order, transfer, or brokerage or bank action, the Judge check marks exactly those statements as failed, every failed statement is absent from the final Ruling, each check result and each removal is recorded in the Trace, and a guidance-only message is produced for the UI.
+For any set of Investigator, Advocate, and Clerk statements in which some statements instruct, request, or simulate an order, transfer, or brokerage or bank action, the Judge check marks exactly those statements as failed, every failed statement is absent from the final Ruling, each check result and each removal is recorded in the Trace, and a guidance-only message is produced for the UI.
 
 **Validates: Requirements 5.11, 5.12, 13.6**
 
@@ -1698,3 +1692,30 @@ Run a small number of examples against real AWS, not property-based: Guardrail b
 ### Test data
 
 Property tests use synthetic generators (random walks with gaps and different calendars) so they run offline in seconds. Dataset-backed tests read the real CSV files read-only through `LocalSource`, or through a `moto` bucket seeded from them. No unit or property test calls Yahoo Finance.
+
+## Agent flow (Req. 4, 29, 36; supersedes the Prosecutor and Defense debate)
+
+```
+CODE  Profiler -> Investor_Contract (Hard_Rules, Soft_Preferences, Base_Portfolio)
+CODE  Risk_Panel + Hard_Rules for the request (Exhibits)
+AI    Advocate      1 call: goal + up to 3 Options (one reduces the request's largest exposure)
+CODE  Risk_Panel + Hard_Rules for every Option (failing Options kept as rejected)
+AI    Investigator  1 call: material risks per Option, each tied to an Exhibit and a contract field or Soft_Preference
+AI    Judge         1 call: Soft_Preference assessments, Option comparison, narrative
+CODE  Clerk template + citation validator + guidance-only check + Guardrail -> Ruling, Precedent, Trace
+```
+
+| Component | Purpose (what disappears without it) | Can it change the Verdict? |
+| --- | --- | --- |
+| Code (Profiler, Toolkit, Risk_Panel, rules, Clerk) | Every number, every Hard_Rule, the Ruling structure | Yes: it decides it |
+| Advocate | A verified way forward instead of a plain refusal | No: code verifies every Option |
+| Investigator | The explanation of which risks matter for this investor | No: it informs the Judge |
+| Judge | Weighing preferences that are not numbers; comparing Options | Only toward more caution (enforced in code) |
+
+Bounds: 3 agent calls per session, 1 call per agent, at most 6 Toolkit calls per agent, at most 3 Options, at most 2 citation revisions per claim, a timeout per call. Agents return JSON to the orchestrator and never call each other. Fallbacks follow Req. 36.5 to 36.7.
+
+Example (Robert, "30% in TSLA", starter data, CAD): Risk_Panel of the request shows USD exposure rising from 23 % to 46.1 % and TSLA carrying 86.7 % of the variance. With `advocate_scope: universe`, the Advocate may propose TSLA 5.5 %, MSFT 9 %, and XIU.TO 10 %; code verifies them against the -12 % drawdown and 10 % per-asset limits. The Investigator flags currency exposure as material for the TSLA and MSFT Options (expenses in CAD at retirement, horizon 3 to 5 years) and none for XIU.TO (USD exposure 20.7 %). The Judge assesses « stabilité et qualité » per Option and writes the narrative.
+
+Configuration: `advocate_scope` is `size_only` (default, safest wording) or `universe` (other assets presented only as "other requests you can test"). The team chooses before the demo.
+
+Instruction_Files: `advocate.md`, `investigator.md`, `judge.md`, and `profiler.md` (free-text intake only). The Clerk has no Instruction_File because it is code.

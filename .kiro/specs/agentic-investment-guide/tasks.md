@@ -15,7 +15,7 @@ The Delivery Tiers in the requirements document decide what is built. Tasks mark
 | Track | Owner | Order |
 | --- | --- | --- |
 | A: data and toolkit | | 2.1, 2.5, 1.3, 1.4, 1.6, 1.8 (lean), 2.2, 21.1, 22.1, 23.1, 3.7, 3.8, 4.1, 21.2, 21.3, 23.2, 4.2, 4.3, 4.7 |
-| B: agents and tribunal | | 6.2, 6.6, 6.7, 7.3, 7.4, 7.5, 7.6, 7.8, 7.9, 7.10, 8.1, 8.2, 22.2, 8.3, 24.1, 9.1, 9.2, 17.1, 9.4, then gate 1, then 17.3, 26.1, 25.1, 25.2, 27.1 |
+| B: agents and tribunal | | 6.2, 6.6, 6.7, 7.3, 7.4, 7.5, 7.6, 7.8, 7.9, 7.10, 29.1, 29.2, 29.3, 29.4, 8.3, 29.5, 29.6, 24.1, 9.1, 17.1, 9.4, then gate 1, then 17.3, 26.1, 25.1, 25.2, 27.1, 29.7 |
 | C: front end | | 11.1 first (the SessionView schema is the contract between tracks), then 11.2, 11.3, 11.4, 11.5 against fixture SessionViews, 24.2, 26.2, 28.2 |
 | D: AWS and deliverables | | 12.1, 12.7, 12.8, 12.12, 12.13, 12.15 (lean), 12.17, 18.1, 18.2, 28.1, 18.3, 17.2, 17.4, 17.5, 17.6, 18.4, 18.5, 18.6 (lean), 18.7, then gate 2, then 12.2, 27.2, 28.3 |
 
@@ -234,7 +234,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - _Requirements: 9.8, 21.4, 21.5, 21.6, 21.7, 21.8_
 
   - [ ] 6.7 Create the Instruction_Files and Skill_Files
-    - `guide/agents/instructions/{profiler,prosecutor,defense,judge,clerk}.md` with the sections Role, Goals, Allowed tools, Output JSON format, Forbidden behaviors, Citation rule, Guidance-only rule, Tone, and Included skills; stretch agents get their own file when built
+    - `guide/agents/instructions/{profiler,advocate,investigator,judge}.md` (the Clerk is a code template and has no Instruction_File) with the sections Role, Goals, Allowed tools, Output JSON format, Forbidden behaviors, Citation rule, Guidance-only rule, Tone, and Included skills; stretch agents get their own file when built
     - `guide/agents/skills/{citing_exhibits,guidance_only,data_limits,plain_language,persona_handling}.md` with the content listed in the design; every Instruction_File lists `guidance_only`
     - No credentials or secrets; every file forbids instructions to place, route, prefill, or trigger an order, transfer, or brokerage or bank action
     - _Requirements: 21.1, 21.2, 21.3, 21.9, 21.11, 21.12, 21.13, 21.14_
@@ -299,19 +299,19 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Validates: Requirements 5.11, 5.12, 13.6**
 
 - [ ] 8. Implement agents
-  - [ ] 8.1 Create `agents/prosecutor.py` and `agents/defense.py`
+  - [ ]* 8.1 (Superseded by 29.2 and 29.3; do not implement) Create `agents/investigator.py` and `agents/advocate.py`
     - Two role prompts over the shared Toolkit and Exhibit_Registry; structured JSON claims with citations and numbers
-    - Defense includes at least one claim citing an Exhibit computed at a position size smaller than the request; unsupported topics labeled as unsupported by Exhibits
+    - Advocate includes at least one claim citing an Exhibit computed at a position size smaller than the request; unsupported topics labeled as unsupported by Exhibits
     - Prompts come from the Instruction_Files and Skill_Files through the Instruction_Loader (6.6, 6.7), which forbid order, transfer, and brokerage or bank instructions
     - _Requirements: 3.9, 4.1, 4.2, 4.7, 4.8, 13.1, 21.8_
 
-  - [ ] 8.2 Create `agents/judge.py`
+  - [ ]* 8.2 (Superseded by 29.4; do not implement) Create `agents/judge.py`
     - Use deterministic rule results; the model writes only the narrative
-    - Evidence requests to Prosecutor or Defense, at most 2 per session; remaining rules listed as unverified
-    - Run `check_guidance_only` on every Prosecutor, Defense, and Clerk output and record results in the Trace
+    - Evidence requests to Investigator or Advocate, at most 2 per session; remaining rules listed as unverified
+    - Run `check_guidance_only` on every Investigator, Advocate, and Clerk output and record results in the Trace
     - _Requirements: 5.5, 5.6, 5.9, 5.11, 5.12_
 
-  - [ ] 8.3 Create `agents/clerk.py` with a Ruling template
+  - [ ] 8.3 Create `agents/clerk.py` as a code template (no model call) for the Ruling
     - Sections Facts, Assumptions, Fictional scenarios, Limits, "What would change the verdict"
     - Code inserts disclaimers, survivorship-bias text, and unsupported-topic notice; Facts cite Exhibits; includes a factor besides volatility
     - Code builds the Assumptions section: period, currency, alignment, pinned Snapshot_Id with retrieval date, and each rule-relevant field with `persona_assumption` or `default` provenance, with its Persona_File rationale
@@ -322,7 +322,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 16: Ruling structure and citations**
     - **Validates: Requirements 3.8, 6.1, 6.2, 6.4, 6.8, 6.9**
 
-  - [ ]* 8.5 Write property test for bounded evidence requests
+  - [ ]* 8.5 (Superseded: the Judge makes no evidence requests) Write property test for bounded evidence requests
     - **Property 15: Evidence requests are bounded**
     - **Validates: Requirements 5.5, 5.6**
 
@@ -340,7 +340,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - _Requirements: 8.4_
 
   - [ ] 9.2 Create `tribunal/orchestrator.py`
-    - Flow: load all Instruction_Files (`load_all`), pin snapshot (`SnapshotStore.pin()`), Profiler, schema validation gate, Prosecutor and Defense, citation enforcement, Judge, guidance-only check and violation stripping, Clerk, memory save, Trace export
+    - Flow: load all Instruction_Files (`load_all`), pin snapshot (`SnapshotStore.pin()`), Profiler, schema validation gate, Investigator and Advocate, citation enforcement, Judge, guidance-only check and violation stripping, Clerk, memory save, Trace export
     - Create the `ExhibitRegistry` with the pinned `SnapshotInfo`; record `snapshot_pinned` or `cache_fallback` in the Trace; write `snapshot` and `data_notices` into the `SessionView`
     - Do not start a session on an invalid contract, a Persona_File load error, `DatasetUnavailable`, `DataConfigError`, or `DataIntegrityError`; surface the failing stage on error
     - Write each stage output (including plain-language summary and active agent) into the shared `SessionView` as the stage completes
@@ -351,7 +351,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Validates: Requirements 9.1, 9.2, 9.3, 9.5, 9.6, 9.7, 9.8**
 
   - [ ]* 9.4 Write scenario tests with mocked Bedrock
-    - Robert "30% in TSLA" is not an unconditional accept; Amira crypto-heavy request applies the asset-class cap; Mateo Ruling reports absent ESG scores; Ruling numbers match cited Exhibits; sensitivity threshold flips the Verdict; tension statement for low-to-moderate risk; Defense includes a reduced-size claim
+    - Robert "30% in TSLA" is not an unconditional accept; Amira crypto-heavy request applies the asset-class cap; Mateo Ruling reports absent ESG scores; Ruling numbers match cited Exhibits; sensitivity threshold flips the Verdict; tension statement for low-to-moderate risk; Advocate includes a reduced-size claim
     - _Requirements: 3.9, 4.7, 5.10, 10.3, 10.4, 10.5, 10.6, 10.8_
 
   - [ ]* 9.5 Write test that Guardrail and Judge block order-instructing outputs
@@ -388,7 +388,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
   - [ ] 11.3 Create the `frontend/` project and `frontend/src/friendly/` Friendly_Mode components
     - Vite, React, and TypeScript project with Vitest, React Testing Library, fast-check, and the Amplify Auth library; an `npm run gen:types` script generates `src/model/sessionView.ts` types from `session_view.schema.json`
     - View store in `src/model/sessionView.ts` holding `view`, `mode` (default `friendly`), and `focus`; a mode switch changes only `mode` and never calls the API; `setFocus` for an Exhibit, rule, or Trace entry
-    - Courtroom scene as an inline SVG component with Prosecutor, Defense, Judge, and Clerk seats; highlight the seat of `view.active_agent`; show the summary
+    - Courtroom scene as an inline SVG component with Investigator, Advocate, Judge, and Clerk seats; highlight the seat of `view.active_agent`; show the summary
     - Verdict and "What would change the verdict" in plain language with `[Exhibit N]` links; a "See details" control sets `focus` and switches to Advanced_Mode
     - _Requirements: 7.9, 7.10, 7.11, 7.12, 7.14, 7.15, 7.16, 7.17_
 
@@ -741,7 +741,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 - [ ] 22. Soft preferences decided through the debate (Req. 29)
   - [ ] 22.1 Add `soft_preferences` to the contract schema and to the three Persona_Templates with verbatim excerpts
     - _Requirements: 29.1_
-  - [ ] 22.2 Extend `agents/judge.py` and `rules.decide`
+  - [ ]* 22.2 (Superseded by 29.4; do not implement) Extend `agents/judge.py` and `rules.decide`
     - Party A and Party B in an order seeded by the session id, role words stripped, equal claim count; per-preference JSON validated by schema; role mapped back by code; `not_satisfied` turns accept into accept with conditions; code forbids any upgrade; Trace records the order
     - _Requirements: 29.2, 29.3, 29.4, 29.5, 5.9_
   - [ ]* 22.3 Write property test: no Soft_Preference assessment upgrades a Verdict, and the Hard_Rule result always wins
@@ -785,6 +785,23 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
   - [ ] 28.3 Create `scripts/export_demo.py`; export every demo and Benchmark session to `demo/sessions/` before Sunday 23:59
     - _Requirements: 35.2_
 
+
+- [ ] 29. Agent flow Advocate, Investigator, Judge (Req. 4, 29, 36; replaces the debate wording of 8.1, 8.2, 22.2)
+  - [ ] 29.1 Create `toolkit/risk_panel.py::risk_panel(option, contract)` returning the fixed Exhibit set of the Risk_Panel (uses 21.2) and `currency_exposure`, `sector_weights`, `correlation_with_base`
+    - _Requirements: 4.3, 28.3, 28.4, 28.5_
+  - [ ] 29.2 Create `agents/advocate.py` and `instructions/advocate.md`: goal plus at most 3 Options as JSON; `advocate_scope` from config; no buy or sell wording
+    - _Requirements: 4.1, 4.2, 4.8, 4.9_
+  - [ ] 29.3 Create `agents/investigator.py` and `instructions/investigator.md`: material risks per Option with Exhibit and contract field; code check that each named field exists
+    - _Requirements: 4.4, 4.5_
+  - [ ] 29.4 Rework `agents/judge.py` and `instructions/judge.md`: Soft_Preference assessments per Option, comparison, narrative; code forbids any upgrade; remove evidence requests
+    - _Requirements: 5.5, 5.6, 29.2, 29.3, 29.4, 29.5_
+  - [ ] 29.5 Rework `tribunal/orchestrator.py` to the fixed order with 3 agent calls, schema validation, timeouts, and the fallbacks of Req. 36; turn the Clerk into a code template
+    - _Requirements: 36.1 to 36.8, 6.1_
+  - [ ] 29.6 Write tests: at most 3 agent calls; each agent failure still produces a valid Ruling; no output upgrades a Verdict
+    - _Requirements: 36.3, 36.5, 36.6, 36.7, 29.4_
+  - [ ]* 29.7 Add the ablation runs to `guide/bench`
+    - _Requirements: 34.6, 34.7_
+
 ## Notes
 
 - Tasks marked with `*` are optional and can be skipped for a faster MVP. All Alerts (14.x) and Flight Simulator (15.x) sub-tasks are optional, as are the stretch tasks 17.9, 17.10, 18.8, 18.9, 19.x and the future S3_Build_Script tasks 12.23 and 12.24; the top-level tasks 14, 15, and 19 are groupings only.
@@ -812,17 +829,17 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     { "id": 3, "tasks": ["1.2", "1.9", "2.2", "3.2", "4.1", "6.3", "6.4", "6.6", "7.4", "7.11", "12.1", "12.7", "12.9", "12.11", "12.14", "12.15", "17.6", "18.2"] },
     { "id": 4, "tasks": ["2.3", "2.6", "2.7", "2.8", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9", "6.7", "6.8", "7.5", "12.6", "12.17", "14.1", "15.1", "19.3", "21.1", "22.1", "28.1"] },
     { "id": 5, "tasks": ["6.9", "7.6", "7.7", "7.9", "8.1", "8.2", "12.16", "12.21", "12.23", "14.2", "14.3", "15.2", "17.9", "19.1", "19.4", "21.2", "23.2"] },
-    { "id": 6, "tasks": ["7.10", "8.3", "8.5", "12.24", "14.4", "14.5", "15.3", "17.10", "21.3", "22.2"] },
-    { "id": 7, "tasks": ["8.4", "8.6", "8.7", "11.1", "11.2", "15.4", "24.1", "22.3"] },
-    { "id": 8, "tasks": ["9.2", "11.3", "11.6", "11.12", "15.5", "17.2"] },
-    { "id": 9, "tasks": ["9.3", "9.4", "9.5", "9.6", "9.7", "9.8", "11.4", "17.3", "17.5", "17.7", "24.2", "25.1", "27.1"] },
-    { "id": 10, "tasks": ["11.5", "11.7", "11.8", "11.9", "17.1", "17.8", "25.2", "26.1"] },
+    { "id": 6, "tasks": ["7.10", "8.3", "8.5", "12.24", "14.4", "14.5", "15.3", "17.10", "21.3", "22.2", "29.1"] },
+    { "id": 7, "tasks": ["8.4", "8.6", "8.7", "11.1", "11.2", "15.4", "24.1", "22.3", "29.2", "29.3"] },
+    { "id": 8, "tasks": ["9.2", "11.3", "11.6", "11.12", "15.5", "17.2", "29.4"] },
+    { "id": 9, "tasks": ["9.3", "9.4", "9.5", "9.6", "9.7", "9.8", "11.4", "17.3", "17.5", "17.7", "24.2", "25.1", "27.1", "29.5"] },
+    { "id": 10, "tasks": ["11.5", "11.7", "11.8", "11.9", "17.1", "17.8", "25.2", "26.1", "29.6"] },
     { "id": 11, "tasks": ["11.10", "11.11", "14.6", "15.6", "17.4", "26.2", "28.2"] },
     { "id": 12, "tasks": ["14.7", "18.3"] },
     { "id": 13, "tasks": ["12.20", "18.4"] },
     { "id": 14, "tasks": ["18.5", "18.6"] },
     { "id": 15, "tasks": ["18.7", "18.8", "18.9", "18.10"] },
-    { "id": 16, "tasks": ["12.2", "18.11", "19.2", "27.2", "28.3"] },
+    { "id": 16, "tasks": ["12.2", "18.11", "19.2", "27.2", "28.3", "29.7"] },
     { "id": 17, "tasks": ["12.5", "12.22", "1.10", "12.25", "18.12"] }
   ]
 }

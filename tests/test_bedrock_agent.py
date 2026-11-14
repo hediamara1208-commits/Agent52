@@ -63,7 +63,7 @@ def test_tool_use_loop_guards_every_call_and_drops_reasoning_content():
         return {"content": [{"json": {"value": 0.12}}], "exhibit_number": 7}
 
     trace = TraceRecorder(emit_spans=False)
-    agent = BedrockAgent("prosecutor", _config(), client=client, tool_runner=run_tool)
+    agent = BedrockAgent("investigator", _config(), client=client, tool_runner=run_tool)
     output = agent.run(
         "system instruction",
         [{"role": "user", "content": [{"text": "Evaluate TSLA."}]}],
@@ -91,7 +91,7 @@ def test_tool_use_loop_guards_every_call_and_drops_reasoning_content():
 def test_guardrail_intervention_is_traced_and_returns_guidance_message():
     client = FakeBedrockClient([_response("guardrail_intervened", [{"text": "blocked"}])])
     trace = TraceRecorder(emit_spans=False)
-    agent = BedrockAgent("clerk", _config(), client=client)
+    agent = BedrockAgent("judge", _config(), client=client)
 
     output = agent.run(
         "system instruction",
@@ -104,7 +104,7 @@ def test_guardrail_intervention_is_traced_and_returns_guidance_message():
     assert output.challenge_rule == "Guidance_Only_Rule"
     assert output.text == GUIDANCE_ONLY_MESSAGE
     assert trace.events[0].kind == "guardrail_block"
-    assert trace.events[0].name == "clerk"
+    assert trace.events[0].name == "judge"
     assert trace.events[0].summary["rule"] == "Guidance_Only_Rule"
 
 
@@ -131,15 +131,15 @@ def test_exhausted_throttling_raises_stage_failure_after_three_retries():
     throttled = ClientError({"Error": {"Code": "ThrottlingException"}}, "Converse")
     client = FakeBedrockClient([throttled, throttled, throttled, throttled])
     agent = BedrockAgent(
-        "defense",
+        "advocate",
         _config(),
         client=client,
-        stage="defense-arguments",
+        stage="advocate-options",
         sleep=lambda _: None,
         random_source=lambda: 0.0,
     )
 
-    with pytest.raises(StageFailure, match="defense-arguments: Bedrock Converse throttled after 3 retries"):
+    with pytest.raises(StageFailure, match="advocate-options: Bedrock Converse throttled after 3 retries"):
         agent.run("system instruction", [], None, TraceRecorder(emit_spans=False))
 
     assert len(client.calls) == 4
