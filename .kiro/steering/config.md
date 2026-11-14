@@ -10,7 +10,10 @@ fileMatchPattern: "config.yaml|guide/config.py"
 | Key | Type | Purpose |
 |-----|------|---------|
 | `aws_region` | string | AWS region (us-east-1) |
-| `model_id` | string | Bedrock model ID (e.g., `us.amazon.nova-pro-v1:0`) |
+| `model_id` | string | Default Bedrock model ID (Anthropic Claude; copy the exact ID from the Bedrock console) |
+| `model_ids` | object | Per-agent model ID: `advocate`, `investigator`, `judge`; empty value uses `model_id` |
+| `advocate_scope` | string | `size_only` (default) or `universe` (Req. 4.9) |
+| `agent_timeout_seconds` | int | Timeout per agent call (Req. 36.3) |
 | `guardrail_id` | string | Bedrock guardrail ID |
 | `guardrail_version` | string | Guardrail version (`DRAFT` or specific) |
 | `s3_bucket` | string | Primary data store (required) |
@@ -24,8 +27,8 @@ fileMatchPattern: "config.yaml|guide/config.py"
 | `instruction_dir` | string | Path to `agents/instructions` |
 | `session_table` | string | DynamoDB session table |
 | `agent_runtime_arn` | string | AgentCore Runtime ARN |
-| `sensitivity_ranges` | object | Position size and horizon ranges |
-| `speculative_volatility_threshold` | float | Speculative asset threshold |
+| `sensitivity_ranges` | object | Position size (step 0.005, same grid as the max-weight search) and horizon ranges |
+| `speculative_volatility_threshold` | float | 0.45: annualized CAD volatility above which an asset is speculative |
 | `trace_summary_max_chars` | int | Summary length cap |
 | `cors_origin` | string | Amplify app URL |
 
@@ -41,7 +44,7 @@ fileMatchPattern: "config.yaml|guide/config.py"
 
 ```yaml
 aws_region: us-east-1
-model_id: us.amazon.nova-pro-v1:0
+model_id: <Claude model ID from the Bedrock console>
 guardrail_id: gr-abc123
 guardrail_version: DRAFT
 s3_bucket: my-guide-data

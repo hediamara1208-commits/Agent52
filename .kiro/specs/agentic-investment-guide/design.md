@@ -81,7 +81,7 @@ Legend: MVP means deployed by `make deploy` and used in the demo. The Delivery T
 | AWS Lake Formation | Not adopted: one account, one data owner, and IAM plus the bucket policy already express the permissions; Lake Formation would add a second permission model | none | Not adopted |
 | AWS Secrets Manager | Not adopted: the system holds no secret; credentials come from the AWS credential chain and roles | 25.13 | Not adopted |
 
-Demo-facing statement (5 minutes): (1) Cognito sign-in with the demo user and the Amplify-hosted UI, 15 s; (2) Robert "30% in TSLA" in Friendly_Mode: courtroom, one claim struck by the Citation_Validator, Verdict accept with conditions or reject with the computed maximum weight, then one Appeal (horizon 10 years) side by side, 90 s; (3) Amira with the same request: a different Verdict that cites Robert's Precedent, 40 s; (4) Mateo "10% in XOM": ESG exclusion with its source and the exclusion-cost Exhibit, 30 s; (5) the accepted diversification case, 15 s; (6) Advanced_Mode: one statement traced to its Exhibit, source file, and Snapshot_Id, then the AgentCore Observability view and one Guardrail block, 40 s; (7) data platform: S3 snapshot, Glue tables, one Athena validation query, 20 s; (8) the Benchmark slide from `docs/benchmark.md`, 20 s; closing, 20 s. Stretch services appear only if they are built.
+Demo-facing statement (5 minutes): (1) Cognito sign-in with the demo user and the Amplify-hosted UI, 15 s; (2) Robert "30% in TSLA" in Friendly_Mode: courtroom, one claim struck by the Citation_Validator, Verdict accept with conditions or reject with the computed maximum weight, then one Appeal (`speculative_limit` 5 % -> 10 %: the maximum moves from 5 % to 10 % because the per-asset cap binds next) side by side, 90 s; (3) Amira with the same request: a different Verdict that cites Robert's Precedent, 40 s; (4) Mateo "10% in XOM": ESG exclusion with its source and the exclusion-cost Exhibit, 30 s; (5) the accepted diversification case, 15 s; (6) Advanced_Mode: one statement traced to its Exhibit, source file, and Snapshot_Id, then the AgentCore Observability view and one Guardrail block, 40 s; (7) data platform: S3 snapshot, Glue tables, one Athena validation query, 20 s; (8) the Benchmark slide from `docs/benchmark.md`, 20 s; closing, 20 s. Stretch services appear only if they are built.
 
 ### Technology choices
 
@@ -665,14 +665,32 @@ Proposed Contract_Values (team assumptions unless marked quoted; to be confirmed
 | horizon_years | 15 | 8 | 3 | quoted range, lower bound |
 | max_volatility | 0.35 | 0.18 | 0.12 | assumption: annualized, scaled to risk level |
 | max_drawdown | 0.40 | 0.25 | 0.15 | assumption: Robert retires within 3 to 5 years ("préserver le capital") |
-| per_asset_cap | 0.15 | 0.10 | 0.10 | assumption: diversification ("une certaine diversification" for Amira) |
+| per_asset_cap | 0.15 | 0.10 | 0.10 | assumption: diversification ("une certaine diversification" for Amira); applies to single securities and crypto only, not to diversified ETFs (Req. 5.13) |
 | per_asset_class_caps | crypto 0.15 | crypto 0.05 | crypto 0.02 | assumption; Amira "intéressée par les cryptoactifs" but "risque élevé" ≠ "tout est acceptable" |
 | sector_caps | Information Technology 0.40 | Information Technology 0.35 | Information Technology 0.25 | assumption; Amira "éviter de miser exclusivement sur la tech" |
 | crypto_cap | 0.15 | 0.05 | 0.02 | assumption; Robert "peu intéressé par les cryptos", lowest of the three (Req. 1.8) |
-| esg_exclusions | [] | ["significant environmental controversies", "significant social controversies"] | [] | Mateo quoted ("éviter les entreprises liées à d'importantes controverses environnementales ou sociales") |
+| esg_exclusions | [] | ["fossil_fuel_screen"] | [] | assumption: team interpretation of Mateo's quoted preference ("éviter les entreprises liées à d'importantes controverses environnementales ou sociales"), applied through `data/esg_exclusions.csv` (Req. 32); the Ruling states this interpretation |
 | speculative_limit | null | 0.10 | 0.05 | assumption; Mateo "peu intéressé par le hautement spéculatif" |
+| base_portfolio | QQQ 0.25, SPY 0.20, XIU.TO 0.15, NVDA 0.10, MSFT 0.10, BTC-USD 0.10, SHOP.TO 0.05, XBB.TO 0.05 | XIU.TO 0.25, XBB.TO 0.25, SPY 0.15, ESGV 0.15, RY.TO 0.10, MSFT 0.05, AGG 0.05 | XBB.TO 0.40, ZST.TO 0.15, XIU.TO 0.15, SPY 0.15, JNJ 0.08, RY.TO 0.07 | assumption (Req. 28): fictional, consistent with each profile; each passes its own Hard_Rules |
+| soft_preferences | "veut une certaine diversification et éviter de miser exclusivement sur la tech" | "équilibre croissance/stabilité"; "peu intéressé par le hautement spéculatif" | "entreprises établies, modèle d'affaires compréhensible"; "stabilité et qualité" | quoted (Req. 29) |
 
-Speculative assets for the speculative-limit rule are crypto assets plus any asset whose Toolkit annualized volatility over the evaluation period exceeds `speculative_volatility_threshold`. This makes the rule deterministic and Exhibit-backed. The ESG exclusion rule stays `unverified` because the Dataset has no ESG scores (Req. 3.9).
+Speculative assets for the speculative-limit rule are crypto assets plus any asset whose Toolkit annualized volatility in CAD over the evaluation period exceeds `speculative_volatility_threshold` (0.45). On the starter data this gives BTC-USD, ETH-USD, SHOP.TO (64.4 %), TSLA (58.9 %), and NVDA (51.1 %); the next asset, AMZN, is at 36.4 %, so the set is stable. The ESG exclusion rule is decided by `data/esg_exclusions.csv` when the contract lists `fossil_fuel_screen` (Req. 32); the Ruling still reports that the Dataset has no ESG scores (Req. 3.9).
+
+### Demo cases (Req. 33), expected outcomes computed by code on the starter data
+
+Rules as above; proposed portfolio = Base_Portfolio x (1 - w) + requested asset at w; maximum weight on a 0.5-point grid. `canadian_heavy` is a Custom_Profile with Mateo's contract and the Base_Portfolio XIU.TO 0.40, XBB.TO 0.30, RY.TO 0.10, TD.TO 0.10, CNR.TO 0.10.
+
+| Case | Failing Hard_Rules at the requested size | Expected Verdict |
+| --- | --- | --- |
+| Robert, 30 % TSLA | volatility 20.1 %, max drawdown 30.1 %, per-asset cap, speculative limit | accept with conditions, max 5.0 % (speculative limit binds) |
+| Appeal: Robert, `speculative_limit` 5 % -> 10 % | same | accept with conditions, max 10.0 % (per-asset cap binds next) |
+| Amira, 30 % TSLA | max drawdown 44.8 %, per-asset cap | accept with conditions, max 15.0 % |
+| Amira, 40 % BTC-USD | max drawdown 52.1 %, per-asset cap, crypto cap (she already holds 10 % BTC) | accept with conditions, max 5.5 % |
+| Mateo, 10 % XOM | ESG exclusion (`fossil_fuel_screen`) | reject |
+| canadian_heavy, 20 % SPY | none (volatility 9.5 % -> 10.2 %, max drawdown 13.0 % -> 13.1 %, CAD share 100 % -> 80 %) | accept |
+
+Robert and Amira make the same request and get different Verdicts (5 % versus 15 %); the Judge cites Robert's Precedent and names `per_asset_cap`, `speculative_limit`, and `max_drawdown` as the differing fields.
+
 
 ### Exhibits and Registry (Req. 2.2, 2.3)
 
@@ -1090,7 +1108,7 @@ The Judge returns JSON `[{option_id, preference_id, assessment, findings, exhibi
 
 ### Appeal (Req. 30)
 
-`POST /sessions` accepts `appeal_of: <session_id>` and `change: {field, value}` with `field` in `position_size`, `horizon_years`, `max_drawdown`, `period`. The handler copies the original inputs from the Session_Store, applies one change, and starts a new session. `tribunal/appeal.py::diff_sessions(a, b)` returns changed Hard_Rule results, changed Soft_Preference assessments, and Exhibits whose metric matches but whose value differs. The UI renders `AppealView` with the two Verdicts side by side.
+`POST /sessions` accepts `appeal_of: <session_id>` and `change: {field, value}` with `field` either `position_size`, `period`, or the name of one Investor_Contract value (for example `speculative_limit`). The handler copies the original inputs from the Session_Store, applies one change, and starts a new session. `tribunal/appeal.py::diff_sessions(a, b)` returns changed Hard_Rule results, changed Soft_Preference assessments, and Exhibits whose metric matches but whose value differs. The UI renders `AppealView` with the two Verdicts side by side.
 
 ### Precedents (Req. 31)
 
@@ -1102,7 +1120,7 @@ Session_Store items with partition key `owner = "precedent"` and sort key `asset
 
 ### Ruling answers and demo cases (Req. 33)
 
-`agents/clerk.py` adds a `questions` block with four answers built by code from the Ruling: Which data (tables, period, Snapshot_Id, currency), Why this choice (deciding rules and Soft_Preferences), Which limits (Limits section and data_limits skill), What would change the answer (Sensitivity_Analysis and the Appeal hint). `demo/cases.yaml` holds the five cases with the expected outcome; the Canadian-heavy case uses a Base_Portfolio of XIU.TO, RY.TO, TD.TO, ENB.TO, and XBB.TO and requests 20 % SPY.
+`agents/clerk.py` adds a `questions` block with four answers built by code from the Ruling: Which data (tables, period, Snapshot_Id, currency), Why this choice (deciding rules and Soft_Preferences), Which limits (Limits section and data_limits skill), What would change the answer (Sensitivity_Analysis and the Appeal hint). `demo/cases.yaml` holds the five cases with the expected outcome; the `canadian_heavy` Custom_Profile uses Mateo's contract with the Base_Portfolio XIU.TO 0.40, XBB.TO 0.30, RY.TO 0.10, TD.TO 0.10, CNR.TO 0.10 and requests 20 % SPY (expected outcomes: "Demo cases").
 
 ### Benchmark (Req. 34)
 
@@ -1714,8 +1732,8 @@ CODE  Clerk template + citation validator + guidance-only check + Guardrail -> R
 
 Bounds: 3 agent calls per session, 1 call per agent, at most 6 Toolkit calls per agent, at most 3 Options, at most 2 citation revisions per claim, a timeout per call. Agents return JSON to the orchestrator and never call each other. Fallbacks follow Req. 36.5 to 36.7.
 
-Example (Robert, "30% in TSLA", starter data, CAD): Risk_Panel of the request shows USD exposure rising from 23 % to 46.1 % and TSLA carrying 86.7 % of the variance. With `advocate_scope: universe`, the Advocate may propose TSLA 5.5 %, MSFT 9 %, and XIU.TO 10 %; code verifies them against the -12 % drawdown and 10 % per-asset limits. The Investigator flags currency exposure as material for the TSLA and MSFT Options (expenses in CAD at retirement, horizon 3 to 5 years) and none for XIU.TO (USD exposure 20.7 %). The Judge assesses « stabilité et qualité » per Option and writes the narrative.
+Example (Robert, "30% in TSLA", starter data, CAD, contract values of the design table): the Risk_Panel of the request shows USD exposure rising from 23 % to 46.1 %, TSLA carrying 86.7 % of the variance, and four failing Hard_Rules; `max_weight_within_contract` gives 5.0 % (speculative limit binds). With `advocate_scope: size_only`, the Advocate proposes for example TSLA 5 % and TSLA 2.5 %; with `universe`, it may add XIU.TO 10 % (USD exposure 20.7 %). The Investigator flags currency exposure as material for the TSLA Options (expenses in CAD at retirement, horizon 3 to 5 years). The Judge assesses « stabilité et qualité » per Option and writes the narrative.
 
-Configuration: `advocate_scope` is `size_only` (default, safest wording) or `universe` (other assets presented only as "other requests you can test"). The team chooses before the demo.
+Configuration: `advocate_scope` is `size_only` (default, safest wording) or `universe` (other assets presented only as "other requests you can test"); `agent_timeout_seconds` (60) bounds each call; `model_ids` sets the Claude model of each agent, falling back to `model_id`.
 
-Instruction_Files: `advocate.md`, `investigator.md`, `judge.md`, and `profiler.md` (free-text intake only). The Clerk has no Instruction_File because it is code.
+Instruction_Files: `advocate.md`, `investigator.md`, and `judge.md`. The Profiler and the Clerk have none because they are code.

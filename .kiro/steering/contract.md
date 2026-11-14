@@ -17,8 +17,10 @@ fileMatchPattern: "guide/contract/**"
 | `per_asset_class_caps` | map | Asset class → cap |
 | `sector_caps` | map | Sector → cap |
 | `crypto_cap` | float | 0.0 to 1.0 |
-| `esg_exclusions` | list | Asset tickers |
-| `speculative_limit` | float | 0.0 to 1.0 |
+| `esg_exclusions` | list | Screen names; `fossil_fuel_screen` maps to `data/esg_exclusions.csv` |
+| `speculative_limit` | float or null | 0.0 to 1.0 |
+| `soft_preferences` | list | `{id, text, provenance, excerpt}`; verbatim from context.md (Req. 29) |
+| `base_portfolio` | map | ticker -> weight, sums to 1, basis `assumption` (Req. 28) |
 
 ## Provenance
 
@@ -33,9 +35,11 @@ Each field records its origin:
 
 | Persona | Risk | Horizon | Key limits |
 |---------|------|---------|------------|
-| `amira` | high | 15+ years | Crypto < 100%, IT < 100% |
-| `mateo` | moderate | 8-12 years | ESG exclusion required, speculative < 100% |
-| `robert` | low_to_moderate | 3-5 years | Lowest crypto cap |
+| `amira` | high | 15+ years | Crypto 15 %, IT 40 %, per-asset 15 %, no speculative limit |
+| `mateo` | moderate | 8-12 years | `fossil_fuel_screen`, speculative 10 %, per-asset 10 % |
+| `robert` | low_to_moderate | 3-5 years | Crypto 2 %, speculative 5 %, max drawdown 15 % |
+
+Full values and Base_Portfolios: design document, "Proposed Contract_Values" and "Demo cases".
 
 ## Validation
 

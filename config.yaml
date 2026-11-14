@@ -1,7 +1,15 @@
 # No credentials belong in this file. AWS credentials come from the default
 # AWS credential chain (role, profile, or environment), never from config.
 aws_region: us-east-1
-model_id: ""
+model_id: ""   # default Claude model ID, copied from the Bedrock console
+# Per-agent model IDs (Req. 36); an empty value falls back to model_id.
+model_ids:
+  advocate: ""
+  investigator: ""
+  judge: ""
+# Agent flow settings (Req. 4.9, 36.3).
+advocate_scope: size_only   # size_only | universe
+agent_timeout_seconds: 60
 guardrail_id: ""
 guardrail_version: "DRAFT"
 
@@ -27,9 +35,9 @@ instruction_dir: guide/agents
 
 # Sensitivity ranges are [minimum, maximum, step].
 sensitivity_ranges:
-  position_size: [0.0, 0.5, 0.01]
+  position_size: [0.0, 0.5, 0.005]   # same 0.5-point grid as max_weight_within_contract
   horizon_years: [1, 20, 1]
-speculative_volatility_threshold: 0.50
+speculative_volatility_threshold: 0.45   # NVDA (51.1 % CAD vol) is speculative; away from any asset's value
 trace_summary_max_chars: 400
 
 # Deployment-provided values. Leave blank for a local run until CDK outputs
