@@ -12,7 +12,8 @@ const live = {
   stages_done: ["snapshot", "profiler", "request_rules", "advocate", "option_rules", "investigator", "judge", "clerk"],
   active_agent: null, exhibits: [], sensitivity: [], snapshot: null, data_notices: [], error: null,
   rule_results: res(["per_asset_cap", "max_volatility", "max_drawdown", "speculative_limit"]),
-  summaries: { advocate: "The Advocate sees the goal as: Robert wants some Tesla growth while keeping his savings safe. It proposes 2 options for the court." },
+  summaries: { advocate: "The Advocate sees the goal as: Robert wants some Tesla growth while keeping his savings safe. It proposes 2 options for the court.",
+    investigator: "The Investigator names 13 material risks across 4 options." },
   trace: [
     { seq: 1, kind: "claim_removed", name: "judge", summary: { claim: "Tesla will double next year." } },
     { seq: 2, kind: "judge_check", name: "judge_ruling", summary: { inputs: "{\"attempt\": 2}", result: "ok" } },
@@ -61,6 +62,9 @@ describe("the hearing (speeches built from the session's outputs, no model call)
     const h = hearingOf(running);
     expect(h.map((s) => s.speaker)).toEqual(["bailiff"]);
     expect(h[0].text).toContain("The court will hear the request.");
+    const later = hearingOf({ ...running, stages_done: [...running.stages_done, "advocate", "option_rules", "investigator"] } as SessionView);
+    expect(later[1].text).toBe("The investor's goal: Robert wants some Tesla growth while keeping his savings safe. I propose 2 options to the court.");
+    expect(later[2].text).toBe("The Investigator names 13 material risks across 4 options.");
   });
 
   it("trims long speeches at a sentence and finds cited Exhibits", () => {
