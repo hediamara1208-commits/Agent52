@@ -110,7 +110,8 @@ class BedrockAgent:
         client: Any | None = None,
         tool_runner: ToolRunner | Callable[[Mapping[str, Any]], Any] | None = None,
         stage: str | None = None,
-        max_tokens: int = 1024,
+        max_tokens: int = 4096,  # Sonnet 5.5 spends output tokens on hidden reasoning first
+        guard_text: str | None = None,
         max_tool_rounds: int = 8,
         max_throttling_retries: int = 3,
         base_backoff_seconds: float = 0.25,
@@ -135,6 +136,9 @@ class BedrockAgent:
         self.config = config
         self.tool_runner = tool_runner
         self.max_tokens = max_tokens
+        # Only this text (the user's own words) is checked by the Guardrail's input filters
+        # (prompt attack). Code-built JSON, Exhibits and tool results are not user input.
+        self.guard_text = (guard_text or "").strip() or "Simulated investment tribunal session."
         self.max_tool_rounds = max_tool_rounds
         self.max_throttling_retries = max_throttling_retries
         self.base_backoff_seconds = base_backoff_seconds
@@ -179,7 +183,7 @@ class BedrockAgent:
             stop_reason = str(response.get("stopReason", ""))
 
             if stop_reason == "guardrail_intervened":
-                rule = self._challenge_rule(conversation, output_message)
+                rule = self._guardrail_reason(response) or self._challenge_rule(conversation, output_message)
                 trace.guardrail_block(self.stage, rule)
                 trace.agent_call(self.agent, "Bedrock Converse invocation", "guardrail intervened",
                                  instruction_hash=instruction_hash)
@@ -224,12 +228,12 @@ class BedrockAgent:
         request: dict[str, Any] = {
             "modelId": self.config.model_id,
             "system": [{"text": system_prompt}],
-            "messages": messages,
+            "messages": self._with_guard_content(messages),
             "inferenceConfig": {"maxTokens": self.max_tokens},
             "guardrailConfig": {
                 "guardrailIdentifier": self.config.guardrail_id,
                 "guardrailVersion": self.config.guardrail_version,
-                "trace": "disabled",
+                "trace": "enabled",  # so a block names its policy in the Trace
             },
         }
         if tool_config is not None:
@@ -368,6 +372,48 @@ class BedrockAgent:
         if any(term in visible_text for term in _PERSONAL_ADVICE_TERMS):
             return "No_Personalized_Financial_Advice"
         return _CHALLENGE_RULES
+
+    def _with_guard_content(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Tag the user's own text as the only Guardrail-checked input (guardContent).
+
+        With a guardContent block present, Converse applies the input filters to that block
+        only; the model output is still checked in full (denied topics).
+        """
+        out = [dict(m) for m in messages]
+        if any("guardContent" in b for m in out for b in m.get("content", []) if isinstance(b, Mapping)):
+            return out
+        for m in out:
+            if m.get("role") == "user":
+                m["content"] = list(m.get("content", [])) + [{"guardContent": {"text": {"text": self.guard_text}}}]
+                break
+        return out
+
+    @staticmethod
+    def _guardrail_reason(response: Mapping[str, Any]) -> str | None:
+        """Name the Guardrail policy that blocked, e.g. 'output:topic:ReturnPredictions'."""
+        trace = ((response.get("trace") or {}).get("guardrail") or {})
+        found: list[str] = []
+
+        def scan(where: str, assessment: Mapping[str, Any]) -> None:
+            for t in (assessment.get("topicPolicy") or {}).get("topics", []) or []:
+                if t.get("action") == "BLOCKED":
+                    found.append(f"{where}:topic:{t.get('name')}")
+            for f in (assessment.get("contentPolicy") or {}).get("filters", []) or []:
+                if f.get("action") == "BLOCKED":
+                    found.append(f"{where}:filter:{f.get('type')}")
+            for w in (assessment.get("wordPolicy") or {}).get("customWords", []) or []:
+                if w.get("action") == "BLOCKED":
+                    found.append(f"{where}:word")
+
+        for a in (trace.get("inputAssessment") or {}).values():
+            if isinstance(a, Mapping):
+                scan("input", a)
+        outputs = trace.get("outputAssessments") or {}
+        for items in (outputs.values() if isinstance(outputs, Mapping) else []):
+            for a in items or []:
+                if isinstance(a, Mapping):
+                    scan("output", a)
+        return ", ".join(dict.fromkeys(found)) or None
 
     @staticmethod
     def _text_from_message(message: Mapping[str, Any]) -> str:
