@@ -78,6 +78,14 @@ def build_contract_from_persona(persona: Persona) -> dict[str, Any]:
 def _apply_horizon(values: dict[str, Any]) -> tuple[int, dict[str, Any] | None] | None:
     if "horizon" in values:
         return _horizon(values["horizon"])
+    if "horizon_min" in values or "horizon_max" in values:
+        # Web form fields (frontend ContractValues): horizon_min / horizon_max, either may be null.
+        lo, hi = values.get("horizon_min"), values.get("horizon_max")
+        if lo is None and hi is None:
+            return None
+        if lo is None:
+            return _horizon(hi)
+        return _horizon({"min": lo} if hi is None else {"min": lo, "max": hi})
     if "horizon_years" in values:
         return values["horizon_years"], None
     return None
@@ -112,7 +120,7 @@ def build_contract_from_form(values: dict[str, Any], base: Persona | None = None
             contract["horizon_range"] = rng
 
     for key, value in values.items():
-        if key in ("horizon", "horizon_years"):
+        if key in ("horizon", "horizon_years", "horizon_min", "horizon_max"):
             continue
         if key == "soft_preferences":
             # Each item carries its own provenance; items without one take the form's.
