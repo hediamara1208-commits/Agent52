@@ -203,6 +203,9 @@ def verdict_from_decision(
     by_id = {str(o["option_id"]): o for o in options}
     verdict = decision["verdict"]
     option = by_id.get(str(decision.get("option_id"))) if verdict != REJECT else None
+    if option is not None and float(option.get("weight") or 0.0) <= 0.0:
+        # Adopting a 0% position means not adding the asset at all: that is a rejection.
+        verdict, option = REJECT, None
     conditions = [str(c) for c in decision.get("conditions") or []]
     if option is not None and verdict == ACCEPT_WITH_CONDITIONS and not conditions:
         conditions = [f"Keep the position in {option['ticker']} at or below {option['weight']:.1%} of the portfolio."]

@@ -86,3 +86,15 @@ def test_check_decision_applies_the_law():
     assert "does not exist" in check_decision(d("accept_with_conditions", "zz"), options, reg, "request")[0]
     assert "accept means the request" in check_decision(d("accept", "option_1"), options, reg, "request")[0]
     assert check_decision(None, options, reg, "request") == ["the Judge returned no decision"]
+
+
+def test_adopting_a_zero_size_option_is_a_rejection():
+    from guide.agents.judge import verdict_from_decision
+    from guide.tribunal.rules import Verdict
+    facts = Verdict(verdict="accept_with_conditions", max_weight=None, failing_rules=["esg_exclusion"],
+                    unverified_rules=[], conditions=[], tension="", exhibits=[1], reason="")
+    options = [{"option_id": "option_3", "ticker": "XOM", "weight": 0.0}]
+    v = verdict_from_decision({"verdict": "accept_with_conditions", "option_id": "option_3",
+                               "conditions": ["Keep XOM out."], "reason": "Only 0% passes.", "exhibits": [1]},
+                              options, facts)
+    assert v.verdict == "reject" and v.max_weight is None and v.conditions == ["Keep XOM out."]
