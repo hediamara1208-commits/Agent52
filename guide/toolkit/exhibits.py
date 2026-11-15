@@ -138,7 +138,8 @@ class ExhibitRegistry:
             snapshot_id = self._snapshot.snapshot_id
             snapshot_retrieved_at = _snapshot_retrieved_at(self._snapshot)
             source_files = tuple(
-                f"{source_file.split('@', maxsplit=1)[0]}@{snapshot_id}"
+                source_file if source_file.startswith(("http://", "https://"))  # web sources keep their URL
+                else f"{source_file.split('@', maxsplit=1)[0]}@{snapshot_id}"
                 for source_file in source_files
             )
             if self._snapshot.served_from == "cache_fallback":

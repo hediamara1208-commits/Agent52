@@ -13,3 +13,16 @@
 | Terms and project use | The methodology document is publicly available and cited by URL. This project redistributes no fund document, holdings file, or third-party ESG dataset; it ships only hand-authored proxy labels for its simulation-only dataset. |
 
 This source supports fictional, simulation-only tribunal scenarios. It must not be interpreted as investment advice or as a directive to take any brokerage or bank action.
+
+## Recent web context (Newsroom)
+
+| Field | Documented value |
+| --- | --- |
+| Service | Amazon Bedrock AgentCore Web Search (`InvokeWebSearch`, tool `web-search.v1`, us-east-1). Amazon-operated web index; queries stay inside AWS; IAM-only access (`bedrock-agentcore:InvokeWebSearch`). |
+| When | At run time, once per Tribunal_Session: 2 searches for the requested asset (news; results and guidance) plus 1 controversy search when the investor has ESG exclusions or preferences. The Investigator may run at most 2 follow-up searches through its `web_search` tool. |
+| Filters | Published in the last 30 days (`publishedAfter` / `publishedBefore`); domain include list of primary and reputable sources (regulators, central banks, wire services, major business media, issuers' investor-relations sites) in `guide/toolkit/web_evidence.py`. Rating and price-target aggregators are left out. |
+| Processing | Each result becomes a Web Exhibit (`metric: web_news`) with title, URL, source domain, publication date, a snippet of at most 600 characters, query, and retrieval timestamp. Duplicates and results without a URL or title are dropped; at most 6 per session. Each snippet is screened with the Bedrock Guardrail (prompt-attack filter, `ApplyGuardrail`) before an agent sees it. |
+| Use | Context only. Web Exhibits never change a Hard_Rule, a computed number, or the maximum weight; those come only from the pinned Dataset_Snapshot. Agents may cite events (recall, lawsuit, guidance change, controversy) by Exhibit number; analyst ratings, price targets and forecasts are never repeated. |
+| Look-ahead | News is retrieved on the session date and may be published after the Dataset_Snapshot end (2026-11-12). It is shown as current context, never mixed into historical calculations. |
+| Limitations | Search ranking and coverage are not controlled by the project; snippets can be incomplete or wrong; no sentiment score is computed. If the service fails or times out, the session continues on the Dataset_Snapshot alone and a data notice says so. |
+| Terms | AgentCore Web Search acceptable use: every surfaced result keeps and displays its source citation and link (the Ruling's `recent_context` and the Exhibits panel). No bulk extraction or storage beyond the session record. |

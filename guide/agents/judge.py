@@ -268,6 +268,7 @@ def build_messages(
     rule_facts: Mapping[str, Any],
     precedent: Mapping[str, Any] | None = None,
     objection: Sequence[str] | None = None,
+    recent_context: Sequence[Mapping[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """The single user message: the evidence and the pleadings. No verdict is given to the Judge."""
     payload = {
@@ -282,6 +283,8 @@ def build_messages(
     }
     if objection:
         payload["objection_to_previous_ruling"] = list(objection)
+    if recent_context:
+        payload["recent_context"] = list(recent_context)
     return [{"role": "user", "content": [{"text": json.dumps(payload, default=str, sort_keys=True)}]}]
 
 
@@ -298,6 +301,7 @@ def run_judge(
     trace: TraceRecorder,
     precedent: Mapping[str, Any] | None = None,
     objection: Sequence[str] | None = None,
+    recent_context: Sequence[Mapping[str, Any]] | None = None,
     system_prompt: SystemPrompt | None = None,
     client: Any | None = None,
 ) -> JudgeResult:
@@ -313,6 +317,7 @@ def run_judge(
         rule_facts=rule_facts,
         precedent=precedent,
         objection=objection,
+        recent_context=recent_context,
     )
     output: AgentOutput = agent.run(prompt, messages, None, trace)
     if output.blocked:

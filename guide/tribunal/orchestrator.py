@@ -38,6 +38,7 @@ from guide.toolkit import metrics
 from guide.toolkit.exhibits import ExhibitRegistry, thaw
 from guide.toolkit.risk_panel import RiskPanel, risk_panel
 from guide.toolkit.tools import ToolRunner
+from guide.toolkit.web_evidence import Newsroom, WebToolRunner, web_context
 from guide.trace.recorder import TraceRecorder
 from guide.tribunal import session_view as sv
 from guide.tribunal.citations import Claim, enforce
@@ -166,6 +167,7 @@ def run_session(
     memory: Any | None = None,
     trace: TraceRecorder | None = None,
     precedents: PrecedentItemStore | None = None,
+    newsroom: Newsroom | None = None,
 ) -> sv.SessionView:
     """Run one Tribunal_Session and return the final SessionView (also published to ``sink``)."""
     config = config or load_config()
@@ -217,6 +219,7 @@ def run_session(
         raise abort("profiler", "invalid contract: " + ", ".join(e.field for e in errors))
     view = publish(sv.stage_finished(view, "profiler", contract=contract))
 
+    live_agents = runners is None
     runners = runners or bedrock_runners(config, prompts, client)
     timeout = config.agent_timeout_seconds
     base = request.base_portfolio or contract.get("base_portfolio")
@@ -260,6 +263,25 @@ def run_session(
         view, "request_rules", next_agent="advocate", exhibits=registry.all(),
         rule_results=_rule_dicts(results)))
 
+    # ---- Newsroom (code): recent public context as Web Exhibits; never used by a Hard_Rule ----
+    if newsroom is None and live_agents and config.web_search_enabled:
+        try:
+            newsroom = Newsroom.from_config(config)
+        except Exception as error:
+            trace.judge_check("web_search", {"setup": True}, f"failed: {type(error).__name__}")
+    if newsroom is not None:
+        try:
+            names = source.read_table(metrics.UNIVERSE_TABLE)
+            row = names[names["ticker"] == request.ticker]
+            asset_name = str(row["name"].iloc[0]) if len(row) else request.ticker
+            newsroom.collect(registry, request.ticker, asset_name, contract, trace)
+        except Exception as error:
+            trace.judge_check("web_search", {"asset": request.ticker}, f"failed: {type(error).__name__}")
+        if newsroom.failures and not web_context(registry):
+            view = sv.with_data_notice(view, "Recent web context unavailable for this session; "
+                                             "the Tribunal used the Dataset_Snapshot only.")
+    recent_context = web_context(registry)
+
     # ---- stage: Advocate (1 call) ----
     advocate_options: list[tuple[str, float, str, str]] = []  # ticker, weight, rationale, source
     advocate_goal = ""
@@ -268,7 +290,8 @@ def run_session(
         out = _call_with_timeout(lambda: runners.advocate(
             request_text=request.text, request_ticker=request.ticker, request_weight=request.weight,
             contract=contract, risk_panel=_panel_evidence(request_panel), tools=tools, trace=trace,
-            hard_rule_results=_rule_dicts(results), universe=universe), timeout, "advocate")
+            hard_rule_results=_rule_dicts(results), recent_context=recent_context, universe=universe),
+            timeout, "advocate")
         bad = _drop_failing("advocate", [out.goal] + [o.rationale for o in out.options], trace)
         advocate_goal = SAFE_GOAL if out.goal in bad else out.goal
         advocate_options = [(o.asset, o.weight, o.rationale, "advocate")
@@ -318,7 +341,8 @@ def run_session(
         agents_run.append("investigator")
         res = _call_with_timeout(lambda: runners.investigator(
             options=_with_evidence(options, panels), contract=contract, registry=registry,
-            tools=tools, trace=trace),
+            tools=WebToolRunner(tools, newsroom, registry) if newsroom is not None else tools, trace=trace,
+            recent_context=recent_context),
             timeout, "investigator")
         if res.blocked:
             raise StageFailure("investigator", "guardrail intervened")
@@ -350,6 +374,7 @@ def run_session(
     final = verdict
     judge_extra: dict[str, Any] = {}
     precedent_doc: dict[str, Any] | None = None
+    judge_extra["recent_context"] = web_context(registry)  # includes the Investigator's searches
     if precedents is not None:  # Req. 31.2: code looks up the closest Precedent; a failure is ignored
         try:
             found = precedent_store.closest(precedents, request.ticker, request.weight,
@@ -441,6 +466,7 @@ def run_session(
             ruling_doc["precedent"] = precedent_doc
         ruling_doc["agents"] = {"ran": list(agents_run), "failed": list(agents_failed)}
         ruling_doc["decided_by"] = decided_by
+        ruling_doc["recent_context"] = web_context(registry)
     except Exception as error:
         raise abort("clerk", f"{type(error).__name__}: {error}", error)
 

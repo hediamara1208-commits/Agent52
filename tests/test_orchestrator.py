@@ -391,3 +391,39 @@ def test_agents_receive_exhibit_values_not_just_numbers(source):
                for o in seen["investigator"] for v in o["risk_panel"].values())
     # The published ruling keeps its original shape (Exhibit numbers only) for the UI.
     assert all(not isinstance(v, dict) for o in view.ruling["options"] for v in o["risk_panel"].values())
+
+
+def test_newsroom_context_reaches_all_three_agents_and_the_ruling(source):
+    from datetime import datetime, timezone
+    from guide.toolkit.web_evidence import Newsroom
+
+    def search(**kw):
+        return {"results": [{"title": "Tesla recall widens", "url": "https://www.reuters.com/tesla-recall",
+                             "text": "Tesla expanded a recall.", "publishedAt": "2026-11-13T10:00:00Z"}]}
+
+    seen = {}
+
+    def advocate(**kw):
+        seen["advocate"] = kw.get("recent_context")
+        return AdvocateOutput("Keep exposure small.", (AdvocateOption("TSLA", 0.05, "Smaller.", (1,)),))
+
+    def investigator(**kw):
+        seen["investigator"] = kw.get("recent_context")
+        seen["tools"] = [t["toolSpec"]["name"] for t in kw["tools"].tool_config["tools"]]
+        return InvestigatorResult(per_option=[])
+
+    def judge(**kw):
+        seen["judge"] = kw.get("recent_context")
+        return lawful_ruling(kw["options"])
+
+    room = Newsroom(search, now=lambda: datetime(2026, 11, 15, tzinfo=timezone.utc))
+    view, _ = _run(Fakes(advocate=advocate, investigator=investigator, judge=judge), source=source,
+                   newsroom=room)
+    for agent in ("advocate", "investigator", "judge"):
+        assert seen[agent] and seen[agent][0]["url"] == "https://www.reuters.com/tesla-recall"
+    assert "web_search" in seen["tools"]
+    assert view.ruling["recent_context"][0]["title"] == "Tesla recall widens"
+    web = [e for e in view.exhibits if (e["metric"] if isinstance(e, dict) else e.metric) == "web_news"]
+    assert web
+    # Context never changes the law: the verdict facts are the same rules as without news.
+    assert view.verdict["max_weight"] is not None
