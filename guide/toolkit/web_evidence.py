@@ -109,7 +109,8 @@ def clean_snippet(text: str, limit: int = 300) -> str:
     text = re.sub(r"[\^]\w+", brk, text)
     text = re.sub(r"(?:\b[A-Z]{2,6}\b\s+){2,}", brk, text)  # runs of tickers: "SPCX TSLA"
     text = _QUOTE_RUN.sub(brk, text)
-    segments = [" ".join(seg.split()).strip(" -\u2014:;,") for seg in text.split("\u00b6")]
+    segments = [re.sub(r"^[^\w(\"\u201c$]+", "", " ".join(seg.split())).strip(" -\u2014:;,")
+                for seg in text.split("\u00b6")]
     segments = [seg for seg in segments if len(seg.split()) >= 6]
     kept: list[str] = []
     for i, segment in enumerate(segments):
@@ -213,6 +214,7 @@ class Newsroom:
         self._now = now or (lambda: datetime.now(timezone.utc))
         self._seen: set[str] = set()
         self._per_source: dict[str, int] = {}
+        self._titles: set[str] = set()
         self._subject: tuple[str, str] = ("", "")
         self._agent_searches = 0
         self._lock = threading.Lock()
@@ -256,12 +258,14 @@ class Newsroom:
             return None
         source = _domain(url)
         with self._lock:
-            if url in self._seen or len(self._seen) >= self.max_exhibits:
+            title_key = re.sub(r"[^a-z0-9]+", " ", title.lower()).strip()
+            if url in self._seen or title_key in self._titles or len(self._seen) >= self.max_exhibits:
                 return None
             site = _site(source)
             if self._per_source.get(site, 0) >= MAX_PER_SOURCE:
                 return None
             self._seen.add(url)
+            self._titles.add(title_key)
             self._per_source[site] = self._per_source.get(site, 0) + 1
         snippet_text = f"{title}: {result.get('text') or ''}"
         if self._screen is not None:
