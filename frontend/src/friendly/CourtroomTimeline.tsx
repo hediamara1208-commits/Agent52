@@ -5,7 +5,7 @@ import { ExhibitLink } from "./ExhibitLinks";
 export const RULE_NAMES: Record<string, string> = {
   per_asset_cap: "cap per holding", per_asset_class_caps: "asset-class caps", sector_caps: "sector caps",
   crypto_cap: "crypto cap", max_volatility: "volatility limit", max_drawdown: "drawdown limit",
-  speculative_limit: "speculative limit", esg_exclusions: "ESG exclusions",
+  speculative_limit: "speculative limit", esg_exclusions: "ESG exclusion", esg_exclusion: "ESG exclusion",
 };
 const ruleName = (r: string) => RULE_NAMES[r] ?? r.replace(/_/g, " ");
 const pct = (w: number) => `${(w * 100).toFixed(1)}%`;
@@ -27,7 +27,9 @@ export interface Step { agent: string; title: string; lines: string[]; exhibits:
 export function timelineOf(view: SessionView): Step[] {
   const ruling = (view.ruling ?? null) as unknown as RulingShape | null;
   if (!ruling) return [];
-  const options = ruling.options ?? [];
+  // A 0% "option" means "do not buy": it is not shown as a size the court weighed.
+  const options = (ruling.options ?? []).filter((o) => o.weight > 0);
+  const declined = (ruling.options ?? []).some((o) => o.source !== "request" && o.weight <= 0);
   const failed = new Set((ruling.agents?.failed ?? []).map((f) => typeof f === "string" ? f : f.agent));
   const web = new Set(view.exhibits.filter((e) => e.metric === "web_news").map((e) => e.number));
   const label = (o: Option) => o.source === "request" ? `your request (${o.ticker} ${pct(o.weight)})`
@@ -42,7 +44,7 @@ export function timelineOf(view: SessionView): Step[] {
       ? ["The Advocate could not run; the code added the largest size within your limits."]
       : [proposed.length
           ? `Proposed ${proposed.length} option${proposed.length > 1 ? "s" : ""}: ${list(proposed.map(label))}.`
-          : "Proposed no option beyond your request."],
+          : declined ? `Proposed no size above 0% for ${request?.ticker ?? "this asset"}.` : "Proposed no option beyond your request."],
     exhibits: [],
     note: request ? `Your request: ${request.ticker} at ${pct(request.weight)}.` : undefined,
   });
