@@ -7,6 +7,8 @@ installed, recording still works.
 """
 from __future__ import annotations
 
+from typing import Mapping
+
 import json
 import re
 import threading
@@ -97,10 +99,14 @@ class TraceRecorder:
             pass  # observability must never break the pipeline
 
     def agent_call(self, agent: str, input_summary: str, output_summary: str,
-                   instruction_hash: str | None = None) -> TraceEvent:
+                   instruction_hash: str | None = None,
+                   usage: Mapping[str, int] | None = None) -> TraceEvent:
         summary = {"input": self._s(input_summary), "output": self._s(output_summary)}
         if instruction_hash is not None:
             summary["instruction_hash"] = str(instruction_hash)  # full hash, never truncated (Req. 9.8)
+        if usage:
+            # Bedrock token counts summed over the agent's Converse calls (never truncated).
+            summary["usage"] = {k: int(v) for k, v in usage.items()}
         return self._record("agent_call", agent, summary)
 
     def tool_call(self, name: str, args: Mapping | Any, exhibit_number: int | None) -> TraceEvent:

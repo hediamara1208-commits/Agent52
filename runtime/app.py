@@ -75,7 +75,27 @@ def _trace_counts(trace: list[dict[str, Any]]) -> dict[str, int]:
         "GuardrailInterventions": sum(1 for e in trace if e.get("kind") == "guardrail_block"),
         "BedrockThrottles": sum(1 for t in text if "ThrottlingException" in t),
         "CacheFallbacks": sum(1 for e in trace if e.get("kind") == "cache_fallback"),
+        **_token_counts(trace),
     }
+
+
+_TOKEN_METRICS = {"inputTokens": "TokensInput", "outputTokens": "TokensOutput",
+                  "cacheReadInputTokens": "TokensCacheRead", "cacheWriteInputTokens": "TokensCacheWrite",
+                  "totalTokens": "TokensTotal"}
+
+
+def _token_counts(trace: list[dict[str, Any]]) -> dict[str, int]:
+    """Bedrock tokens per session and per agent, from the agent_call usage summaries."""
+    out = {name: 0 for name in _TOKEN_METRICS.values()}
+    for e in trace:
+        usage = (e.get("summary") or {}).get("usage") if isinstance(e.get("summary"), dict) else None
+        if e.get("kind") != "agent_call" or not isinstance(usage, dict):
+            continue
+        for key, name in _TOKEN_METRICS.items():
+            out[name] += int(usage.get(key, 0) or 0)
+        agent = str(e.get("name", "agent")).capitalize()
+        out[f"TokensTotal{agent}"] = out.get(f"TokensTotal{agent}", 0) + int(usage.get("totalTokens", 0) or 0)
+    return out
 
 
 @dataclass

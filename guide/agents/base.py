@@ -68,6 +68,11 @@ class StageFailure(RuntimeError):
         super().__init__(f"{stage}: {reason}")
 
 
+_CACHE_POINT: dict[str, Any] = {"cachePoint": {"type": "default"}}
+# Model ids whose Converse rejected cache points; they are then sent without them.
+_CACHE_SUPPORTED: dict[str, bool] = {}
+
+
 @dataclass(frozen=True)
 class AgentOutput:
     """Sanitized result of a completed agent run.
@@ -176,9 +181,11 @@ class BedrockAgent:
             raise ValueError("system_prompt must be text")
         conversation = [deepcopy(dict(message)) for message in messages]
         tool_config = self._tool_config(tools)
+        usage: dict[str, int] = {}
 
         for tool_round in range(self.max_tool_rounds + 1):
             response = self._converse(system_prompt, conversation, tool_config)
+            self._add_usage(usage, response)
             output_message = self._sanitized_message(response)
             stop_reason = str(response.get("stopReason", ""))
 
@@ -186,7 +193,7 @@ class BedrockAgent:
                 rule = self._guardrail_reason(response) or self._challenge_rule(conversation, output_message)
                 trace.guardrail_block(self.stage, rule)
                 trace.agent_call(self.agent, "Bedrock Converse invocation", "guardrail intervened",
-                                 instruction_hash=instruction_hash)
+                                 instruction_hash=instruction_hash, usage=usage)
                 return AgentOutput(
                     message={"role": "assistant", "content": [{"text": GUIDANCE_ONLY_MESSAGE}]},
                     content=({"text": GUIDANCE_ONLY_MESSAGE},),
@@ -203,7 +210,7 @@ class BedrockAgent:
                     stop_reason=stop_reason,
                 )
                 trace.agent_call(self.agent, "Bedrock Converse invocation", output.text or stop_reason,
-                                 instruction_hash=instruction_hash)
+                                 instruction_hash=instruction_hash, usage=usage)
                 return output
 
             if tool_round == self.max_tool_rounds:
@@ -225,10 +232,12 @@ class BedrockAgent:
         messages: list[dict[str, Any]],
         tool_config: Mapping[str, Any] | None,
     ) -> Mapping[str, Any]:
+        cache = _CACHE_SUPPORTED.get(self.config.model_id, True)
         request: dict[str, Any] = {
             "modelId": self.config.model_id,
-            "system": [{"text": system_prompt}],
-            "messages": self._with_guard_content(messages),
+            "system": [{"text": system_prompt}] + ([_CACHE_POINT] if cache else []),
+            "messages": self._with_cache_point(self._with_guard_content(messages)) if cache else
+                        self._with_guard_content(messages),
             "inferenceConfig": {"maxTokens": self.max_tokens},
             "guardrailConfig": {
                 "guardrailIdentifier": self.config.guardrail_id,
@@ -238,6 +247,8 @@ class BedrockAgent:
         }
         if tool_config is not None:
             request["toolConfig"] = dict(tool_config)
+            if cache and request["toolConfig"].get("tools"):
+                request["toolConfig"]["tools"] = list(request["toolConfig"]["tools"]) + [_CACHE_POINT]
 
         for retry in range(self.max_throttling_retries + 1):
             try:
@@ -246,6 +257,11 @@ class BedrockAgent:
                     raise StageFailure(self.stage, "Bedrock Converse returned an invalid response")
                 return response
             except Exception as error:
+                if cache and self._is_cache_rejection(error):
+                    # Prompt caching is an optimisation: if the model or account rejects it,
+                    # resend the same request without cache points and stop using them.
+                    _CACHE_SUPPORTED[self.config.model_id] = False
+                    return self._converse(system_prompt, messages, tool_config)
                 if not self._is_throttling(error):
                     if isinstance(error, StageFailure):
                         raise
@@ -258,6 +274,36 @@ class BedrockAgent:
                 self._sleep(delay)
 
         raise StageFailure(self.stage)  # pragma: no cover
+
+    @staticmethod
+    def _is_cache_rejection(error: Exception) -> bool:
+        response = getattr(error, "response", None)
+        if not isinstance(response, Mapping):
+            return False
+        err = response.get("Error", {})
+        return err.get("Code") == "ValidationException" and "cach" in str(err.get("Message", "")).lower()
+
+    @staticmethod
+    def _with_cache_point(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Cache the conversation so far: one cache point at the end of the last message."""
+        if not messages:
+            return messages
+        out = list(messages)
+        last = dict(out[-1])
+        last["content"] = list(last.get("content", [])) + [_CACHE_POINT]
+        out[-1] = last
+        return out
+
+    @staticmethod
+    def _add_usage(total: dict[str, int], response: Mapping[str, Any]) -> None:
+        usage = response.get("usage")
+        if not isinstance(usage, Mapping):
+            return
+        for key in ("inputTokens", "outputTokens", "cacheReadInputTokens", "cacheWriteInputTokens", "totalTokens"):
+            value = usage.get(key)
+            if isinstance(value, int):
+                total[key] = total.get(key, 0) + value
+        total["calls"] = total.get("calls", 0) + 1
 
     @staticmethod
     def _is_throttling(error: Exception) -> bool:
