@@ -1,8 +1,91 @@
-# Agentic Investment Guide
+# Decision Tribunal: an agentic suitability check for investors
 
-Simulation only. This project gives no investment advice and makes no predictions. It only guides: it never places an order, moves money, or holds credentials.
+**Simulation only. Not financial advice, no predictions.** The app never places an order, moves money or holds credentials.
 
-The Python core (`guide/`) runs a three-agent tribunal (Advocate, Investigator, Judge) on Amazon Bedrock. Code computes every number and decides every Hard_Rule. The React front end (`frontend/`) talks to an API Gateway + Lambda Session_API, which calls the core hosted on Amazon Bedrock AgentCore Runtime. The design is in `.kiro/specs/agentic-investment-guide/`.
+**Live demo:** https://main.d3nprpi8xxns73.amplifyapp.com (Cognito sign-in; jury credentials are sent separately). PolyFinances Datathon 2026, AlphaForge AI case (National Bank).
+
+## The problem
+
+An investor asks "Should I put 30% of my portfolio in Tesla?". A chatbot either says yes or refuses everything. A good advisor checks whether the request fits *this* person (horizon, risk limits, exclusions, current holdings), explains why with evidence, and says what would change the answer. The Decision Tribunal does that: AI agents argue the case, and code enforces the investor's own limits.
+
+## How it works
+
+1. **Investor_Contract.** The profile (persona or custom) becomes hard limits (per-holding cap, volatility, drawdown, speculative and crypto caps, sector and asset-class caps, ESG exclusion) plus soft preferences. The investor can enter their current holdings.
+2. **Code checks the request** against every limit and computes the largest size that fits (`guide/tribunal/rules.py`).
+3. **Advocate** (agent) states the investor's goal and proposes sizes that serve it. The code re-checks every option.
+4. **Investigator** (agent) names the risks that matter for this person, citing Exhibits, including recent news found with AgentCore Web Search.
+5. **Judge** (agent) weighs the preferences and chooses an option or rejects. It can never pick a size that breaks a limit; if it fails, the code rules and the screen says so.
+6. **Clerk** (code) writes the ruling in plain language. A citation validator removes any number not backed by an Exhibit. A guidance-only check removes buy/sell orders and predictions. Survivorship-bias and data limits are added to every ruling.
+7. **Appeal.** The investor changes one input (horizon, a limit) and the court rules again; the screen shows what changed and why.
+
+Every number is an **Exhibit**: computed by code from a pinned dataset snapshot, with its file, column, period and processing notes, or a web article with its source and link. The UI shows a live progress card while the court sits (about a minute), then the verdict, "How the court decided" (who contributed what), the four answers, and news cards.
+
+## Architecture on AWS
+
+```mermaid
+flowchart LR
+  U[Investor browser] --> AMP[Amplify Hosting<br/>React app]
+  U --> COG[Cognito<br/>sign-in]
+  AMP --> APIGW[API Gateway<br/>Cognito authorizer]
+  APIGW --> L[Lambda<br/>Session_API]
+  L --> DDB[(DynamoDB<br/>sessions, precedents)]
+  L --> RT[AgentCore Runtime<br/>tribunal container]
+  RT --> BR[Bedrock<br/>Claude Sonnet 5.5]
+  BR --- GR[Bedrock Guardrails<br/>prompt-attack filter]
+  RT --> WS[AgentCore Web Search<br/>recent news]
+  RT --> MEM[AgentCore Memory<br/>contracts, summaries]
+  RT --> S3[(S3 dataset snapshot<br/>CSV + Parquet)]
+  S3 --- GL[Glue catalog + Athena<br/>validation]
+  RT --> DDB
+  RT --> CW[CloudWatch Logs<br/>runtime logs, metrics]
+```
+
+| Service | Why it is here |
+| --- | --- |
+| Amplify Hosting | Serves the React app over HTTPS with no server to run. |
+| Cognito | Sign-in for the jury and users; tokens authorize every API call. |
+| API Gateway + Lambda (Session_API) | Validates the profile and request (incl. custom holdings), starts a session, serves its live state for polling. |
+| Bedrock AgentCore Runtime | Hosts the tribunal container (agents + code checks); a session runs about a minute, longer than an API call should. |
+| Amazon Bedrock (Claude Sonnet 5.5) | The Advocate, Investigator and Judge. |
+| Bedrock Guardrails | Prompt-attack filter on user text and on every web snippet before an agent sees it. |
+| AgentCore Web Search | Recent news (last 30 days) from press, wires and regulators, shown as cited context, never used in a limit. |
+| AgentCore Memory | Remembers each saved profile's contract and past rulings. |
+| DynamoDB | Session state (the SessionView the UI polls) and precedents. |
+| S3 + Glue + Athena | Immutable dataset snapshots (SHA-256 manifest); Glue catalogs them and Athena cross-checks row counts and duplicates at ingestion. |
+| CloudWatch | Runtime and Lambda logs, custom metrics, Bedrock invocation logging. |
+| IAM (CDK) | One least-privilege role per component; no keys anywhere (see below). |
+
+All of it is CDK v2 in `infra/`; changes made by hand during the event are listed in [docs/deployment_log.md](docs/deployment_log.md).
+
+## Results
+
+Benchmark on the deployed system, 6 cases x 5 runs, against a single agent with the same model, Guardrail and profile ([docs/benchmark.md](docs/benchmark.md)):
+
+| Measure | Tribunal | Single agent |
+| --- | --- | --- |
+| Expected verdict (computed by code) | **30/30** | 5/30 |
+| Offers a lawful smaller size instead of only refusing | **20/20** | 0/20 |
+| Numbers stated without evidence | **0** | several per answer, none traceable |
+| Median latency | 73 s | about 5 s |
+
+Five runs per case is indicative, not a statistical claim. Example: Robert (59, low-to-moderate risk, 3 to 5 years) asks for 30% Tesla. His request breaks 4 of his 7 limits; the court accepts a much smaller size with conditions and cites the recent Tesla news as context only. Mateo (fossil-fuel exclusion) asks for 10% Exxon: rejected.
+
+## Data and limits
+
+Starter dataset (Yahoo Finance prices, Bank of Canada FX and rates, FRED), 2021-11-12 to 2026-11-12, all figures in CAD, plus a hand-authored ESG exclusion list and live web news. Origin, processing, terms and limits for each: [docs/data_sources.md](docs/data_sources.md). Main limits: survivorship bias (31 assets chosen in 2026), a five-year window, about a minute per ruling, and indicative benchmark sizes.
+
+## Documentation
+
+| Document | Contents |
+| --- | --- |
+| [docs/data_sources.md](docs/data_sources.md) | Every data source: origin, retrieval, processing, limits, terms |
+| [docs/benchmark.md](docs/benchmark.md) | Tribunal vs single agent: method, results, limits |
+| [docs/deployment_log.md](docs/deployment_log.md) | What is live, and changes made by hand during the event |
+| `.kiro/specs/agentic-investment-guide/` | Requirements, design and task list |
+
+# Run it yourself
+
+The rest of this page is setup: credentials, local runs, tests, deployment and the jury login.
 
 ## How AWS credentials work (read this first)
 
