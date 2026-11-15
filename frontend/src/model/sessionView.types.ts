@@ -62,6 +62,7 @@ export interface Ruling {
   what_would_change: Statement[];
   disclaimers: string[];
   questions?: Answer[];
+  recent_context?: NewsItem[];
 }
 export interface Statement {
   text: string;
@@ -71,6 +72,18 @@ export interface Answer {
   id: "which_data" | "why_this_choice" | "which_limits" | "what_would_change";
   heading: "Which data?" | "Why this choice?" | "Which limits?" | "What would change the answer?";
   statements: Statement[];
+}
+/**
+ * A Web Exhibit as shown to people: recent news, Context only (AgentCore Web Search).
+ */
+export interface NewsItem {
+  exhibit: number;
+  title: string;
+  source?: string;
+  url: string;
+  published?: string | null;
+  snippet?: string;
+  confidence?: string;
 }
 export interface RuleResult {
   rule: string;

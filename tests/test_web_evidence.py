@@ -101,3 +101,21 @@ def test_forecast_and_valuation_headlines_are_not_evidence():
     for t in ("Incoming Texas AG vows rigorous scrutiny of potential SpaceX-Tesla merger",
               "Tesla (TSLA) Breaks Ground On $10 Billion Texas Solar Factory As EU Approvals Advance"):
         assert is_informative(t), t
+
+
+def test_recent_context_fits_the_session_view_schema():
+    """The UI's news cards read ruling.recent_context; it must validate as the SessionView contract."""
+    import pytest
+    from guide.tribunal.session_view import SessionViewError, validate_document
+
+    reg = ExhibitRegistry()
+    Newsroom(FakeSearch(), now=lambda: NOW).collect(reg, "TSLA", "Tesla", ROBERT)
+    ruling = {"verdict": "reject", "facts": [], "what_would_change": [], "disclaimers": [],
+              "recent_context": web_context(reg)}
+    doc = {"session_id": "s1", "status": "completed", "contract": None, "stage": "clerk", "stages_done": [],
+           "active_agent": None, "exhibits": [], "verdict": None, "ruling": ruling, "rule_results": [],
+           "sensitivity": [], "trace": [], "summaries": {}, "snapshot": None, "data_notices": [], "error": None}
+    validate_document(doc)
+    ruling["recent_context"] = [{"title": "no link"}]
+    with pytest.raises(SessionViewError):
+        validate_document(doc)

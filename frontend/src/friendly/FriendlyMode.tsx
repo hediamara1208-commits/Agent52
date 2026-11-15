@@ -1,6 +1,7 @@
 import type { Focus, SessionView } from "../model/sessionView";
 import { CourtroomScene } from "./CourtroomScene";
 import { FourAnswersCard, answersOf } from "./FourAnswersCard";
+import { NewsCards, newsOf } from "./NewsCards";
 import { VerdictPanel } from "./VerdictPanel";
 
 const AGENT_TITLE: Record<string, string> = { advocate: "Advocate", investigator: "Investigator", judge: "Judge" };
@@ -28,6 +29,7 @@ export function FriendlyMode({
         answers={answersOf(view)}
         onOpen={(number) => onSeeDetails({ kind: "exhibit", number })}
       />
+      <NewsCards items={newsOf(view)} onOpen={(number) => onSeeDetails({ kind: "exhibit", number })} />
     </div>
   );
 }
