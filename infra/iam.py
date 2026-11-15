@@ -104,7 +104,8 @@ def application_role_statements(t: IamTargets) -> list[Statement]:
         _stmt("SnapshotRead", ["s3:GetObject", "s3:GetObjectVersion"], _snapshot_keys(t)),
         _stmt(
             "SessionStoreItems",
-            ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem"],
+            # Query: the Judge reads Precedents from the shared partition (Req. 31).
+            ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:Query"],
             [f"arn:aws:dynamodb:{t.region}:{t.account}:table/{t.session_table}"],
         ),
     ]
@@ -126,6 +127,13 @@ def application_role_statements(t: IamTargets) -> list[Statement]:
             "LogsWrite",
             ["logs:CreateLogStream", "logs:PutLogEvents"],
             [f"arn:aws:logs:{t.region}:{t.account}:log-group:/aws/bedrock-agentcore/runtimes/*:log-stream:*"],
+        ),
+        # AgentCore writes to /aws/bedrock-agentcore/runtimes/<runtime-id>-<endpoint>, which the
+        # runtime creates itself; without these actions container start-up errors are never logged.
+        _stmt(
+            "LogsGroup",
+            ["logs:CreateLogGroup", "logs:DescribeLogStreams"],
+            [f"arn:aws:logs:{t.region}:{t.account}:log-group:/aws/bedrock-agentcore/runtimes/*"],
         ),
         _stmt("XRayWrite", ["xray:PutTraceSegments", "xray:PutTelemetryRecords"], ["*"]),
         _stmt(
