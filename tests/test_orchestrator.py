@@ -370,3 +370,24 @@ def test_sink_failure_does_not_change_ruling(source):
     assert view.status == "completed"
     assert view.ruling["verdict"] == baseline.ruling["verdict"]
     assert any(e.get("check") == "sink_publish" or "sink_publish" in str(e) for e in view.trace)
+
+
+def test_agents_receive_exhibit_values_not_just_numbers(source):
+    seen = {}
+
+    def advocate(**kw):
+        seen["advocate"] = kw
+        raise StageFailure("advocate", "stop after capture")
+
+    def investigator(**kw):
+        seen["investigator"] = kw["options"]
+        raise StageFailure("investigator", "stop after capture")
+
+    view, _ = _run(Fakes(advocate=advocate, investigator=investigator), source=source)
+    panel = seen["advocate"]["risk_panel"]
+    assert any(isinstance(v, dict) and {"exhibit", "value"} <= set(v) for v in panel.values())
+    assert seen["advocate"]["hard_rule_results"]
+    assert any(isinstance(v, dict) and "value" in v
+               for o in seen["investigator"] for v in o["risk_panel"].values())
+    # The published ruling keeps its original shape (Exhibit numbers only) for the UI.
+    assert all(not isinstance(v, dict) for o in view.ruling["options"] for v in o["risk_panel"].values())

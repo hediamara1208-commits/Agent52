@@ -35,7 +35,7 @@ from guide.data import quality
 from guide.data.loader import DataSource, SnapshotStore
 from guide.session.store import SessionSink
 from guide.toolkit import metrics
-from guide.toolkit.exhibits import ExhibitRegistry
+from guide.toolkit.exhibits import ExhibitRegistry, thaw
 from guide.toolkit.risk_panel import RiskPanel, risk_panel
 from guide.toolkit.tools import ToolRunner
 from guide.trace.recorder import TraceRecorder
@@ -120,6 +120,27 @@ def _panel_summary(panel: RiskPanel | metrics.ToolError) -> dict[str, Any]:
     if isinstance(panel, metrics.ToolError):
         return {"error": panel.message}
     return {k: (v.number if hasattr(v, "number") else "unavailable") for k, v in panel.items.items()}
+
+
+def _panel_evidence(panel: RiskPanel | metrics.ToolError) -> dict[str, Any]:
+    """What an agent needs to argue from the data: each metric's Exhibit number AND value."""
+    if isinstance(panel, metrics.ToolError):
+        return {"error": panel.message}
+    out: dict[str, Any] = {}
+    for k, v in panel.items.items():
+        if hasattr(v, "number"):
+            out[k] = {"exhibit": v.number, "value": thaw(v.value),
+                      "period": [str(v.period_start), str(v.period_end)]}
+        else:
+            out[k] = "unavailable"
+    return out
+
+
+def _with_evidence(options: list[dict[str, Any]],
+                   panels: Mapping[str, RiskPanel | metrics.ToolError]) -> list[dict[str, Any]]:
+    """Copies of the Options for the agents, with Exhibit values beside the Exhibit numbers."""
+    return [dict(o, risk_panel=_panel_evidence(panels[o["option_id"]]))
+            if o["option_id"] in panels else o for o in options]
 
 
 def _rule_dicts(results: list[RuleResult]) -> list[dict[str, Any]]:
@@ -246,8 +267,8 @@ def run_session(
         agents_run.append("advocate")
         out = _call_with_timeout(lambda: runners.advocate(
             request_text=request.text, request_ticker=request.ticker, request_weight=request.weight,
-            contract=contract, risk_panel=_panel_summary(request_panel), tools=tools, trace=trace,
-            universe=universe), timeout, "advocate")
+            contract=contract, risk_panel=_panel_evidence(request_panel), tools=tools, trace=trace,
+            hard_rule_results=_rule_dicts(results), universe=universe), timeout, "advocate")
         bad = _drop_failing("advocate", [out.goal] + [o.rationale for o in out.options], trace)
         advocate_goal = SAFE_GOAL if out.goal in bad else out.goal
         advocate_options = [(o.asset, o.weight, o.rationale, "advocate")
@@ -271,10 +292,12 @@ def run_session(
                                      summary_key="advocate", exhibits=registry.all()))
 
     # ---- stage: Risk_Panel and Hard_Rules of every Option (code) ----
+    panels: dict[str, RiskPanel | metrics.ToolError] = {REQUEST_OPTION_ID: request_panel}
     for index, (ticker, weight, rationale, origin) in enumerate(advocate_options, start=1):
         option_id = MAX_WEIGHT_OPTION_ID if origin == "code" else f"option_{index}"
         try:
             panel = option_panel(option_id, ticker, weight)
+            panels[option_id] = panel
             opt_results = evaluate_rules(contract, rule_request(ticker, weight), registry,
                                          source=source, trace=trace)
         except Exception as error:
@@ -294,7 +317,8 @@ def run_session(
     try:
         agents_run.append("investigator")
         res = _call_with_timeout(lambda: runners.investigator(
-            options=options, contract=contract, registry=registry, tools=tools, trace=trace),
+            options=_with_evidence(options, panels), contract=contract, registry=registry,
+            tools=tools, trace=trace),
             timeout, "investigator")
         if res.blocked:
             raise StageFailure("investigator", "guardrail intervened")
