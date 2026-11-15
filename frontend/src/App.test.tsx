@@ -31,7 +31,7 @@ const fakeApi = (over: Partial<SessionApi> = {}): SessionApi => ({
 describe("sign-in gate", () => {
   it("shows no workspace before sign-in", async () => {
     const auth: AuthService = {
-      currentUser: async () => null, signIn: vi.fn(), signOut: vi.fn(), accessToken: async () => null,
+      currentUser: async () => null, signIn: vi.fn(), signOut: vi.fn(), apiToken: async () => null,
     };
     const makeApi = vi.fn(() => fakeApi());
     render(<App auth={auth} makeApi={makeApi} />);
@@ -82,7 +82,7 @@ describe("api client", () => {
     const f = vi.fn(async () => new Response(JSON.stringify({ personas: [] }), { status: 200 }));
     const c = createApiClient({ apiUrl: "https://api.example/" }, async () => "tok", f as unknown as typeof fetch);
     await c.getPersonas();
-    expect(f).toHaveBeenCalledWith("https://api.example/personas", expect.objectContaining({ headers: { Authorization: "Bearer tok" } }));
+    expect(f).toHaveBeenCalledWith("https://api.example/personas", expect.objectContaining({ headers: { Authorization: "tok" } }));
     const none = createApiClient({ apiUrl: "x" }, async () => null, f as unknown as typeof fetch);
     await expect(none.getPersonas()).rejects.toThrow("Not signed in");
   });
