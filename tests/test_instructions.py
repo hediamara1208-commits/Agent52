@@ -78,6 +78,6 @@ def test_hash_reaches_converse_system_block_and_trace(tmp_path):
     cfg = Config(s3_bucket="b", model_id="m", guardrail_id="g", guardrail_version="1")
     trace = TraceRecorder(emit_spans=False)
     BedrockAgent("judge", cfg, client=client).run(sp, [], None, trace)
-    assert client.kwargs["system"] == [{"text": sp.text}]
+    assert client.kwargs["system"] == [{"text": sp.text}, {"cachePoint": {"type": "default"}}]
     (event,) = trace.events
     assert event.summary["instruction_hash"] == sp.instruction_hash

@@ -172,7 +172,67 @@ def test_guard_content_tags_only_the_user_text_and_block_reason_is_named():
     out = agent.run("sys", [{"role": "user", "content": [{"text": "{\"a\": 1}"}]}], None, trace)
     assert out.blocked
     blocks = seen["messages"][0]["content"]
+    blocks = [b for b in blocks if "cachePoint" not in b]
     assert blocks[-1] == {"guardContent": {"text": {"text": "30% in TSLA"}}}
     assert seen["guardrailConfig"]["trace"] == "enabled"
     ev = [e for e in trace.to_list() if e["kind"] == "guardrail_block"][0]
     assert ev["summary"]["rule"] == "output:topic:ReturnPredictions"
+
+
+def test_usage_is_summed_over_tool_rounds_and_recorded_on_the_agent_call():
+    from guide.agents import base
+
+    class Client:
+        def __init__(self):
+            self.calls = []
+
+        def converse(self, **kw):
+            self.calls.append(kw)
+            if len(self.calls) == 1:
+                return {"stopReason": "tool_use",
+                        "output": {"message": {"role": "assistant", "content": [
+                            {"toolUse": {"toolUseId": "t1", "name": "x", "input": {}}}]}},
+                        "usage": {"inputTokens": 1000, "outputTokens": 50, "cacheWriteInputTokens": 900, "totalTokens": 1950}}
+            return {"stopReason": "end_turn",
+                    "output": {"message": {"role": "assistant", "content": [{"text": "done"}]}},
+                    "usage": {"inputTokens": 120, "outputTokens": 40, "cacheReadInputTokens": 900, "totalTokens": 1060}}
+
+    base._CACHE_SUPPORTED.clear()
+    client = Client()
+    cfg = Config(s3_bucket="b", model_id="m-usage", guardrail_id="g", guardrail_version="1")
+    trace = TraceRecorder(emit_spans=False)
+    BedrockAgent("advocate", cfg, client=client, tool_runner=lambda use: {"ok": 1}).run(
+        "system", [{"role": "user", "content": [{"text": "hi"}]}], {"tools": [{"toolSpec": {"name": "x"}}]}, trace)
+    first = client.calls[0]
+    assert first["system"][-1] == {"cachePoint": {"type": "default"}}
+    assert first["toolConfig"]["tools"][-1] == {"cachePoint": {"type": "default"}}
+    assert first["messages"][-1]["content"][-1] == {"cachePoint": {"type": "default"}}
+    ev = [e for e in trace.to_list() if e["kind"] == "agent_call"][-1]
+    assert ev["summary"]["usage"] == {"inputTokens": 1120, "outputTokens": 90, "cacheWriteInputTokens": 900,
+                                      "cacheReadInputTokens": 900, "totalTokens": 3010, "calls": 2}
+
+
+def test_a_cache_rejection_is_retried_without_cache_points():
+    from botocore.exceptions import ClientError
+    from guide.agents import base
+
+    class Client:
+        def __init__(self):
+            self.calls = []
+
+        def converse(self, **kw):
+            self.calls.append(kw)
+            if any("cachePoint" in b for b in kw["system"]):
+                raise ClientError({"Error": {"Code": "ValidationException",
+                                             "Message": "The model does not support prompt caching"}}, "Converse")
+            return {"stopReason": "end_turn",
+                    "output": {"message": {"role": "assistant", "content": [{"text": "ok"}]}}}
+
+    base._CACHE_SUPPORTED.clear()
+    client = Client()
+    cfg = Config(s3_bucket="b", model_id="m-nocache", guardrail_id="g", guardrail_version="1")
+    out = BedrockAgent("judge", cfg, client=client).run("s", [{"role": "user", "content": [{"text": "q"}]}], None,
+                                                        TraceRecorder(emit_spans=False))
+    assert out.text == "ok"
+    assert len(client.calls) == 2 and client.calls[1]["system"] == [{"text": "s"}]
+    assert base._CACHE_SUPPORTED["m-nocache"] is False

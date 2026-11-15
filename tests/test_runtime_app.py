@@ -67,3 +67,16 @@ def test_unparsable_request_ends_as_failed_view(source):
     deps, _ = _deps(source)
     rt.run_payload(_payload(request_text="hello"), deps)
     assert deps.store.get_view("user-1", "s-rt1").status == "failed"
+
+
+def test_token_counts_sum_agent_call_usage_per_session_and_agent():
+    from runtime.app import _trace_counts
+    trace = [
+        {"kind": "agent_call", "name": "advocate", "summary": {"usage": {"inputTokens": 100, "outputTokens": 10, "cacheReadInputTokens": 50, "totalTokens": 160}}},
+        {"kind": "agent_call", "name": "judge", "summary": {"usage": {"inputTokens": 200, "outputTokens": 20, "totalTokens": 220}}},
+        {"kind": "agent_call", "name": "investigator", "summary": {"output": "no usage"}},
+        {"kind": "tool_call", "name": "x", "summary": {}},
+    ]
+    c = _trace_counts(trace)
+    assert c["TokensInput"] == 300 and c["TokensOutput"] == 30 and c["TokensCacheRead"] == 50
+    assert c["TokensTotal"] == 380 and c["TokensTotalAdvocate"] == 160 and c["TokensTotalJudge"] == 220
