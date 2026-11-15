@@ -89,3 +89,15 @@ def test_agent_tool_is_bounded_and_adds_exhibits():
     third = runner.run({"name": "web_search", "input": {"query": "Tesla again"}})
     assert third["status"] == "error"
     assert runner.run({"name": "annualized_return", "input": {}})["content"][0]["json"]["base"]
+
+
+def test_forecast_and_valuation_headlines_are_not_evidence():
+    from guide.toolkit.web_evidence import is_informative
+    for t in ("Here's What Needs to Happen for Tesla's Bull Case to Materialize and Push Past $500 Next Year",
+              "Is ExxonMobil Holdings (XOM) Undervalued After Its $12.5b Guyana Longtail Approval?",
+              "Glj Research Reaffirms Sell Rating for Tesla shares today",
+              "After a 3.9% Raise, Here's How Many Shares of ExxonMobil You'd Now Need for $1,000 a Month"):
+        assert not is_informative(t), t
+    for t in ("Incoming Texas AG vows rigorous scrutiny of potential SpaceX-Tesla merger",
+              "Tesla (TSLA) Breaks Ground On $10 Billion Texas Solar Factory As EU Approvals Advance"):
+        assert is_informative(t), t

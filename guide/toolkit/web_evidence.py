@@ -44,9 +44,19 @@ TRUSTED_DOMAINS: tuple[str, ...] = NEWS_DOMAINS + ISSUER_DOMAINS
 _GENERIC_TITLE = re.compile(r"investor relations|^home\b|stock (?:price|quote)|\(\w{1,5}\)\s*$", re.I)
 
 
+# Headlines that are opinions about future prices (forecasts, targets, buy/sell calls, valuation
+# pitches). The brief forbids predicting returns, so they never become evidence.
+_FORECAST_TITLE = re.compile(
+    r"price target|\btarget\b.*\$|\$\d[\d,.]*\s*(?:next year|by 20\d\d)|push past|could (?:soar|surge|double|"
+    r"triple|crash|plunge)|\bto (?:soar|surge|double|crash)\b|undervalued|overvalued|\b(?:buy|sell) (?:rating|now)\b|"
+    r"reaffirms .*(?:buy|sell|hold)|upgrade[sd]?\b|downgrade[sd]?\b|should you buy|is it time to buy|"
+    r"stock to buy|best stocks?|millionaire|you'?d now need|shares of .* you'?d|bull case|bear case|forecast|prediction",
+    re.I)
+
+
 def is_informative(title: str) -> bool:
-    """Drop landing pages (e.g. 'Tesla Investor Relations', 'ExxonMobil Holdings Corporation (XOM)')."""
-    return len(title.split()) >= 5 and not _GENERIC_TITLE.search(title)
+    """Drop landing pages (e.g. 'Tesla Investor Relations') and price forecasts or buy/sell calls."""
+    return len(title.split()) >= 5 and not _GENERIC_TITLE.search(title) and not _FORECAST_TITLE.search(title)
 
 
 ESG_KEYWORDS = "controversy lawsuit environmental spill fine"
