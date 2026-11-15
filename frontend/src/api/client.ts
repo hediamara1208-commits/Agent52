@@ -47,6 +47,8 @@ export interface SessionRequest {
   profile_id?: string | null;
   values: ContractValues;
   request_text: string;
+  /** The investor's current holdings, {ticker: weight}; replaces the persona's Base_Portfolio. */
+  base_portfolio?: Record<string, number> | null;
 }
 
 export class ApiError extends Error {
@@ -106,6 +108,7 @@ export function createApiClient(
         base_persona_id: r.persona_id,
         values: r.values,
         ...(r.profile_id ? { profile_id: r.profile_id } : {}),
+        ...(r.base_portfolio ? { base_portfolio: r.base_portfolio } : {}),
       },
       request_text: r.request_text,
     }),

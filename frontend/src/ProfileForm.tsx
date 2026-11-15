@@ -53,3 +53,38 @@ export function ProfileForm({ values, onChange }: { values: ContractValues; onCh
     </fieldset>
   );
 }
+
+export type Holdings = { ok: true; value: Record<string, number> | null } | { ok: false; error: string };
+
+/** "XIU.TO 40, RY.TO 15, XBB.TO 45" (or "XIU.TO: 0.4; ...") -> {ticker: weight in percent}.
+ * Empty text means "use the persona's portfolio". The server checks tickers against the universe. */
+export function parseHoldings(text: string): Holdings {
+  const parts = text.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+  if (parts.length === 0) return { ok: true, value: null };
+  const out: Record<string, number> = {};
+  for (const part of parts) {
+    const m = part.match(/^([A-Za-z][A-Za-z0-9.\-]*)\s*[:=]?\s*(\d+(?:\.\d+)?)\s*%?$/);
+    if (!m) return { ok: false, error: `Could not read "${part}". Write a ticker then a weight, e.g. XIU.TO 40.` };
+    const ticker = m[1].toUpperCase();
+    if (ticker in out) return { ok: false, error: `${ticker} appears twice.` };
+    out[ticker] = Number(m[2]);
+  }
+  const total = Object.values(out).reduce((a, b) => a + b, 0);
+  const pct = total > 1.5 ? total : total * 100;
+  if (Math.abs(pct - 100) > 1) return { ok: false, error: `Weights must add up to 100% (they add up to ${pct.toFixed(1)}%).` };
+  return { ok: true, value: out };
+}
+
+/** Optional current holdings; without them the persona's own Base_Portfolio is used. */
+export function HoldingsField({ text, onChange }: { text: string; onChange: (t: string) => void }) {
+  const parsed = parseHoldings(text);
+  return (
+    <label>Current holdings (optional){" "}
+      <input value={text} placeholder="e.g. XIU.TO 40, RY.TO 15, TD.TO 10, ENB.TO 10, XBB.TO 25"
+        aria-invalid={!parsed.ok} aria-describedby="holdings-help" onChange={(e) => onChange(e.target.value)} />
+      <small id="holdings-help" role={parsed.ok ? undefined : "alert"}>
+        {parsed.ok ? "Leave empty to use the persona's portfolio. Weights in %, adding up to 100." : parsed.error}
+      </small>
+    </label>
+  );
+}
