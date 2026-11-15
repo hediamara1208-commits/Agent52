@@ -51,6 +51,23 @@ def _request(persona="robert", ticker="TSLA", weight=0.30):
                           base_portfolio=p.contract_values["base_portfolio"].value)
 
 
+def lawful_ruling(options, narrative="Options weighed against stated preferences.", **extra):
+    """A Judge ruling like a careful judge: the request if it passes, else the largest passing size."""
+    request = options[0]
+    same = [o for o in options if o["ticker"] == request["ticker"] and not o["rejected"]]
+    if not request["rejected"]:
+        decision = {"verdict": "accept", "option_id": "request", "conditions": [],
+                    "reason": "The request meets every Hard_Rule.", "exhibits": [1]}
+    elif same:
+        best = max(same, key=lambda o: o["weight"])
+        decision = {"verdict": "accept_with_conditions", "option_id": best["option_id"],
+                    "conditions": [], "reason": "A smaller position meets every Hard_Rule.", "exhibits": [1]}
+    else:
+        decision = {"verdict": "reject", "option_id": None, "conditions": [],
+                    "reason": "No option in this asset meets the Hard_Rules.", "exhibits": [1]}
+    return JudgeResult(narrative=narrative, decision=decision, **extra)
+
+
 class Fakes:
     def __init__(self, advocate=None, investigator=None, judge=None):
         self.calls = []
@@ -74,7 +91,7 @@ class Fakes:
 
         def judge(**kw):
             self.calls.append("judge")
-            return self._j(**kw) if self._j else JudgeResult(narrative="Options weighed against stated preferences.")
+            return self._j(**kw) if self._j else lawful_ruling(kw["options"])
 
         return AgentRunners(adv, inv, judge)
 
@@ -97,7 +114,8 @@ def test_fixed_flow_three_calls_and_valid_view(source):
     from guide.tribunal.session_view import session_view_to_dict
     validate_document(session_view_to_dict(view))
     assert view.verdict["verdict"] == "accept_with_conditions"
-    assert view.verdict["max_weight"] == 0.05  # Robert TSLA, decided by code
+    assert view.verdict["max_weight"] == 0.05  # Robert TSLA, ruled by the Judge
+    assert ruling_decided(view) == "judge"
     ruling = view.ruling
     assert ruling["agents"] == {"ran": ["advocate", "investigator", "judge"], "failed": []}
     ids = [o["option_id"] for o in ruling["options"]]
@@ -107,6 +125,69 @@ def test_fixed_flow_three_calls_and_valid_view(source):
     kinds = {e["kind"] for e in view.trace}
     assert "snapshot_pinned" in kinds and "judge_check" in kinds
     assert view.snapshot["snapshot_id"] == source.snapshot.snapshot_id
+
+
+def ruling_decided(view):
+    return view.ruling["decided_by"]
+
+
+def test_no_verdict_is_published_before_the_judge_rules(source):
+    _, sink = _run(Fakes(), source=source)
+    before = [v for v in sink.views if "judge" not in v.stages_done]
+    assert before and all(v.verdict is None for v in before)
+    assert sink.views[-2].stages_done[-1] == "judge" and sink.views[-2].verdict is not None
+
+
+def test_judge_can_reject_even_when_a_smaller_size_passes(source):
+    def judge(**kw):
+        return JudgeResult(narrative="n", decision={
+            "verdict": "reject", "option_id": None, "conditions": [],
+            "reason": "The Investigator's concentration risk outweighs a small position.", "exhibits": [1]})
+
+    view, _ = _run(Fakes(judge=judge), source=source)
+    assert view.verdict["verdict"] == "reject" and view.verdict["max_weight"] is None
+    assert ruling_decided(view) == "judge"
+
+
+def test_unlawful_ruling_is_sent_back_once_then_stands(source):
+    calls = []
+
+    def judge(**kw):
+        calls.append(kw.get("objection"))
+        if len(calls) == 1:  # adopts the 30% request, which breaks the Hard_Rules
+            return JudgeResult(narrative="n", decision={
+                "verdict": "accept", "option_id": "request", "conditions": [], "reason": "r", "exhibits": [1]})
+        return lawful_ruling(kw["options"])
+
+    fakes = Fakes(judge=judge)
+    view, _ = _run(fakes, source=source)
+    assert fakes.calls == ["advocate", "investigator", "judge", "judge"]
+    assert calls[0] is None and "breaks the Hard_Rules" in calls[1][0]
+    assert ruling_decided(view) == "judge" and view.verdict["max_weight"] == 0.05
+    checks = [e for e in view.trace if e["kind"] == "judge_check" and e["name"] == "judge_ruling"]
+    assert [c["summary"]["result"].split(":")[0] for c in checks] == ["failed", "passed"]
+
+
+def test_unlawful_twice_uses_labeled_code_fallback(source):
+    def judge(**kw):
+        return JudgeResult(narrative="n", decision={
+            "verdict": "accept", "option_id": "option_2", "conditions": [], "reason": "r", "exhibits": [1]})
+
+    fakes = Fakes(judge=judge)
+    view, _ = _run(fakes, source=source)
+    assert fakes.calls.count("judge") == 2
+    assert ruling_decided(view) == "code" and view.ruling["narrative"] == orch.TEMPLATE_NARRATIVE
+    assert view.verdict["verdict"] == "accept_with_conditions" and view.verdict["max_weight"] == 0.05
+
+
+def test_code_max_weight_option_is_always_offered(source):
+    def adv(**kw):
+        return AdvocateOutput("Goal.", (AdvocateOption("TSLA", 0.02, "Small.", (1,)),
+                                        AdvocateOption("TSLA", 0.20, "Mid.", (1,))))
+
+    view, _ = _run(Fakes(advocate=adv), source=source)
+    ids = [(o["option_id"], o["weight"]) for o in view.ruling["options"]]
+    assert ("max_weight", 0.05) in ids
 
 
 def test_advocate_failure_offers_request_and_code_max_weight(source):
@@ -136,6 +217,7 @@ def test_judge_failure_uses_code_verdict_and_template_sentence(source):
 
     view, _ = _run(Fakes(judge=boom), source=source)
     assert view.ruling["narrative"] == orch.TEMPLATE_NARRATIVE
+    assert ruling_decided(view) == "code"
     assert view.verdict["verdict"] == "accept_with_conditions"
     assert [f["agent"] for f in view.ruling["agents"]["failed"]] == ["judge"]
 
@@ -161,14 +243,19 @@ def test_agent_timeout_is_a_failed_stage(source):
     assert failed[0]["agent"] == "judge" and "timed out" in failed[0]["reason"]
 
 
-def test_judge_cannot_upgrade_but_can_add_conditions(source):
-    def judge(**kw):
-        return JudgeResult(assessments=[{
-            "option_id": "request", "preference_id": "x", "assessment": "satisfied",
-            "findings": "Fine.", "exhibits": [1]}], narrative="n")
+def test_judge_accepts_a_request_that_passes(source):
+    view, _ = _run(Fakes(), _request("robert", "SPY", 0.02), source=source)
+    assert view.verdict["verdict"] == "accept" and ruling_decided(view) == "judge"
 
-    view, _ = _run(Fakes(judge=judge), _request("robert", "SPY", 0.02), source=source)
-    assert view.verdict["verdict"] == "accept"  # satisfied never changes the code Verdict
+
+def test_ruling_without_decision_falls_back_to_code(source):
+    def judge(**kw):
+        return JudgeResult(narrative="n")
+
+    fakes = Fakes(judge=judge)
+    view, _ = _run(fakes, _request("robert", "SPY", 0.02), source=source)
+    assert fakes.calls.count("judge") == 2 and ruling_decided(view) == "code"
+    assert view.verdict["verdict"] == "accept"
 
 
 def test_mateo_esg_reject_stays_reject(source):
@@ -236,7 +323,9 @@ class _Client:
         self.calls += 1
         text = {1: '{"goal": "g", "options": [{"asset": "TSLA", "weight": 0.05, "rationale": "r", "exhibits": [1]}]}',
                 2: '{"per_option": []}',
-                3: '{"assessments": [], "narrative": "ok"}'}[self.calls]
+                3: '{"assessments": [], "narrative": "ok", "decision": {"verdict": "accept_with_conditions", '
+                   '"option_id": "option_1", "conditions": [], "reason": "A smaller position meets every rule.", '
+                   '"exhibits": [1]}}'}[self.calls]
         return {"stopReason": "end_turn", "output": {"message": {"role": "assistant", "content": [{"text": text}]}}}
 
 
@@ -245,7 +334,7 @@ def test_default_bedrock_runners_make_exactly_three_calls(source):
     sink = Sink()
     view = run_session(_request(), sink=sink, config=_config(), source=source, client=client)
     assert client.calls == 3 and view.status == "completed"
-    assert view.ruling["agents"]["failed"] == []
+    assert view.ruling["agents"]["failed"] == [] and ruling_decided(view) == "judge"
 
 
 def test_precedent_saved_and_passed_to_judge_on_next_session(source):
@@ -257,7 +346,7 @@ def test_precedent_saved_and_passed_to_judge_on_next_session(source):
 
     def judge(**kw):
         seen["precedent"] = kw.get("precedent")
-        return JudgeResult(narrative="Options weighed against stated preferences.")
+        return lawful_ruling(kw["options"])
 
     first = replace(_request(), profile_id="robert", session_id="s1")
     _run(Fakes(), first, source=source, precedents=store)

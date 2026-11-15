@@ -64,4 +64,25 @@ def test_parse_output_rejects_bad_json_schema_and_enum():
         parse_output("nope")
     with pytest.raises(StageFailure):
         parse_output(json.dumps({"assessments": [_item(assessment="great")], "narrative": "n"}))
-    assert parse_output("```json\n" + json.dumps({"assessments": [_item()], "narrative": "n"}) + "\n```")
+    decision = {"verdict": "reject", "option_id": None, "conditions": [], "reason": "r", "exhibits": [1]}
+    with pytest.raises(StageFailure):  # a ruling without a decision is invalid
+        parse_output(json.dumps({"assessments": [_item()], "narrative": "n"}))
+    assert parse_output("```json\n" + json.dumps({"assessments": [_item()], "narrative": "n",
+                                                    "decision": decision}) + "\n```")
+
+
+def test_check_decision_applies_the_law():
+    from guide.agents.judge import check_decision
+    reg = ExhibitRegistry()
+    options = [{"option_id": "request", "ticker": "TSLA", "weight": 0.3, "rejected": True, "failing_rules": ["per_asset_cap"]},
+               {"option_id": "option_1", "ticker": "TSLA", "weight": 0.05, "rejected": False, "failing_rules": []}]
+
+    def d(verdict, option):
+        return {"verdict": verdict, "option_id": option, "conditions": [], "reason": "r", "exhibits": []}
+
+    assert check_decision(d("accept_with_conditions", "option_1"), options, reg, "request") == []
+    assert check_decision(d("reject", None), options, reg, "request") == []
+    assert "breaks the Hard_Rules" in check_decision(d("accept", "request"), options, reg, "request")[0]
+    assert "does not exist" in check_decision(d("accept_with_conditions", "zz"), options, reg, "request")[0]
+    assert "accept means the request" in check_decision(d("accept", "option_1"), options, reg, "request")[0]
+    assert check_decision(None, options, reg, "request") == ["the Judge returned no decision"]
