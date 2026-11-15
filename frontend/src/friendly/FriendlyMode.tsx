@@ -16,7 +16,7 @@ export function FriendlyMode({
   const entries = Object.entries(view.summaries);
   return (
     <div data-testid="friendly-mode">
-      <CourtroomScene activeAgent={view.active_agent} running={view.status === "running"} stage={view.stage} />
+      <CourtroomScene activeAgent={view.active_agent} running={view.status === "running"} stage={view.stage} stagesDone={view.stages_done} />
       <LiveProgress key={view.session_id} view={view} />
       {entries.length > 0 && (
         <section aria-label="Summaries" className="statements">

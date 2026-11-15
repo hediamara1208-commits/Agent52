@@ -25,9 +25,11 @@ function Figure({ color, icon }: { color: string; icon: string }) {
 }
 
 /** Animated tribunal: the active agent glows and speaks (Req. 7.10). Seat test ids are stable. */
-export function CourtroomScene({ activeAgent, running = false, stage }: {
-  activeAgent: SessionView["active_agent"]; running?: boolean; stage?: string;
+export function CourtroomScene({ activeAgent, running = false, stage, stagesDone = [] }: {
+  activeAgent: SessionView["active_agent"]; running?: boolean; stage?: string; stagesDone?: string[];
 }) {
+  // Options are checked by code only between the Advocate's stage and the option_rules stage.
+  const checkingOptions = stagesDone.includes("advocate") && !stagesDone.includes("option_rules");
   // After the Judge, active_agent is null while the Clerk still works: the tribunal has not risen yet.
   const active = activeAgent?.toLowerCase() ?? (running && stage === "judge" ? "clerk" : null);
   return (
@@ -92,7 +94,8 @@ export function CourtroomScene({ activeAgent, running = false, stage }: {
       <p className="court-caption">
         <span className="dot" style={{ color: active ? "#e7b75f" : "#34d399" }} />
         {active ? CAPTION[active] ?? "The tribunal is in session…"
-          : running ? "The code is checking the options against your limits…" : "The tribunal has risen."}
+          : running ? (checkingOptions ? "The code is checking the options against your limits…" : "The tribunal is in session…")
+          : "The tribunal has risen."}
       </p>
     </div>
   );
