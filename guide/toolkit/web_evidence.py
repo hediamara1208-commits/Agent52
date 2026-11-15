@@ -50,7 +50,8 @@ _FORECAST_TITLE = re.compile(
     r"price target|\btarget\b.*\$|\$\d[\d,.]*\s*(?:next year|by 20\d\d)|push past|could (?:soar|surge|double|"
     r"triple|crash|plunge)|\bto (?:soar|surge|double|crash)\b|undervalued|overvalued|\b(?:buy|sell) (?:rating|now)\b|"
     r"reaffirms .*(?:buy|sell|hold)|upgrade[sd]?\b|downgrade[sd]?\b|should you buy|is it time to buy|"
-    r"stock to buy|best stocks?|millionaire|you'?d now need|shares of .* you'?d|bull case|bear case|forecast|prediction",
+    r"stock to buy|best stocks?|millionaire|you'?d now need|shares of .* you'?d|bull case|bear case|forecast|prediction|"
+    r"worth buying|buy the dip|time to (?:buy|sell)|\bbuy or sell\b|\b(?:a )?(?:buy|sell|hold)\?",
     re.I)
 
 
@@ -101,17 +102,27 @@ def clean_snippet(text: str, limit: int = 300) -> str:
     if "|" in text:
         text = brk.join(part for part in text.split("|") if len(part.split()) >= 6)
     text = _SNIPPET_JUNK.sub(brk, text)
+    text = re.sub(r"\s[\u00b7\u2022]\s|\b(?:Senior |Staff )?(?:Reporter|Writer|Editor|Correspondent)\b", brk, text)
+    text = re.sub(r"\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*,?\s+(?:[A-Z][a-z]+\s+)?(?:\d{1,2},?\s+)?(?:\d{4},?\s+)?"
+                  r"(?:at\s+)?\d{1,2}:\d{2}\s*(?:[AP]\.?M\.?)?(?:\s+[A-Z]{2,4}\b)?\.?", brk, text)  # datelines
     text = re.sub(r"[\^]\w+", brk, text)
     text = re.sub(r"(?:\b[A-Z]{2,6}\b\s+){2,}", brk, text)  # runs of tickers: "SPCX TSLA"
     text = _QUOTE_RUN.sub(brk, text)
     segments = [" ".join(seg.split()).strip(" -\u2014:;,") for seg in text.split("\u00b6")]
-    text = " ".join(seg for seg in segments if len(seg.split()) >= 8)
+    segments = [seg for seg in segments if len(seg.split()) >= 6]
     kept: list[str] = []
-    for sentence in re.split(r"(?<=[a-z0-9)%][.!?])\s+(?=[A-Z\"\u201c(])", text):
-        words = sentence.split()
-        letters = sum(c.isalpha() for c in sentence)
-        if len(words) >= 6 and letters >= 0.6 * max(len(sentence), 1):
-            kept.append(sentence)
+    for i, segment in enumerate(segments):
+        sentences = re.split(r"(?<=[a-z0-9)%][.!?])\s+(?=[A-Z\"\u201c(])", segment)
+        for j, sentence in enumerate(sentences):
+            words = sentence.split()
+            letters = sum(c.isalpha() for c in sentence)
+            complete = sentence.rstrip().endswith((".", "!", "?", "\"", "\u201d", ")"))
+            # The search engine may cut the last sentence: keep that tail if it is long enough.
+            tail = i == len(segments) - 1 and j == len(sentences) - 1 and len(words) >= 10
+            if len(words) >= 6 and letters >= 0.6 * max(len(sentence), 1) and (complete or tail):
+                kept.append(sentence if complete else sentence.rsplit(" ", 1)[0].rstrip(",;: ") + "\u2026")
+            if len(" ".join(kept)) >= limit:
+                break
         if len(" ".join(kept)) >= limit:
             break
     out = " ".join(kept)
@@ -123,9 +134,31 @@ def clean_snippet(text: str, limit: int = 300) -> str:
 ESG_KEYWORDS = "controversy lawsuit environmental spill fine"
 
 
+_SECOND_LEVEL = {"co.uk", "com.au", "co.jp", "com.br", "co.in"}
+
+
 def _domain(url: str) -> str:
+    """The site, not the server: 'ca.finance.yahoo.com' -> 'finance.yahoo.com' when that is the
+    trusted entry, else the registrable domain ('kessler-prod.x.morningstar.com' -> 'morningstar.com')."""
     host = (urlparse(url).hostname or "").lower()
-    return host[4:] if host.startswith("www.") else host
+    host = host[4:] if host.startswith("www.") else host
+    for trusted in TRUSTED_DOMAINS:
+        if host == trusted:
+            return trusted
+    for trusted in sorted(TRUSTED_DOMAINS, key=len, reverse=True):
+        base = ".".join(trusted.split(".")[-2:])
+        if host.endswith("." + trusted) or (host.endswith("." + base) and trusted == base):
+            return trusted
+    parts = host.split(".")
+    keep = 3 if ".".join(parts[-2:]) in _SECOND_LEVEL else 2
+    return ".".join(parts[-keep:])
+
+
+def _site(source: str) -> str:
+    """The registrable domain used to cap articles per site (finance.yahoo.com -> yahoo.com)."""
+    parts = source.split(".")
+    keep = 3 if ".".join(parts[-2:]) in _SECOND_LEVEL else 2
+    return ".".join(parts[-keep:])
 
 
 def _published(raw: Any, fallback: date) -> date:
@@ -215,7 +248,7 @@ class Newsroom:
     def _record(self, registry: ExhibitRegistry, ticker: str, query: str,
                 result: Mapping[str, Any], origin: str) -> Exhibit | None:
         url = str(result.get("url") or "").strip()
-        title = str(result.get("title") or "").strip()
+        title = re.sub(r"^[^:]{1,40}\s:\s+", "", str(result.get("title") or "").strip())
         if not url.startswith(("http://", "https://")) or not title or not is_informative(title):
             return None
         if not mentions_subject(title, ticker or self._subject[0], self._subject[1]):
@@ -224,10 +257,11 @@ class Newsroom:
         with self._lock:
             if url in self._seen or len(self._seen) >= self.max_exhibits:
                 return None
-            if self._per_source.get(source, 0) >= MAX_PER_SOURCE:
+            site = _site(source)
+            if self._per_source.get(site, 0) >= MAX_PER_SOURCE:
                 return None
             self._seen.add(url)
-            self._per_source[source] = self._per_source.get(source, 0) + 1
+            self._per_source[site] = self._per_source.get(site, 0) + 1
         snippet_text = f"{title}: {result.get('text') or ''}"
         if self._screen is not None:
             try:
