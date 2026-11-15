@@ -112,6 +112,27 @@ def default_deps() -> Deps:
                 personas=lambda: dict(load_personas().personas))
 
 
+_RISK_ORDER = ("low", "low_to_moderate", "moderate", "high")
+
+
+def closest_persona_base(risk_level: Any, personas: dict[str, Any]) -> dict[str, float] | None:
+    """Base_Portfolio for a profile without a persona: the persona with the closest risk level."""
+    target = _RISK_ORDER.index(risk_level) if risk_level in _RISK_ORDER else _RISK_ORDER.index("moderate")
+    best = None
+    for pid in sorted(personas):
+        persona = personas[pid]
+        values = persona.contract_values
+        if "base_portfolio" not in values:
+            continue
+        level = getattr(persona, "risk_level", None)
+        if level not in _RISK_ORDER:
+            continue
+        distance = abs(_RISK_ORDER.index(level) - target)
+        if best is None or distance < best[0]:
+            best = (distance, values["base_portfolio"].value)
+    return dict(best[1]) if best else None
+
+
 def build_request(payload: dict[str, Any], deps: Deps, source: Any):
     """Build the SessionRequest like ``guide/run_session.py`` (ValueError on bad input)."""
     from guide.contract.profiler import build_contract_from_form, build_contract_from_persona
@@ -132,6 +153,8 @@ def build_request(payload: dict[str, Any], deps: Deps, source: Any):
     base = contract.get("base_portfolio") or values.get("base_portfolio")
     if not base and persona is not None and "base_portfolio" in persona.contract_values:
         base = persona.contract_values["base_portfolio"].value
+    if not base:
+        base = closest_persona_base(contract.get("risk_level"), personas)
 
     universe = set(source.read_table(metrics.UNIVERSE_TABLE)["ticker"])
     parsed = parse_request(payload["request_text"], universe)
