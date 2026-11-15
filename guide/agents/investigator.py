@@ -156,6 +156,7 @@ def build_messages(
     options: Sequence[Mapping[str, Any]],
     contract: Mapping[str, Any],
     allowed_fields: Sequence[str] | None = None,
+    recent_context: Sequence[Mapping[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """User message: Options with Risk_Panel Exhibit numbers and Hard_Rule results, the contract."""
     payload = {
@@ -163,6 +164,8 @@ def build_messages(
         "investor_contract": dict(contract),
         "allowed_contract_fields": sorted(allowed_fields or contract_field_names(contract)),
     }
+    if recent_context:
+        payload["recent_context"] = list(recent_context)
     return [{"role": "user", "content": [{"text": json.dumps(payload, default=str, sort_keys=True)}]}]
 
 
@@ -176,6 +179,7 @@ def run_investigator(
     *,
     client: Any | None = None,
     tool_runner: Any | None = None,
+    recent_context: Sequence[Mapping[str, Any]] | None = None,
 ) -> InvestigatorResult:
     """Call the Investigator once; raise StageFailure on invalid output (Req. 36 fallback)."""
     prompt = load_system_prompt(AGENT, Path(config.instruction_dir))
@@ -188,7 +192,8 @@ def run_investigator(
         max_tokens=6000,
         max_tool_rounds=6,
     )
-    output: AgentOutput = agent.run(prompt, build_messages(options, contract), tools, trace)
+    output: AgentOutput = agent.run(prompt, build_messages(options, contract, recent_context=recent_context),
+                                     tools, trace)
     if output.blocked:
         return InvestigatorResult(blocked=True)
     data = parse_output(output.text)

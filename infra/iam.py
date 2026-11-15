@@ -96,6 +96,11 @@ def application_role_statements(t: IamTargets) -> list[Statement]:
             ["bedrock:ApplyGuardrail"],
             [f"arn:aws:bedrock:{t.region}:{t.account}:guardrail/{t.guardrail_id}"],
         ),
+        _stmt(
+            "AgentCoreWebSearch",  # Newsroom: recent news as Context Exhibits (AWS-owned tool ARN)
+            ["bedrock-agentcore:InvokeWebSearch"],
+            [f"arn:aws:bedrock-agentcore:{t.region}:aws:tool/web-search.v1"],
+        ),
         _stmt("SnapshotRead", ["s3:GetObject", "s3:GetObjectVersion"], _snapshot_keys(t)),
         _stmt(
             "SessionStoreItems",

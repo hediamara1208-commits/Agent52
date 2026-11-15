@@ -130,6 +130,7 @@ def build_messages(
     risk_panel: Mapping[str, Any],
     scope: str,
     hard_rule_results: Sequence[Mapping[str, Any]] | None = None,
+    recent_context: Sequence[Mapping[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
     """The single user message: request, Investor_Contract, Risk_Panel (Exhibit numbers and
     values), the request's Hard_Rule results (evidence, not a verdict), and scope."""
@@ -141,6 +142,8 @@ def build_messages(
     }
     if hard_rule_results is not None:
         payload["request_hard_rule_results"] = list(hard_rule_results)
+    if recent_context:
+        payload["recent_context"] = list(recent_context)
     return [{"role": "user", "content": [{"text": json.dumps(payload, default=str, sort_keys=True)}]}]
 
 
@@ -155,6 +158,7 @@ def run_advocate(
     tools: Any,
     trace: TraceRecorder,
     hard_rule_results: Sequence[Mapping[str, Any]] | None = None,
+    recent_context: Sequence[Mapping[str, Any]] | None = None,
     universe: Collection[str] | None = None,
     system_prompt: SystemPrompt | None = None,
     client: Any | None = None,
@@ -175,7 +179,7 @@ def run_advocate(
     output: AgentOutput = agent.run(
         prompt,
         build_messages(request_text, request_ticker, request_weight, contract, risk_panel,
-                       config.advocate_scope, hard_rule_results),
+                       config.advocate_scope, hard_rule_results, recent_context),
         tools,
         trace,
     )

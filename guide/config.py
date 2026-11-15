@@ -59,6 +59,11 @@ class Config:
     agentcore_memory_id: str = ""
     cors_origin: str = ""
     macro_publication_lag_days: dict[str, int] = field(default_factory=dict)
+    # Newsroom: Amazon Bedrock AgentCore Web Search (Context evidence only).
+    web_search_enabled: bool = False
+    web_search_max_results: int = 4
+    web_search_days: int = 30
+    web_search_timeout_seconds: float = 6
 
     def __post_init__(self) -> None:
         if not self.s3_bucket.strip():
@@ -128,8 +133,12 @@ def _coerce_environment_value(name: str, value: str) -> Any:
         "trace_summary_max_chars",
     }:
         return int(value)
-    if name in {"speculative_volatility_threshold", "agent_timeout_seconds"}:
+    if name in {"speculative_volatility_threshold", "agent_timeout_seconds", "web_search_timeout_seconds"}:
         return float(value)
+    if name in {"web_search_max_results", "web_search_days"}:
+        return int(value)
+    if name == "web_search_enabled":
+        return value.strip().lower() in {"1", "true", "yes", "on"}
     return value
 
 

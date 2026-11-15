@@ -10,8 +10,13 @@ model_ids:
 # Agent flow settings (Req. 4.9, 36.3).
 advocate_scope: size_only   # size_only | universe
 agent_timeout_seconds: 60
-guardrail_id: "3981l0ehd4uu"   # verdict-guardrail: output topics RealTransactions, ReturnPredictions; prompt-attack filter on input
+guardrail_id: "3981l0ehd4uu"   # verdict-guardrail: prompt-attack filter on input (output topics removed 2026-11-15; code guidance-only check covers orders and predictions)
 guardrail_version: "DRAFT"
+# Newsroom (Amazon Bedrock AgentCore Web Search): recent news as Context Exhibits, never used by Hard_Rules.
+web_search_enabled: true
+web_search_max_results: 4
+web_search_days: 30
+web_search_timeout_seconds: 6
 
 # Amazon S3 is the system of record in every environment. The local cache only
 # stores downloaded snapshot objects and is never a primary data source.
