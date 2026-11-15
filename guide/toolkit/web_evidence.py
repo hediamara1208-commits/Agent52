@@ -54,9 +54,70 @@ _FORECAST_TITLE = re.compile(
     re.I)
 
 
+# Promotional or retrospective pieces ("If you'd invested $1,000...", "A 68-year-old retiree bought...",
+# analyst-blog digests, "stocks to watch" lists): they sell a return story, they do not report an event.
+_PROMO_TITLE = re.compile(
+    r"\b\d{2}-year-old\b|\bretiree\b|\bif you(?:'d| had| would have)? invested\b|\bbought [\d,]+ shares\b|"
+    r"\$[\d,]+ (?:invested|investment)\b|turn(?:ed|s)? (?:her|his|your|a|the) .{0,30}\binto\b|here'?s how much|"
+    r"every move|analyst blog|blog highlights|tech radar|stocks? to watch|\b\d+ (?:stocks|reasons|things)\b|"
+    r"\bmy (?:portfolio|stake|shares)\b|\bpassive income\b|\bretire (?:early|rich)\b",
+    re.I)
+MAX_PER_SOURCE = 2
+
+
 def is_informative(title: str) -> bool:
-    """Drop landing pages (e.g. 'Tesla Investor Relations') and price forecasts or buy/sell calls."""
-    return len(title.split()) >= 5 and not _GENERIC_TITLE.search(title) and not _FORECAST_TITLE.search(title)
+    """Drop landing pages (e.g. 'Tesla Investor Relations'), price forecasts or buy/sell calls, and
+    promotional or retrospective-return pieces."""
+    return (len(title.split()) >= 5 and not _GENERIC_TITLE.search(title)
+            and not _FORECAST_TITLE.search(title) and not _PROMO_TITLE.search(title))
+
+
+def mentions_subject(title: str, ticker: str, name: str) -> bool:
+    """The headline must be about the asset: its ticker or a distinctive word of its name."""
+    if not ticker and not name:
+        return True
+    words = {w.lower() for w in re.findall(r"[A-Za-z][A-Za-z&.'-]{2,}", name or "")
+             if w.lower() not in {"inc", "corp", "corporation", "the", "group", "holdings", "company", "ltd"}}
+    base = (ticker or "").split(".")[0].lower()
+    tokens = {t.lower() for t in re.findall(r"[A-Za-z]+", title)}
+    return bool(base and base in tokens) or bool(words & tokens)
+
+
+# Page furniture that search snippets often carry: market tickers, nav bars, ad labels, tables.
+_SNIPPET_JUNK = re.compile(
+    r"\badvertisement\b|\bquick read\b|\brates commodities currencies\b|\bu\.?s\.? markets? (?:closed|open)\b|"
+    r"\btrending\b|\bsign in\b|\bsubscribe\b|\bread more\b|\bskip to\b|\bexplore stocks\b|"
+    r"\btrading disclosure\b|\bon coinbase\b",
+    re.I)
+_QUOTE_RUN = re.compile(r"(?:[\^]?[A-Z]{2,6}\s+)?[-+]?\d[\d,.]*%?(?:\s+[-+]?\d[\d,.]*%?){1,}")
+
+
+def clean_snippet(text: str, limit: int = 300) -> str:
+    """Keep the readable sentences of a snippet: no tables, quote strips or page furniture.
+    Each removed piece becomes a break, so a fragment of navigation never joins a real sentence.
+    Returns "" when nothing readable is left (the card then shows the headline alone)."""
+    brk = " \u00b6 "
+    text = " ".join(str(text or "").split())
+    if "|" in text:
+        text = brk.join(part for part in text.split("|") if len(part.split()) >= 6)
+    text = _SNIPPET_JUNK.sub(brk, text)
+    text = re.sub(r"[\^]\w+", brk, text)
+    text = re.sub(r"(?:\b[A-Z]{2,6}\b\s+){2,}", brk, text)  # runs of tickers: "SPCX TSLA"
+    text = _QUOTE_RUN.sub(brk, text)
+    segments = [" ".join(seg.split()).strip(" -\u2014:;,") for seg in text.split("\u00b6")]
+    text = " ".join(seg for seg in segments if len(seg.split()) >= 8)
+    kept: list[str] = []
+    for sentence in re.split(r"(?<=[a-z0-9)%][.!?])\s+(?=[A-Z\"\u201c(])", text):
+        words = sentence.split()
+        letters = sum(c.isalpha() for c in sentence)
+        if len(words) >= 6 and letters >= 0.6 * max(len(sentence), 1):
+            kept.append(sentence)
+        if len(" ".join(kept)) >= limit:
+            break
+    out = " ".join(kept)
+    if len(out) > limit:
+        out = out[:limit].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+    return out
 
 
 ESG_KEYWORDS = "controversy lawsuit environmental spill fine"
@@ -117,6 +178,8 @@ class Newsroom:
         self.max_agent_searches = max_agent_searches
         self._now = now or (lambda: datetime.now(timezone.utc))
         self._seen: set[str] = set()
+        self._per_source: dict[str, int] = {}
+        self._subject: tuple[str, str] = ("", "")
         self._agent_searches = 0
         self._lock = threading.Lock()
         self.failures: list[str] = []
@@ -155,10 +218,16 @@ class Newsroom:
         title = str(result.get("title") or "").strip()
         if not url.startswith(("http://", "https://")) or not title or not is_informative(title):
             return None
+        if not mentions_subject(title, ticker or self._subject[0], self._subject[1]):
+            return None
+        source = _domain(url)
         with self._lock:
             if url in self._seen or len(self._seen) >= self.max_exhibits:
                 return None
+            if self._per_source.get(source, 0) >= MAX_PER_SOURCE:
+                return None
             self._seen.add(url)
+            self._per_source[source] = self._per_source.get(source, 0) + 1
         snippet_text = f"{title}: {result.get('text') or ''}"
         if self._screen is not None:
             try:
@@ -171,11 +240,11 @@ class Newsroom:
                 return None
         now = self._now()
         published = _published(result.get("publishedAt") or result.get("publishedDate"), now.date())
-        snippet = " ".join(str(result.get("text") or "").split())[:SNIPPET_MAX_CHARS]
+        snippet = clean_snippet(str(result.get("text") or ""))[:SNIPPET_MAX_CHARS]
         retrieved = now.strftime("%Y-%m-%dT%H:%M:%SZ")
         return registry.add(
             metric=WEB_METRIC,
-            value={"title": title, "url": url, "source": _domain(url),
+            value={"title": title, "url": url, "source": source,
                    "published": published.isoformat(), "snippet": snippet,
                    "retrieved_at": retrieved, "confidence": CONFIDENCE, "origin": origin},
             period_start=published,
@@ -194,6 +263,7 @@ class Newsroom:
     def collect(self, registry: ExhibitRegistry, ticker: str, name: str,
                 contract: Mapping[str, Any], trace: Any | None = None) -> list[Exhibit]:
         """Code-run searches for the requested asset. A failure is recorded, never fatal."""
+        self._subject = (ticker, name)
         found: list[Exhibit] = []
         for query, domains in build_queries(ticker, name, contract):
             try:
