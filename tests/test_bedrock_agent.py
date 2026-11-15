@@ -201,7 +201,7 @@ def test_usage_is_summed_over_tool_rounds_and_recorded_on_the_agent_call():
     client = Client()
     cfg = Config(s3_bucket="b", model_id="m-usage", guardrail_id="g", guardrail_version="1")
     trace = TraceRecorder(emit_spans=False)
-    BedrockAgent("advocate", cfg, client=client, tool_runner=lambda use: {"ok": 1}).run(
+    BedrockAgent("advocate", cfg, client=client, tool_runner=lambda use: {"ok": 1}, cache_conversation=True).run(
         "system", [{"role": "user", "content": [{"text": "hi"}]}], {"tools": [{"toolSpec": {"name": "x"}}]}, trace)
     first = client.calls[0]
     assert first["system"][-1] == {"cachePoint": {"type": "default"}}
@@ -236,3 +236,21 @@ def test_a_cache_rejection_is_retried_without_cache_points():
     assert out.text == "ok"
     assert len(client.calls) == 2 and client.calls[1]["system"] == [{"text": "s"}]
     assert base._CACHE_SUPPORTED["m-nocache"] is False
+
+
+
+def test_single_call_agents_cache_only_the_shared_prefix():
+    from guide.agents import base
+
+    class Client:
+        def converse(self, **kw):
+            self.kw = kw
+            return {"stopReason": "end_turn", "output": {"message": {"role": "assistant", "content": [{"text": "ok"}]}}}
+
+    base._CACHE_SUPPORTED.clear()
+    client = Client()
+    cfg = Config(s3_bucket="b", model_id="m-prefix", guardrail_id="g", guardrail_version="1")
+    BedrockAgent("judge", cfg, client=client).run("s", [{"role": "user", "content": [{"text": "q"}]}], None,
+                                                 TraceRecorder(emit_spans=False))
+    assert client.kw["system"][-1] == {"cachePoint": {"type": "default"}}
+    assert all("cachePoint" not in b for m in client.kw["messages"] for b in m["content"])
