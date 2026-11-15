@@ -10,7 +10,7 @@ Region `us-east-1`. Nothing below is a secret: IDs and names only.
 |---|---|---|
 | AgentCore Runtime `guide_runtime-SeZKjzHUQD` | version 23, image tag `agents-run14` | `guide/`, `runtime/`, `config.yaml` as of PR #34 |
 | Session_API Lambda `guide-session-api` | code edited by hand twice on 2026-11-15 (see below) | `api/`, `guide/contract/` at `main` (PR #34) |
-| Amplify app `d3nprpi8xxns73`, branch `main` | Deployment 12, uploaded by hand | `frontend/` as of PR #41 |
+| Amplify app `d3nprpi8xxns73`, branch `main` | Deployment 13, uploaded by hand | `frontend/` as of PR #44 |
 | Bedrock Guardrail `3981l0ehd4uu` | DRAFT, prompt-attack filter only (HIGH, input) | **differs from** `infra/stacks/guardrail_stack.py` (see below) |
 | Dataset snapshot (S3 `alphaforge-guide-data`, prefix `dataset`) | `20261115T154221Z-esg` | made by `scripts/add_reference_table.py` |
 | Runtime role `guide-application-role` | has `bedrock-agentcore:InvokeWebSearch` | `infra/iam.py` (`AgentCoreWebSearch` statement) |
@@ -64,7 +64,7 @@ Second edit (same day): the PR #34 patch (`api/handler.py`, new `guide/contract/
 
 ## Front end (Amplify)
 
-The Amplify app is not connected to a repository; it is deployed by uploading a zip of `frontend/dist`. Deployment 7 (2026-11-15) is `main` at `939d5c2` (news cards); Deployment 8 adds the PR #34 "Current holdings" field; Deployment 9 adds the readable appeal comparison (PR #36); Deployment 10 adds the "How the court decided" timeline (PR #38); Deployment 11 adds the live progress card (PR #40); Deployment 12 fixes its opening caption (PR #41). The zip's `config.json` holds the API URL and the Cognito pool and client IDs from the stack outputs; the committed `frontend/public/config.json` is a blank template on purpose. `scripts/publish_frontend.sh` does the same thing from the stack outputs. The upload used the Amplify API:
+The Amplify app is not connected to a repository; it is deployed by uploading a zip of `frontend/dist`. Deployment 7 (2026-11-15) is `main` at `939d5c2` (news cards); Deployment 8 adds the PR #34 "Current holdings" field; Deployment 9 adds the readable appeal comparison (PR #36); Deployment 10 adds the "How the court decided" timeline (PR #38); Deployment 11 adds the live progress card (PR #40); Deployment 12 fixes its opening caption (PR #41); Deployment 13 leaves 0% options out of the timeline (PR #44). The zip's `config.json` holds the API URL and the Cognito pool and client IDs from the stack outputs; the committed `frontend/public/config.json` is a blank template on purpose. `scripts/publish_frontend.sh` does the same thing from the stack outputs. The upload used the Amplify API:
 
 ```bash
 aws amplify create-deployment --app-id d3nprpi8xxns73 --branch-name main   # returns jobId and zipUploadUrl
@@ -81,3 +81,7 @@ To match the live state in a new account, create the guardrail without the two d
 ## Dataset snapshot
 
 `scripts/add_reference_table.py` created `20261115T154221Z-esg` from `20261113T000000Z-starter`: it copies the manifest, adds the `esg_exclusions` reference table (raw CSV and Parquet, with SHA-256), records which files were carried over, and moves `pointers/current.json`. Re-run it with `--dry-run` first to see what it would write.
+
+## Observability (checked 2026-11-15)
+
+CloudWatch Transaction Search is not enabled on the account (`aws xray get-trace-segment-destination` returns `XRay`), so the GenAI Observability dashboard for AgentCore shows no data. The runtime's OpenTelemetry logs do reach CloudWatch Logs in `/aws/bedrock-agentcore/runtimes/guide_runtime-SeZKjzHUQD-DEFAULT` (one `runtime-logs` stream per session). Enabling Transaction Search is an account-wide setting with span-ingestion charges; it was left off.
