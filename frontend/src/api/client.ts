@@ -86,7 +86,10 @@ export function createApiClient(
     const text = await res.text();
     const data = text ? JSON.parse(text) : null;
     if (!res.ok) {
-      throw new ApiError(res.status, data?.message ?? data?.error ?? `Request failed (${res.status})`, data?.missing);
+      // The API reports missing request fields as {asset: bool, size: bool}; the UI wants one name.
+      const m = data?.missing;
+      const missing = typeof m === "string" ? m : m && typeof m === "object" ? (m.asset ? "asset" : m.size ? "size" : undefined) : undefined;
+      throw new ApiError(res.status, data?.message ?? data?.error ?? `Request failed (${res.status})`, missing);
     }
     return data as T;
   }
