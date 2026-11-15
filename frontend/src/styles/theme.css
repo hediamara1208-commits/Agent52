@@ -280,3 +280,27 @@ form[aria-label="Appeal"] .row > label { flex: 1; min-width: 160px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- recent news (Context Exhibits from AgentCore Web Search) ---------- */
+.news { margin-top: 1rem; }
+.pill-context { color: var(--cyan); border-color: rgba(79, 209, 232, 0.35); background: rgba(79, 209, 232, 0.08); }
+.news-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: .8rem; }
+.news-card {
+  display: flex; flex-direction: column; gap: .45rem; padding: .9rem 1rem; border-radius: 14px;
+  background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--cyan); animation: rise .5s ease both;
+}
+.news-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .75rem; color: var(--muted); }
+.badge-context {
+  display: inline-block; padding: .1rem .45rem; border-radius: 6px; font-size: .68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--cyan); background: rgba(79, 209, 232, 0.12);
+  border: 1px solid rgba(79, 209, 232, 0.35);
+}
+h3.news-title { margin: 0; font-size: .95rem; color: var(--text); text-transform: none; letter-spacing: -0.01em; line-height: 1.35; }
+.news-title a, dd a { color: var(--text); text-decoration: underline; text-decoration-color: rgba(79, 209, 232, 0.5); text-underline-offset: 3px; }
+.news-title a:hover, dd a:hover { color: var(--cyan); }
+.news-snippet {
+  margin: 0; font-size: .82rem; color: var(--muted);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.news-card .exhibit-link { align-self: flex-start; margin-top: auto; }
+.news-note { margin: .8rem 0 0; font-size: .75rem; color: var(--muted); }

@@ -5,7 +5,7 @@ import type { SessionView } from "./sessionView.types";
 
 export type {
   SessionView, Exhibit, Verdict, Ruling, Statement, Answer, RuleResult,
-  SensitivityResult, TraceEvent, Snapshot, StageError,
+  SensitivityResult, TraceEvent, Snapshot, StageError, NewsItem,
 } from "./sessionView.types";
 
 export type Mode = "friendly" | "advanced";

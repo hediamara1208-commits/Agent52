@@ -98,7 +98,22 @@
         "limits": {"type": "array", "items": {"type": "string"}},
         "what_would_change": {"type": "array", "items": {"$ref": "#/$defs/statement"}},
         "disclaimers": {"type": "array", "items": {"type": "string"}},
-        "questions": {"type": "array", "items": {"$ref": "#/$defs/answer"}}
+        "questions": {"type": "array", "items": {"$ref": "#/$defs/answer"}},
+        "recent_context": {"type": "array", "items": {"$ref": "#/$defs/news_item"}}
+      }
+    },
+    "news_item": {
+      "description": "A Web Exhibit as shown to people: recent news, Context only (AgentCore Web Search).",
+      "type": "object",
+      "required": ["exhibit", "title", "url"],
+      "properties": {
+        "exhibit": {"type": "integer", "minimum": 1},
+        "title": {"type": "string"},
+        "source": {"type": "string"},
+        "url": {"type": "string"},
+        "published": {"type": ["string", "null"]},
+        "snippet": {"type": "string"},
+        "confidence": {"type": "string"}
       }
     },
     "answer": {
