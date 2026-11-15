@@ -8,7 +8,7 @@ Region `us-east-1`. Nothing below is a secret: IDs and names only.
 
 | Piece | Live value | Source in `main` |
 |---|---|---|
-| AgentCore Runtime `guide_runtime-SeZKjzHUQD` | version 20, image tag `agents-run11` | `guide/`, `runtime/`, `config.yaml` at commit `532b08c` (PR #28) |
+| AgentCore Runtime `guide_runtime-SeZKjzHUQD` | version 21, image tag `agents-run12` | `guide/`, `runtime/`, `config.yaml` as of PR #30 |
 | Session_API Lambda `guide-session-api` | code edited by hand on 2026-11-15 (see below) | `api/`, `guide/contract/` at `main` |
 | Amplify app `d3nprpi8xxns73`, branch `main` | Deployment 7, uploaded by hand | `frontend/` at commit `939d5c2` (PR #23) |
 | Bedrock Guardrail `3981l0ehd4uu` | DRAFT, prompt-attack filter only (HIGH, input) | **differs from** `infra/stacks/guardrail_stack.py` (see below) |
@@ -27,6 +27,7 @@ Each image adds one layer on top of the previous one (`FROM <previous tag>` + `C
 | 18 | `agents-run9` | PR #26 | Contact lines and email addresses removed from snippets |
 | 19 | `agents-run10` | PR #27 | One card per headline; stray symbols trimmed |
 | 20 | `agents-run11` | PR #28 | More forecast wordings dropped ("turn bullish", "poised for", "could hit $X") |
+| 21 | `agents-run12` | PR #30 | The Advocate may propose a compliant request as is (Robert 2% SPY: Advocate option adopted, verdict accept) |
 
 The persona file in `agents-run6` was the team's version (Kai with `horizon: {min: 20, max: null}`); `agents-run7` applies the one-line fix from PR #22, so from version 16 on, `guide/contract/personas.yaml` in the image matches `main` byte for byte.
 
