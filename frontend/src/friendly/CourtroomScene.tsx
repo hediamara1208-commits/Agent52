@@ -25,8 +25,11 @@ function Figure({ color, icon }: { color: string; icon: string }) {
 }
 
 /** Animated tribunal: the active agent glows and speaks (Req. 7.10). Seat test ids are stable. */
-export function CourtroomScene({ activeAgent }: { activeAgent: SessionView["active_agent"] }) {
-  const active = activeAgent?.toLowerCase() ?? null;
+export function CourtroomScene({ activeAgent, running = false, stage }: {
+  activeAgent: SessionView["active_agent"]; running?: boolean; stage?: string;
+}) {
+  // After the Judge, active_agent is null while the Clerk still works: the tribunal has not risen yet.
+  const active = activeAgent?.toLowerCase() ?? (running && stage === "judge" ? "clerk" : null);
   return (
     <div className="card courtroom">
       <svg role="img" aria-label="Courtroom scene" viewBox="0 0 1200 320" width="100%">
@@ -88,7 +91,8 @@ export function CourtroomScene({ activeAgent }: { activeAgent: SessionView["acti
       </svg>
       <p className="court-caption">
         <span className="dot" style={{ color: active ? "#e7b75f" : "#34d399" }} />
-        {active ? CAPTION[active] ?? "The tribunal is in session…" : "The tribunal has risen."}
+        {active ? CAPTION[active] ?? "The tribunal is in session…"
+          : running ? "The code is checking the options against your limits…" : "The tribunal has risen."}
       </p>
     </div>
   );
