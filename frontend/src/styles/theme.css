@@ -376,3 +376,8 @@ h3.news-title { margin: 0; font-size: .95rem; color: var(--text); text-transform
 @media (max-width: 700px) { .speech-bubble { width: 70%; font-size: .8rem; } }
 .court-full .mouth { transform-box: fill-box; transform-origin: center; }
 .court-controls .court-caption { position: static; margin: 0; padding: 0; background: none; border: 0; }
+.record-speaker { align-self: start; height: auto; line-height: 1.4; }
+@media (max-width: 760px) {
+  .speech-bubble { position: static; width: auto; margin: .5rem 0 0; }
+  .court-record li { grid-template-columns: 1fr; gap: .2rem; }
+}

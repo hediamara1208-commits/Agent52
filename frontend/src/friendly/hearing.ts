@@ -81,11 +81,13 @@ export function hearingOf(view: SessionView): Speech[] {
   // 2. Advocate: the goal, then the sizes it pleads for.
   if (done.has("advocate")) {
     const proposed = options.filter((o) => o.source === "advocate");
-    const goal = (view.summaries.advocate ?? "").replace(/^The Advocate sees the goal as:\s*/i, "")
-      .split(/(?<=\.)\s/)[0];
+    // Live summary: "The Advocate sees the goal as: <goal>. It proposes N options for the court."
+    const summary = view.summaries.advocate ?? "";
+    const goal = /goal as:\s*(.+?\.)(?:\s|$)/i.exec(summary)?.[1] ?? "";
+    const count = Number(/proposes (\d+) option/i.exec(summary)?.[1] ?? 0);
     const plea = proposed.length
       ? `I propose ${list(proposed.map((o) => `${o.ticker} at ${pct(o.weight)}`))}. ${proposed[0].rationale ?? ""}`
-      : view.summaries.advocate ?? "";
+      : count ? `I propose ${count} option${count === 1 ? "" : "s"} to the court.` : "";
     say("advocate", `${goal ? `The investor's goal: ${goal} ` : ""}${plea}`);
   }
 
