@@ -119,3 +119,59 @@ def test_recent_context_fits_the_session_view_schema():
     ruling["recent_context"] = [{"title": "no link"}]
     with pytest.raises(SessionViewError):
         validate_document(doc)
+
+
+# --- news quality, from the live 2026-11-15 Tesla session ---------------------------------------
+from guide.toolkit.web_evidence import MAX_PER_SOURCE, clean_snippet, is_informative, mentions_subject  # noqa: E402
+
+
+def test_promotional_and_digest_headlines_are_dropped():
+    for t in [
+        "A 68-Year-Old Retiree Bought 1,000 Tesla Shares at $108 in January 2023. Now Musk Could Merge "
+        "Tesla Into SpaceX by December, and a 15% Premium Would Turn Her Stake Into About 3,270 SpaceX Shares",
+        "The Zacks Analyst Blog Highlights Tesla, SpaceX and Ford",
+        "Tesla : The Tech Radar — Tesla",
+        "If You'd Invested $1,000 in Tesla 10 Years Ago, Here's How Much You'd Have",
+        "3 Stocks to Watch This Week: Tesla, Nvidia and Shopify",
+    ]:
+        assert not is_informative(t), t
+    for t in ["SpaceX's S&P 500 Bid Gets New Life as Musk Pitches Tesla Merger",
+              "Incoming Texas AG vows rigorous scrutiny of potential SpaceX-Tesla merger",
+              "Tesla (TSLA) Breaks Ground On $10 Billion Texas Solar Factory As EU Approvals Advance"]:
+        assert is_informative(t), t
+
+
+def test_headline_must_name_the_asset():
+    assert mentions_subject("Incoming Texas AG vows scrutiny of potential SpaceX-Tesla merger", "TSLA", "Tesla")
+    assert mentions_subject("TSLA slips after delivery miss", "TSLA", "Tesla")
+    assert mentions_subject("Exxon settles Gulf spill claims", "XOM", "Exxon Mobil")
+    assert mentions_subject("Shopify adds AI checkout tools", "SHOP.TO", "Shopify Inc.")
+    assert not mentions_subject("Fed holds rates steady as inflation cools", "TSLA", "Tesla")
+
+
+def test_snippets_keep_sentences_and_drop_page_furniture():
+    yahoo = ("Rates Commodities Currencies U.S. markets closed ADVERTISEMENT Trending Tesla (TSLA) Breaks "
+             "-30.73 -0.40% -8.57 -0.31% ADVERTISEMENT Incoming Texas AG Ken Paxton said Thursday his office "
+             "will closely review any proposed combination of SpaceX and Tesla.")
+    assert clean_snippet(yahoo) == ("Incoming Texas AG Ken Paxton said Thursday his office will closely review "
+                                    "any proposed combination of SpaceX and Tesla.")
+    table = "| subject_name | Tesla | | subject_type | organization | | Answer | Tesla (TSLA): Shares rose"
+    assert clean_snippet(table) == ""
+    tickers = ("SPCX TSLA ^GSPC Explore stocks on Coinbase Trading disclosure (Bloomberg) -- Just months after "
+               "SpaceX was denied a swift entry into the index, Elon Musk is pitching a merger with Tesla.")
+    assert clean_snippet(tickers).startswith("(Bloomberg) -- Just months after SpaceX")
+    plain = ("Tesla said on Thursday it would recall 12,000 Model Y vehicles in the U.S. over a seat-belt "
+             "warning. Shares fell 2% in early trading.")
+    assert clean_snippet(plain) == plain
+    assert clean_snippet("word " * 200).endswith("…") and len(clean_snippet("word " * 200)) <= 301
+
+
+def test_at_most_two_articles_per_source():
+    results = [{"title": f"Tesla recall update number {i} from regulators", "url": f"https://finance.yahoo.com/{i}",
+                "text": "Tesla said it would expand the recall to more vehicles in Canada this week."}
+               for i in range(5)]
+    results.append({"title": "Tesla recall widens to Canada, regulator says", "url": "https://www.reuters.com/x",
+                    "text": "Transport Canada said the recall now covers vehicles built in 2025 and 2026."})
+    found = Newsroom(FakeSearch(results), now=lambda: NOW).collect(ExhibitRegistry(), "TSLA", "Tesla", ROBERT)
+    sources = [e.value["source"] for e in found]
+    assert sources.count("finance.yahoo.com") == MAX_PER_SOURCE and "reuters.com" in sources
