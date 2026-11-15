@@ -8,9 +8,9 @@ Region `us-east-1`. Nothing below is a secret: IDs and names only.
 
 | Piece | Live value | Source in `main` |
 |---|---|---|
-| AgentCore Runtime `guide_runtime-SeZKjzHUQD` | version 22, image tag `agents-run13` | `guide/`, `runtime/`, `config.yaml` as of PR #32 |
-| Session_API Lambda `guide-session-api` | code edited by hand on 2026-11-15 (see below) | `api/`, `guide/contract/` at `main` |
-| Amplify app `d3nprpi8xxns73`, branch `main` | Deployment 7, uploaded by hand | `frontend/` at commit `939d5c2` (PR #23) |
+| AgentCore Runtime `guide_runtime-SeZKjzHUQD` | version 23, image tag `agents-run14` | `guide/`, `runtime/`, `config.yaml` as of PR #34 |
+| Session_API Lambda `guide-session-api` | code edited by hand twice on 2026-11-15 (see below) | `api/`, `guide/contract/` at `main` (PR #34) |
+| Amplify app `d3nprpi8xxns73`, branch `main` | Deployment 8, uploaded by hand | `frontend/` as of PR #34 |
 | Bedrock Guardrail `3981l0ehd4uu` | DRAFT, prompt-attack filter only (HIGH, input) | **differs from** `infra/stacks/guardrail_stack.py` (see below) |
 | Dataset snapshot (S3 `alphaforge-guide-data`, prefix `dataset`) | `20261115T154221Z-esg` | made by `scripts/add_reference_table.py` |
 | Runtime role `guide-application-role` | has `bedrock-agentcore:InvokeWebSearch` | `infra/iam.py` (`AgentCoreWebSearch` statement) |
@@ -29,6 +29,7 @@ Each image adds one layer on top of the previous one (`FROM <previous tag>` + `C
 | 20 | `agents-run11` | PR #28 | More forecast wordings dropped ("turn bullish", "poised for", "could hit $X") |
 | 21 | `agents-run12` | PR #30 | The Advocate may propose a compliant request as is (Robert 2% SPY: Advocate option adopted, verdict accept) |
 | 22 | `agents-run13` | PR #32 | Agents state numbers readably (6.6%, not 0.0659) |
+| 23 | `agents-run14` | PR #34 | Custom Base_Portfolio: the investor's own holdings come first |
 
 The persona file in `agents-run6` was the team's version (Kai with `horizon: {min: 20, max: null}`); `agents-run7` applies the one-line fix from PR #22, so from version 16 on, `guide/contract/personas.yaml` in the image matches `main` byte for byte.
 
@@ -59,9 +60,11 @@ The Lambda's `/personas` route returned five personas: its copy of the persona a
 
 These are the same edits as PR #22, so `make deploy` from `main` produces the same behaviour. The package before the edit was kept in the workshop IDE at `/tmp/lam/code.zip`.
 
+Second edit (same day): the PR #34 patch (`api/handler.py`, new `guide/contract/base_portfolio.py`) was applied to that package with `git apply` (it applied cleanly, so the rest of the code matched `main`) and uploaded the same way. The package before this edit is `/tmp/lam/before-base.zip`.
+
 ## Front end (Amplify)
 
-The Amplify app is not connected to a repository; it is deployed by uploading a zip of `frontend/dist`. Deployment 7 (2026-11-15) is `main` at `939d5c2` (news cards). The zip's `config.json` holds the API URL and the Cognito pool and client IDs from the stack outputs; the committed `frontend/public/config.json` is a blank template on purpose. `scripts/publish_frontend.sh` does the same thing from the stack outputs. The upload used the Amplify API:
+The Amplify app is not connected to a repository; it is deployed by uploading a zip of `frontend/dist`. Deployment 7 (2026-11-15) is `main` at `939d5c2` (news cards); Deployment 8 adds the PR #34 "Current holdings" field. The zip's `config.json` holds the API URL and the Cognito pool and client IDs from the stack outputs; the committed `frontend/public/config.json` is a blank template on purpose. `scripts/publish_frontend.sh` does the same thing from the stack outputs. The upload used the Amplify API:
 
 ```bash
 aws amplify create-deployment --app-id d3nprpi8xxns73 --branch-name main   # returns jobId and zipUploadUrl
