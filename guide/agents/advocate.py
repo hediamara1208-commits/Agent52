@@ -64,8 +64,12 @@ def parse_advocate_output(
     request_weight: float,
     scope: str,
     universe: Collection[str] | None = None,
+    request_complies: bool = False,
 ) -> AdvocateOutput:
-    """Validate the Advocate JSON; raise StageFailure on any violation."""
+    """Validate the Advocate JSON; raise StageFailure on any violation.
+
+    ``request_complies`` (the request passes every Hard_Rule): the request itself is a fair
+    Option, so a smaller size is welcome but no longer required."""
     if scope not in ADVOCATE_SCOPES:
         raise ValueError(f"advocate_scope must be one of {', '.join(ADVOCATE_SCOPES)}")
     body = _FENCE.sub("", (text or "").strip())
@@ -106,8 +110,8 @@ def parse_advocate_output(
             or any(isinstance(n, bool) or not isinstance(n, int) or n < 1 for n in exhibits)
         ):
             raise _fail("option exhibits must be a non-empty list of Exhibit numbers")
-        if scope == "size_only" and (asset.upper() != request_ticker.upper() or weight >= request_weight - EPS):
-            raise _fail("size_only scope allows only a smaller size of the requested asset")
+        if scope == "size_only" and (asset.upper() != request_ticker.upper() or weight > request_weight + EPS):
+            raise _fail("size_only scope allows only the requested asset, at or below the requested size")
         if scope == "universe" and allowed is not None and asset.upper() not in allowed:
             raise _fail(f"asset {asset} is not in the assets universe")
         key = (asset.upper(), round(float(weight), 6))
@@ -117,7 +121,8 @@ def parse_advocate_output(
         options.append(AdvocateOption(asset, float(weight), _text(item["rationale"], "rationale"),
                                       tuple(dict.fromkeys(exhibits))))
 
-    if not any(o.asset.upper() == request_ticker.upper() and o.weight < request_weight - EPS for o in options):
+    if not request_complies and not any(
+            o.asset.upper() == request_ticker.upper() and o.weight < request_weight - EPS for o in options):
         raise _fail("no option reduces the requested position size")
     return AdvocateOutput(goal, tuple(options))
 
@@ -191,4 +196,11 @@ def run_advocate(
         request_weight=request_weight,
         scope=config.advocate_scope,
         universe=universe,
+        request_complies=request_complies(hard_rule_results),
     )
+
+
+def request_complies(hard_rule_results: Sequence[Mapping[str, Any]] | None) -> bool:
+    """True when the request passes every Hard_Rule (none fails, none is unverified)."""
+    results = list(hard_rule_results or [])
+    return bool(results) and all(str(r.get("status")) == "pass" for r in results)
