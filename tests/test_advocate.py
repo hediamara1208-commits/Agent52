@@ -81,3 +81,14 @@ def test_run_advocate_uses_agent_model_guardrail_and_scope():
     assert call["modelId"] == "adv-model" and call["guardrailConfig"]["guardrailIdentifier"] == "g"
     assert '"advocate_scope": "size_only"' in call["messages"][0]["content"][0]["text"]
     assert advocate_system_prompt(config).text in call["system"][0]["text"]
+
+
+def test_advocate_message_carries_exhibit_values_and_rule_results():
+    from guide.agents.advocate import build_messages
+    import json as _json
+    msg = build_messages("I want 30% in tesla.", "TSLA", 0.3, {"per_asset_cap": 0.1},
+                         {"volatility": {"exhibit": 7, "value": 0.2}}, "size_only",
+                         [{"rule": "per_asset_cap", "status": "fail", "observed": 0.3, "limit": 0.1, "exhibits": []}])
+    payload = _json.loads(msg[0]["content"][0]["text"])
+    assert payload["risk_panel"]["volatility"] == {"exhibit": 7, "value": 0.2}
+    assert payload["request_hard_rule_results"][0]["status"] == "fail"
