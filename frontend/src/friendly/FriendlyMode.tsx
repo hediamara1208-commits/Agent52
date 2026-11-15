@@ -1,32 +1,21 @@
 import type { Focus, SessionView } from "../model/sessionView";
-import { CourtroomScene } from "./CourtroomScene";
+import { Courtroom } from "./Courtroom";
+import type { Speech } from "./hearing";
 import { CourtroomTimeline } from "./CourtroomTimeline";
 import { LiveProgress } from "./LiveProgress";
 import { FourAnswersCard, answersOf } from "./FourAnswersCard";
 import { NewsCards, newsOf } from "./NewsCards";
 import { VerdictPanel } from "./VerdictPanel";
 
-const AGENT_TITLE: Record<string, string> = { advocate: "Advocate", investigator: "Investigator", judge: "Judge" };
-const AGENT_ICON: Record<string, string> = { advocate: "⚖", investigator: "🔎", judge: "🏛" };
 
 /** Friendly_Mode: animated courtroom, short statements, verdict reveal (Req. 7.10 to 7.12, 7.17). */
 export function FriendlyMode({
-  view, onSeeDetails,
-}: { view: SessionView; onSeeDetails: (focus: Focus) => void }) {
-  const entries = Object.entries(view.summaries);
+  view, onSeeDetails, speak,
+}: { view: SessionView; onSeeDetails: (focus: Focus) => void; speak?: (speech: Speech) => Promise<void> }) {
   return (
     <div data-testid="friendly-mode">
-      <CourtroomScene activeAgent={view.active_agent} running={view.status === "running"} stage={view.stage} stagesDone={view.stages_done} />
+      <Courtroom view={view} onOpen={(number) => onSeeDetails({ kind: "exhibit", number })} speak={speak} />
       <LiveProgress key={view.session_id} view={view} />
-      {entries.length > 0 && (
-        <section aria-label="Summaries" className="statements">
-          {entries.map(([key, text]) => (
-            <p key={key} data-testid={`summary-${key}`} data-agent={key} className="bubble">
-              <strong><span aria-hidden="true">{AGENT_ICON[key] ?? "•"}</span>{AGENT_TITLE[key] ?? key}</strong> {text}
-            </p>
-          ))}
-        </section>
-      )}
       <VerdictPanel view={view} onSeeDetails={onSeeDetails} />
       <CourtroomTimeline view={view} onOpen={(number) => onSeeDetails({ kind: "exhibit", number })} />
       <FourAnswersCard

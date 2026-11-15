@@ -335,3 +335,44 @@ h3.news-title { margin: 0; font-size: .95rem; color: var(--text); text-transform
 .live-current { margin: .3rem 0; color: var(--text); font-size: .9rem; }
 .live-done { margin: .3rem 0 0; padding-left: 1.1rem; font-size: .82rem; color: var(--muted); }
 .live-done li::marker { content: "✓  "; color: #34d399; }
+
+/* ---------- full courtroom with speeches ---------- */
+.court-full { padding: .6rem; overflow: hidden; }
+.court-stage { position: relative; border-radius: 12px; overflow: hidden; }
+.court-stage svg { display: block; }
+.court-full .seat { transition: opacity .4s ease; }
+.court-full .seat.speaking .mouth { animation: talk .18s ease-in-out infinite alternate; }
+@keyframes talk { from { transform: scaleY(1); } to { transform: translateY(1px) scaleY(2.2); } }
+.court-full .seat .person { transform-box: fill-box; transform-origin: bottom; }
+.court-full .seat.speaking .person { animation: sway 1.6s ease-in-out infinite; }
+@keyframes sway { 50% { transform: rotate(-1.5deg) translateY(-1px); } }
+.gavel { transform-box: fill-box; transform-origin: 80% 100%; }
+.gavel.strike { animation: gavel .5s ease-in 2; }
+@keyframes gavel { 0% { transform: rotate(0); } 40% { transform: rotate(-30deg); } 70% { transform: rotate(8deg); } 100% { transform: rotate(0); } }
+.speech-bubble {
+  position: absolute; width: min(38%, 440px); padding: .65rem .85rem; border-radius: 14px;
+  background: rgba(250, 246, 236, .97); color: #1b1610; box-shadow: 0 12px 30px -10px rgba(0,0,0,.7);
+  font-size: .92rem; line-height: 1.4; animation: rise .35s ease both; border: 2px solid #e7b75f;
+}
+.speech-bubble strong { display: block; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: #8a5a2b; margin-bottom: .2rem; }
+.speech-bubble p { margin: 0; }
+.speech-bubble .caret { color: #8a5a2b; }
+.speech-bubble.speaker-advocate { border-color: #4fd1e8; }
+.speech-bubble.speaker-investigator { border-color: #8b7bff; }
+.speech-bubble.speaker-clerk { border-color: #34d399; }
+.speech-bubble.speaker-objection { border-color: #f87171; background: #fff1f1; }
+.speech-bubble.speaker-objection strong { color: #b91c1c; }
+.speech-bubble .struck { text-decoration: line-through; color: #9a6b6b; font-style: italic; margin-bottom: .3rem; }
+.court-controls { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .6rem; padding: .6rem .3rem .2rem; }
+.court-controls .court-caption { margin: 0; }
+.court-buttons { display: flex; flex-wrap: wrap; gap: .4rem; }
+.court-buttons button { padding: .35rem .7rem; font-size: .82rem; }
+.court-record { list-style: none; margin: .6rem 0 0; padding: .6rem .4rem 0; border-top: 1px solid var(--border); max-height: 260px; overflow-y: auto; }
+.court-record li { display: grid; grid-template-columns: 110px 1fr; gap: .6rem; padding: .3rem 0; font-size: .86rem; color: var(--muted); }
+.court-record li.current { color: var(--text); }
+.record-speaker { padding: .15rem .5rem; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; background: transparent; border: 1px solid var(--border); border-radius: 999px; color: var(--gold-2); cursor: pointer; }
+.record-objection .record-speaker { color: #f87171; border-color: rgba(248,113,113,.5); }
+.court-record del { color: #f87171; }
+@media (max-width: 700px) { .speech-bubble { width: 70%; font-size: .8rem; } }
+.court-full .mouth { transform-box: fill-box; transform-origin: center; }
+.court-controls .court-caption { position: static; margin: 0; padding: 0; background: none; border: 0; }

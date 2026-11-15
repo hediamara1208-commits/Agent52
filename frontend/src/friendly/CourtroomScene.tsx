@@ -7,7 +7,7 @@ export const SEATS = [
   { agent: "clerk", label: "Clerk", role: "Writes the ruling", x: 900, y: 214, color: "#34d399", icon: "📜" },
 ] as const;
 
-const CAPTION: Record<string, string> = {
+export const CAPTION: Record<string, string> = {
   advocate: "The Advocate is building options that serve your goal…",
   investigator: "The Investigator is naming the risks that matter for you…",
   judge: "The Judge is weighing your preferences against the rules…",
@@ -99,4 +99,14 @@ export function CourtroomScene({ activeAgent, running = false, stage, stagesDone
       </p>
     </div>
   );
+}
+
+/** Which seat works now, and what the court caption says (shared with the full courtroom). */
+export function courtState(activeAgent: SessionView["active_agent"], running: boolean, stage?: string, stagesDone: string[] = []) {
+  const active = activeAgent?.toLowerCase() ?? (running && stage === "judge" ? "clerk" : null);
+  const checkingOptions = stagesDone.includes("advocate") && !stagesDone.includes("option_rules");
+  const caption = active ? CAPTION[active] ?? "The tribunal is in session…"
+    : running ? (checkingOptions ? "The code is checking the options against your limits…" : "The tribunal is in session…")
+    : "The tribunal has risen.";
+  return { active, caption };
 }

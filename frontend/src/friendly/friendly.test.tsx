@@ -28,7 +28,7 @@ describe("Friendly_Mode", () => {
     const onSee = vi.fn();
     render(<FriendlyMode view={view} onSeeDetails={onSee} />);
     expect(screen.getByTestId("verdict")).toHaveTextContent("Accepted with conditions");
-    expect(screen.getByTestId("summary-advocate")).toHaveTextContent("Two options proposed.");
+    expect(screen.getByTestId("court-record")).toHaveTextContent("So ordered.");
     fireEvent.click(screen.getByRole("button", { name: "[Exhibit 3]" }));
     expect(onSee).toHaveBeenCalledWith({ kind: "exhibit", number: 3 });
   });
