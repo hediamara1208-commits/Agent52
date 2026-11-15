@@ -65,6 +65,31 @@ def _extract_ticker(text: str, universe: set[str]) -> Optional[str]:
     return None
 
 
+# Common names for the starter universe, so "30% in tesla" works like "30% in TSLA".
+# Only names whose ticker is in the given universe are used.
+_NAME_ALIASES = {
+    "royal bank": "RY.TO", "rbc": "RY.TO", "td bank": "TD.TO", "toronto-dominion": "TD.TO",
+    "manulife": "MFC.TO", "enbridge": "ENB.TO", "canadian natural": "CNQ.TO",
+    "canadian national": "CNR.TO", "cn rail": "CNR.TO", "fortis": "FTS.TO",
+    "couche-tard": "ATD.TO", "couche tard": "ATD.TO", "shopify": "SHOP.TO",
+    "constellation software": "CSU.TO", "apple": "AAPL", "microsoft": "MSFT", "nvidia": "NVDA",
+    "alphabet": "GOOGL", "google": "GOOGL", "amazon": "AMZN", "tesla": "TSLA",
+    "jpmorgan": "JPM", "jp morgan": "JPM", "johnson & johnson": "JNJ", "johnson and johnson": "JNJ",
+    "procter & gamble": "PG", "procter and gamble": "PG", "exxon": "XOM", "exxonmobil": "XOM",
+    "s&p 500": "SPY", "nasdaq": "QQQ", "gold": "GLD", "bitcoin": "BTC-USD", "btc": "BTC-USD",
+    "ether": "ETH-USD", "ethereum": "ETH-USD", "eth": "ETH-USD",
+}
+
+
+def _ticker_from_name(text: str, universe: set[str]) -> Optional[str]:
+    low = text.lower()
+    for name in sorted(_NAME_ALIASES, key=len, reverse=True):
+        ticker = _NAME_ALIASES[name]
+        if ticker in universe and re.search(r"(?<![\w&])" + re.escape(name) + r"(?![\w&])", low):
+            return ticker
+    return None
+
+
 def _validated_ticker(value: object, universe: set[str]) -> Optional[str]:
     if not isinstance(value, str):
         return None
@@ -84,7 +109,7 @@ def parse_request(
 ) -> Union[ParsedRequest, MissingFields]:
     """Return a ParsedRequest, or MissingFields naming what is absent."""
     text = text or ""
-    ticker = _extract_ticker(text, universe)
+    ticker = _extract_ticker(text, universe) or _ticker_from_name(text, universe)
     weight = _extract_weight(text)
 
     if (ticker is None or weight is None) and fallback is not None:

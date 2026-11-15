@@ -106,3 +106,14 @@ describe("Session_API request body", () => {
     });
   });
 });
+
+describe("Session_API missing fields", () => {
+  it("maps {asset: true} to the 'asset' hint", async () => {
+    const { createApiClient, ApiError } = await import("./api/client");
+    const f = vi.fn(async () => new Response(JSON.stringify({ error: "request is missing fields", missing: { asset: true, size: false } }), { status: 422 }));
+    const api = createApiClient({ apiUrl: "https://api.example" }, async () => "tok", f as unknown as typeof fetch);
+    const err = await api.startSession({ persona_id: "robert", profile_id: null, values: {} as never, request_text: "30% in x" }).catch((e) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.missing).toBe("asset");
+  });
+});
