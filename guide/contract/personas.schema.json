@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "persona_entry.schema.json",
+  "title": "Persona_File entry (light schema, one entry)",
+  "type": "object",
+  "required": ["id", "display_name", "risk_level", "horizon", "contract_values"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+    "display_name": { "type": "string", "minLength": 1 },
+    "risk_level": { "enum": ["low", "low_to_moderate", "moderate", "high"] },
+    "horizon": {
+      "oneOf": [
+        { "type": "number", "exclusiveMinimum": 0 },
+        {
+          "type": "object",
+          "required": ["min"],
+          "additionalProperties": false,
+          "properties": {
+            "min": { "type": "number", "exclusiveMinimum": 0 },
+            "max": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        }
+      ]
+    },
+    "facts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value"],
+        "properties": { "excerpt": { "$ref": "#/$defs/excerpt" } }
+      }
+    },
+    "soft_preferences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "text"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
+          "text": { "type": "string", "minLength": 1 },
+          "basis": { "enum": ["quoted", "assumption", "user"] },
+          "excerpt": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "contract_values": {
+      "type": "object",
+      "required": [
+        "horizon_years", "max_volatility", "max_drawdown", "per_asset_cap",
+        "per_asset_class_caps", "sector_caps", "crypto_cap", "esg_exclusions"
+      ],
+      "properties": {
+        "horizon_years": { "$ref": "#/$defs/cv_horizon" },
+        "max_volatility": { "$ref": "#/$defs/cv_fraction" },
+        "max_drawdown": { "$ref": "#/$defs/cv_fraction" },
+        "per_asset_cap": { "$ref": "#/$defs/cv_fraction" },
+        "per_asset_class_caps": { "$ref": "#/$defs/cv_cap_map" },
+        "sector_caps": { "$ref": "#/$defs/cv_cap_map" },
+        "crypto_cap": { "$ref": "#/$defs/cv_fraction" },
+        "esg_exclusions": { "$ref": "#/$defs/cv_strings" },
+        "speculative_limit": { "$ref": "#/$defs/cv_nullable_fraction" },
+        "base_portfolio": { "$ref": "#/$defs/cv_weights" }
+      }
+    }
+  },
+  "$defs": {
+    "excerpt": {
+      "anyOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      ]
+    },
+    "cv_base": {
+      "type": "object",
+      "required": ["value"],
+      "properties": {
+        "basis": { "enum": ["quoted", "assumption", "user"] },
+        "rationale": { "type": "string" },
+        "excerpt": { "$ref": "#/$defs/excerpt" }
+      }
+    },
+    "fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+    "cv_horizon": {
+      "allOf": [
+        { "$ref": "#/$defs/cv_base" },
+        { "properties": { "value": { "type": "integer", "minimum": 1, "maximum": 100 } } }
+      ]
+    },
+    "cv_fraction": {
+      "allOf": [
+        { "$ref": "#/$defs/cv_base" },
+        { "properties": { "value": { "$ref": "#/$defs/fraction" } } }
+      ]
+    },
+    "cv_nullable_fraction": {
+      "allOf": [
+        { "$ref": "#/$defs/cv_base" },
+        { "properties": { "value": { "anyOf": [{ "$ref": "#/$defs/fraction" }, { "type": "null" }] } } }
+      ]
+    },
+    "cv_cap_map": {
+      "allOf": [
+        { "$ref": "#/$defs/cv_base" },
+        {
+          "properties": {
+            "value": {
+              "type": "object",
+              "propertyNames": { "minLength": 1 },
+              "additionalProperties": { "$ref": "#/$defs/fraction" }
+            }
+          }
+        }
+      ]
+    },
+    "cv_weights": {
+      "allOf": [
+        { "$ref": "#/$defs/cv_base" },
+        {
+          "properties": {
+            "value": {
+              "type": "object",
+              "minProperties": 1,
+              "propertyNames": { "minLength": 1 },
+              "additionalProperties": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
+            }
+          }
+        }
+      ]
+    },
+    "cv_strings": {
+      "allOf": [
+        { "$ref": "#/$defs/cv_base" },
+        { "properties": { "value": { "type": "array", "items": { "type": "string", "minLength": 1 } } } }
+      ]
+    }
+  }
+}

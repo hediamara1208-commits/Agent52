@@ -10,3 +10,7 @@ cdk.out/
 .hypothesis/
 guide.egg-info/
 .pytest_cache/
+frontend/node_modules/
+frontend/dist/
+frontend/dist-replay/
+/build/

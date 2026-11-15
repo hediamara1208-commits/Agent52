@@ -16,6 +16,8 @@ import yaml
 
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.yaml"
 _ENV_PREFIX = "GUIDE_"
+AGENT_NAMES = ("advocate", "investigator", "judge")
+ADVOCATE_SCOPES = ("size_only", "universe")
 _REMOVED_DATA_LOCATION_MESSAGE = (
     "data_location has been removed: Amazon S3 is always the primary data store. "
     "Configure cache_dir for local cached copies."
@@ -26,6 +28,9 @@ _REMOVED_DATA_LOCATION_MESSAGE = (
 class Config:
     aws_region: str = "us-east-1"
     model_id: str = ""
+    model_ids: dict[str, str] = field(default_factory=dict)
+    advocate_scope: str = "size_only"
+    agent_timeout_seconds: float = 60
     guardrail_id: str = ""
     guardrail_version: str = "DRAFT"
     s3_bucket: str = ""
@@ -58,6 +63,24 @@ class Config:
     def __post_init__(self) -> None:
         if not self.s3_bucket.strip():
             raise ValueError("s3_bucket is required because Amazon S3 is the primary data store")
+
+        if self.advocate_scope not in ADVOCATE_SCOPES:
+            raise ValueError(f"advocate_scope must be one of {', '.join(ADVOCATE_SCOPES)}")
+        if (
+            isinstance(self.agent_timeout_seconds, bool)
+            or not isinstance(self.agent_timeout_seconds, (int, float))
+            or self.agent_timeout_seconds <= 0
+        ):
+            raise ValueError("agent_timeout_seconds must be greater than zero")
+        unknown = set(self.model_ids) - set(AGENT_NAMES)
+        if unknown:
+            raise ValueError(f"model_ids has unknown agents: {', '.join(sorted(unknown))}")
+        resolved = {}
+        for agent in AGENT_NAMES:
+            value = self.model_ids.get(agent)
+            value = value.strip() if isinstance(value, str) else ""
+            resolved[agent] = value or self.model_id
+        object.__setattr__(self, "model_ids", resolved)
 
         positive_ints = {
             "s3_connect_timeout_seconds": self.s3_connect_timeout_seconds,
@@ -92,7 +115,7 @@ def _config_error_for_removed_data_location(values: dict[str, Any], env: dict[st
 
 def _coerce_environment_value(name: str, value: str) -> Any:
     """Parse structured and numeric ``GUIDE_*`` values using YAML scalars."""
-    if name in {"macro_publication_lag_days", "sensitivity_ranges"}:
+    if name in {"macro_publication_lag_days", "sensitivity_ranges", "model_ids"}:
         parsed = yaml.safe_load(value)
         if not isinstance(parsed, dict):
             raise ValueError(f"GUIDE_{name.upper()} must be a mapping")
@@ -105,7 +128,7 @@ def _coerce_environment_value(name: str, value: str) -> Any:
         "trace_summary_max_chars",
     }:
         return int(value)
-    if name == "speculative_volatility_threshold":
+    if name in {"speculative_volatility_threshold", "agent_timeout_seconds"}:
         return float(value)
     return value
 
@@ -116,6 +139,12 @@ def _normalise_values(values: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(macro_lags, dict):
             raise ValueError("macro_publication_lag_days must be a mapping")
         values["macro_publication_lag_days"] = {str(k): int(v) for k, v in macro_lags.items()}
+
+    if "model_ids" in values:
+        ids = values["model_ids"] or {}
+        if not isinstance(ids, dict):
+            raise ValueError("model_ids must be a mapping")
+        values["model_ids"] = {str(k): ("" if v is None else str(v)) for k, v in ids.items()}
 
     if "sensitivity_ranges" in values:
         ranges = values["sensitivity_ranges"] or {}

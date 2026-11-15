@@ -25,7 +25,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 
 ## Tasks
 
-- [ ] 1. Set up project structure, configuration, and data access
+- [x] 1. Set up project structure, configuration, and data access
   - [x] 1.1 Create the `guide/` package layout, `tests/`, `pyproject.toml`/`requirements.txt`, `config.py`, and `data/loader.py`
     - Config loads from environment and `config.yaml`: region, model id, guardrail id and version, S3 bucket, data location, data dir, macro publication lags. No credential fields.
     - Implement `DataSource` protocol with `LocalSource` (/workshop/Agent52/data) and `S3Source`
@@ -62,7 +62,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 40: Parquet round trip**
     - **Validates: Requirements 18.1, 18.2, 18.3**
 
-  - [ ] 1.8 Rework `data/loader.py` into a lean S3-primary `SnapshotStore` and create `data/cache.py` (follow-up to 1.1, Tier 2 lean)
+  - [x] 1.8 Rework `data/loader.py` into a lean S3-primary `SnapshotStore` and create `data/cache.py` (follow-up to 1.1, Tier 2 lean)
     - `SnapshotStore.pin()` reads the Current_Snapshot_Pointer and the Snapshot_Manifest once per session (plain GET, no conditional request) and returns a `PinnedSnapshot`
     - `PinnedSnapshot.read_table` reads the pinned Parquet files by key, cache-first in `cache_dir`, and verifies the SHA-256 checksum of the manifest; a mismatch re-downloads once, then raises `DataIntegrityError(file)`
     - Access denied raises `DataConfigError(resource)`; any other S3 error raises `DatasetUnavailable(location)`; no Cache_Fallback in Tier 2
@@ -77,15 +77,15 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
   - [ ]* 1.10 Full SnapshotStore (Tier 3): ETag-conditional pointer, VersionId reads, verified Cache_Fallback with `served_from`, `classify_s3_error`
     - _Requirements: 17.4, 17.5, 17.6, 17.8, 17.10 to 17.13_
 
-  - [ ] 1.11 Extend `Config` in `guide/config.py` with `model_ids` (advocate, investigator, judge; empty falls back to `model_id`), `advocate_scope` (`size_only` or `universe`, validated), and `agent_timeout_seconds` (positive); the keys already exist in `config.yaml`
+  - [x] 1.11 Extend `Config` in `guide/config.py` with `model_ids` (advocate, investigator, judge; empty falls back to `model_id`), `advocate_scope` (`size_only` or `universe`, validated), and `agent_timeout_seconds` (positive); the keys already exist in `config.yaml`
     - _Requirements: 4.9, 8.7, 36.3_
 
-- [ ] 2. Implement Investor_Contract, schema validation, and Profiler
+- [x] 2. Implement Investor_Contract, schema validation, and Profiler
   - [x] 2.1 Create `contract/schema.json` and `contract/validate.py`
     - `validate_contract` returns a list of failing fields (empty when valid)
     - _Requirements: 1.3, 1.4_
 
-  - [ ] 2.2 Create `personas.yaml` and `contract/profiler.py`
+  - [x] 2.2 Create `personas.yaml` and `contract/profiler.py`
     - Create `guide/contract/personas.yaml` shipping three Persona_Templates `amira`, `mateo`, `robert` (display names Amira, Mateo, Robert), transcribed from `data/context.md` section 3, as default starting points that the user can edit, extend, duplicate, or replace
     - Each shipped entry records the Persona_Facts age, occupation, risk level, horizon, family situation, experience, objective, preferences and constraints, and what the persona tests, each with the verbatim French excerpt
     - Each shipped entry records the Contract_Values horizon_years, max_volatility, max_drawdown, per_asset_cap, per_asset_class_caps, sector_caps, crypto_cap, esg_exclusions, speculative_limit, each with `basis` (`quoted` or `assumption`), `rationale`, and `excerpt` when quoted; start from the proposed values table in the design
@@ -103,7 +103,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 2: Invalid contracts are rejected with failing fields**
     - **Validates: Requirements 1.4**
 
-  - [ ] 2.5 Update `contract/schema.json` for the new risk level and provenance values (follow-up to 2.1)
+  - [x] 2.5 Update `contract/schema.json` for the new risk level and provenance values (follow-up to 2.1)
     - `risk_level` enum adds `low_to_moderate`; `provenance` enum becomes `persona_quoted`, `persona_assumption`, `user`, `form`, `default`
     - _Requirements: 1.5, 1.9, 16.12_
 
@@ -119,7 +119,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
   - [ ]* 2.8 Write property test that persona contracts come only from the Persona_File and the form
     - **Property 37: Persona contracts come only from the Persona_File and the form**
     - **Validates: Requirements 1.5, 16.11, 16.12, 16.13, 16.15**
-- [ ] 3. Implement Exhibits, alignment, and data-quality handling
+- [x] 3. Implement Exhibits, alignment, and data-quality handling
   - [x] 3.1 Create `toolkit/exhibits.py` with frozen `Exhibit` and `ExhibitRegistry`
     - Sequential numbering, all required fields, read-only value and inputs
     - _Requirements: 2.2, 2.3_
@@ -148,27 +148,27 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 9: Macro publication lag**
     - **Validates: Requirements 3.4**
 
-  - [ ] 3.7 Rework `toolkit/exhibits.py` to bind the pinned snapshot (follow-up to 3.1)
+  - [x] 3.7 Rework `toolkit/exhibits.py` to bind the pinned snapshot (follow-up to 3.1)
     - Add `snapshot_id` and `snapshot_retrieved_at` fields to `Exhibit` and `to_dict`
     - `ExhibitRegistry(snapshot: SnapshotInfo | None)` fills both fields on `add` and appends `quality.fallback_note(snapshot)` to every Exhibit when `served_from == "cache_fallback"`
     - `source_files` entries name table and snapshot (`prices_daily@{snapshot_id}`)
     - _Requirements: 2.2, 9.5, 17.11_
 
-  - [ ] 3.8 Extend `toolkit/align.py` and `data/quality.py` for snapshots (follow-up to 3.3)
+  - [x] 3.8 Extend `toolkit/align.py` and `data/quality.py` for snapshots (follow-up to 3.3)
     - `filter_as_of` clamps to `min(as_of, coverage_end)` and returns the coverage-end note when `as_of` is later
     - `convert_to_cad` drops dates with no FX rate on or before them and lists them in the notes
     - `quality.py`: `fallback_note(snapshot)`, `snapshot_note(snapshot)`, `coverage_end_note(snapshot)` texts
     - _Requirements: 3.12, 17.11, 20.10_
 
-- [ ] 4. Implement Toolkit metrics and Converse tool specs
-  - [ ] 4.1 Create `toolkit/metrics.py`
+- [x] 4. Implement Toolkit metrics and Converse tool specs
+  - [x] 4.1 Create `toolkit/metrics.py`
     - `annualized_return`, `annualized_volatility`, `max_drawdown` (peak and trough dates), `correlation`, `drawdown_in_period`, `portfolio_metrics`
     - Pipeline: ticker check against the pinned snapshot's universe, as-of and coverage-end filter, FX, alignment, 20-observation check, adj_close returns (ratios only), CNQ note, register Exhibit
     - Read tables only through a `DataSource` (`PinnedSnapshot` or a test `LocalSource` adapter); no import of yfinance or the Athena module
     - Errors return `ToolError` and create no Exhibit
     - _Requirements: 2.1, 2.2, 2.4, 2.5, 2.6, 2.7, 3.1, 3.2, 3.3, 3.6, 3.7, 3.12, 19.8, 20.5, 20.10_
 
-  - [ ] 4.2 Create `toolkit/tools.py` with Bedrock Converse `toolSpec` definitions and a tool runner
+  - [x] 4.2 Create `toolkit/tools.py` with Bedrock Converse `toolSpec` definitions and a tool runner
     - Generate JSON input schemas; dispatch `toolUse`, return Exhibit number and value in `toolResult`
     - _Requirements: 2.8_
 
@@ -203,13 +203,13 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 - [ ] 5. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Implement Trace recorder and Bedrock agent base
+- [x] 6. Implement Trace recorder and Bedrock agent base
   - [x] 6.1 Create `trace/recorder.py`
     - Events for agent calls, tool calls with Exhibit number, judge checks, guardrail blocks, removed claims; timestamp and sequence number; summaries only
     - JSON export; OpenTelemetry span emission for AgentCore Observability; `trace_chain(statement)` link chain
     - _Requirements: 8.3, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
 
-  - [ ] 6.2 Create `agents/base.py` Bedrock Converse wrapper
+  - [x] 6.2 Create `agents/base.py` Bedrock Converse wrapper
     - Tool-use loop, `guardrailConfig` on every call, guardrail-intervention handling mapped to the Challenge_Rule and recorded in Trace
     - Guardrail blocks of order, transfer, or brokerage or bank action instructions produce a message that the Guide_System only provides guidance
     - Throttling retry up to 3 times with exponential backoff and jitter, then `StageFailure(stage)`
@@ -225,18 +225,18 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 21: Trace export round trip**
     - **Validates: Requirements 9.4**
 
-  - [ ] 6.5 Extend `trace/recorder.py` with data events and a summary length cap (follow-up to 6.1)
+  - [x] 6.5 Extend `trace/recorder.py` with data events and a summary length cap (follow-up to 6.1)
     - `data_event(kind, snapshot_id, retrieved_at, cause)` for `snapshot_pinned`, `cache_fallback`, `ingestion_aborted`, included in JSON export and spans
     - Replace the fixed summary limit with `trace_summary_max_chars` from config
     - _Requirements: 9.6, 9.7, 17.10_
 
-  - [ ] 6.6 Create `agents/instructions.py` (Instruction_Loader) and pass the System_Prompt and Instruction_Hash through `agents/base.py` and `trace/recorder.py` (follow-up to 6.1 and 6.2)
+  - [x] 6.6 Create `agents/instructions.py` (Instruction_Loader) and pass the System_Prompt and Instruction_Hash through `agents/base.py` and `trace/recorder.py` (follow-up to 6.1 and 6.2)
     - `load_system_prompt(agent, root)` composes the Instruction_File text followed by the listed Skill_File texts in the listed order, under a `# Skill: <name>` heading each; computes the SHA-256 `instruction_hash` of the UTF-8 text with LF line endings; `load_all(agents, root)`
     - `InstructionError(agent, missing_file)` when an Instruction_File is missing or lists a Skill_File that does not exist, and when a composed prompt lacks the `guidance_only` text
     - `agents/base.py` passes the composed text as the Converse `system` block; `TraceRecorder.agent_call` takes `instruction_hash` and stores it in the event and the OpenTelemetry span
     - _Requirements: 9.8, 21.4, 21.5, 21.6, 21.7, 21.8_
 
-  - [ ] 6.7 Create the Instruction_Files and Skill_Files
+  - [x] 6.7 Create the Instruction_Files and Skill_Files
     - `guide/agents/instructions/{advocate,investigator,judge}.md` (the Profiler and the Clerk are code and have no Instruction_File) with the sections Role, Goals, Allowed tools, Output JSON format, Forbidden behaviors, Citation rule, Guidance-only rule, Tone, and Included skills; stretch agents get their own file when built
     - `guide/agents/skills/{citing_exhibits,guidance_only,data_limits,plain_language,persona_handling}.md` with the content listed in the design; every Instruction_File lists `guidance_only`
     - No credentials or secrets; every file forbids instructions to place, route, prefill, or trigger an order, transfer, or brokerage or bank action
@@ -250,7 +250,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - Every agent has an Instruction_File with all required sections; every listed Skill_File exists; every composed System_Prompt contains the guidance_only text; Skill_File statements of Requirements 21.11 to 21.14 are present
     - _Requirements: 10.16, 21.1, 21.2, 21.3, 21.6, 21.11, 21.12, 21.13, 21.14_
 
-- [ ] 7. Implement Tribunal governance logic
+- [x] 7. Implement Tribunal governance logic
   - [x] 7.1 Create `tribunal/request_parser.py`
     - Rule-based extraction of ticker and weight with model fallback; validate against universe; report missing asset or size
     - Expose `parse_request` for reuse by the Companion API
@@ -260,7 +260,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 18: Request parsing round trip**
     - **Validates: Requirements 7.21**
 
-  - [ ] 7.3 Create `tribunal/citations.py`
+  - [x] 7.3 Create `tribunal/citations.py`
     - `Claim`, `validate_claim`, `enforce` with up to 2 revisions, then removal and Trace record
     - Number-versus-Exhibit check: equal after rounding the Exhibit value to the decimals stated in the claim
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.8_
@@ -269,7 +269,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 12: Claim validation and revision bound**
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5, 4.6**
 
-  - [ ] 7.5 Create `tribunal/rules.py` with `evaluate_rules` and `decide`
+  - [x] 7.5 Create `tribunal/rules.py` with `evaluate_rules` and `decide`
     - Rules on the proposed portfolio: per-asset cap (equity and crypto only, not ETFs), asset-class caps, sector caps, crypto cap, max volatility, max drawdown, speculative limit (crypto plus assets above `speculative_volatility_threshold` 0.45), ESG exclusion from `data/esg_exclusions.csv` when the contract lists `fossil_fuel_screen`
     - Verdict: all pass gives accept; otherwise `max_weight_within_contract` (task 21.2, 0.5-point grid) gives accept with conditions; an ESG failure or no positive size gives reject; tension statement for low-to-moderate personas exceeding the per-asset cap
     - Log each rule check to the Trace; reproduce the expected Verdicts of the design table "Demo cases"
@@ -283,13 +283,13 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 14: Conditions are numeric and sufficient**
     - **Validates: Requirements 5.3**
 
-  - [ ] 7.8 Create `tribunal/guidance_only.py`
+  - [x] 7.8 Create `tribunal/guidance_only.py`
     - `check_guidance_only(agent, statements)` returns `GuidanceFinding` list using a deterministic pattern list: imperative order or transfer instructions, simulated execution ("order submitted", "trade confirmed"), prefill or trigger language
     - `strip_violations(ruling, findings)` removes failing statements from the Ruling and returns Trace events for each removal
     - Record one pass or fail Trace event per checked agent output; produce the guidance-only message for the UI
     - _Requirements: 5.11, 5.12, 13.1, 13.6_
 
-  - [ ] 7.9 Create `tribunal/sensitivity.py`
+  - [x] 7.9 Create `tribunal/sensitivity.py`
     - Vary position size (0.5-point grid, same as `max_weight_within_contract`) and each Investor_Contract value used by a failing rule over `sensitivity_ranges`, and the 2022 drawdown period; report threshold or "no change in tested range" (horizon is used by no rule, so report it as no change); store each result as an Exhibit
     - _Requirements: 6.5, 6.6, 6.7_
 
@@ -301,7 +301,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 24: Guidance-only enforcement**
     - **Validates: Requirements 5.11, 5.12, 13.6**
 
-- [ ] 8. Implement agents
+- [x] 8. Implement agents
   - [ ]* 8.1 (Superseded by 29.2 and 29.3; do not implement) Create `agents/investigator.py` and `agents/advocate.py`
     - Two role prompts over the shared Toolkit and Exhibit_Registry; structured JSON claims with citations and numbers
     - Advocate includes at least one claim citing an Exhibit computed at a position size smaller than the request; unsupported topics labeled as unsupported by Exhibits
@@ -314,7 +314,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - Run `check_guidance_only` on every Investigator, Advocate, and Clerk output and record results in the Trace
     - _Requirements: 5.5, 5.6, 5.9, 5.11, 5.12_
 
-  - [ ] 8.3 Create `agents/clerk.py` as a code template (no model call) for the Ruling
+  - [x] 8.3 Create `agents/clerk.py` as a code template (no model call) for the Ruling
     - Sections Facts, Assumptions, Fictional scenarios, Limits, "What would change the verdict"
     - Code inserts disclaimers, survivorship-bias text, and unsupported-topic notice; Facts cite Exhibits; includes a factor besides volatility
     - Code builds the Assumptions section: period, currency, alignment, pinned Snapshot_Id with retrieval date, and each rule-relevant field with `persona_assumption` or `default` provenance, with its Persona_File rationale
@@ -337,12 +337,12 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 38: Assumptions section lists snapshot and assumed contract values**
     - **Validates: Requirements 6.3, 16.16**
 
-- [ ] 9. Implement orchestrator and memory
-  - [ ] 9.1 Create `memory.py` (`MemoryStore`) wrapping AgentCore Memory
+- [x] 9. Implement orchestrator and memory
+  - [x] 9.1 Create `memory.py` (`MemoryStore`) wrapping AgentCore Memory
     - `save_contract`, `save_summary`, `load_contract`, keyed by profile identifier
     - _Requirements: 8.4_
 
-  - [ ] 9.2 Create `tribunal/orchestrator.py`
+  - [x] 9.2 Create `tribunal/orchestrator.py`
     - Flow: load all Instruction_Files (`load_all`), pin snapshot (`SnapshotStore.pin()`), Profiler, schema validation gate, Investigator and Advocate, citation enforcement, Judge, guidance-only check and violation stripping, Clerk, memory save, Trace export
     - Create the `ExhibitRegistry` with the pinned `SnapshotInfo`; record `snapshot_pinned` or `cache_fallback` in the Trace; write `snapshot` and `data_notices` into the `SessionView`
     - Do not start a session on an invalid contract, a Persona_File load error, `DatasetUnavailable`, `DataConfigError`, or `DataIntegrityError`; surface the failing stage on error
@@ -377,30 +377,30 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 - [ ] 10. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Implement the web UI (Friendly_Mode and Advanced_Mode) and the shared SessionView
-  - [ ] 11.1 Create `tribunal/session_view.py` with the shared `SessionView` and `tribunal/session_view.schema.json`
+- [x] 11. Implement the web UI (Friendly_Mode and Advanced_Mode) and the shared SessionView
+  - [x] 11.1 Create `tribunal/session_view.py` with the shared `SessionView` and `tribunal/session_view.schema.json`
     - Fields: session_id, status (`running`, `completed`, `failed`), contract, stage, stages_done, active_agent, exhibits, verdict, ruling, rule_results, sensitivity, trace, summaries, snapshot, data_notices, error; the browser mode and focus are not part of it
     - `session_view_to_json` and `session_view_from_json` validate against the JSON schema and raise an error naming the failing fields
     - Helper functions that build a SessionView update for a finished stage, for a data notice, and for a failure (failing stage and message)
     - _Requirements: 7.9, 7.14, 7.15, 7.16, 7.17, 7.22, 17.12, 22.15, 22.17_
 
-  - [ ] 11.2 Create `tribunal/summaries.py`
+  - [x] 11.2 Create `tribunal/summaries.py`
     - Template-built plain-language summary per agent stage from structured output; truncate at a sentence boundary to at most 60 words; numbers come from Exhibits with Exhibit links
     - _Requirements: 7.11, 7.12_
 
-  - [ ] 11.3 Create the `frontend/` project and `frontend/src/friendly/` Friendly_Mode components
+  - [x] 11.3 Create the `frontend/` project and `frontend/src/friendly/` Friendly_Mode components
     - Vite, React, and TypeScript project with Vitest, React Testing Library, fast-check, and the Amplify Auth library; an `npm run gen:types` script generates `src/model/sessionView.ts` types from `session_view.schema.json`
     - View store in `src/model/sessionView.ts` holding `view`, `mode` (default `friendly`), and `focus`; a mode switch changes only `mode` and never calls the API; `setFocus` for an Exhibit, rule, or Trace entry
     - Courtroom scene as an inline SVG component with Investigator, Advocate, Judge, and Clerk seats; highlight the seat of `view.active_agent`; show the summary
     - Verdict and "What would change the verdict" in plain language with `[Exhibit N]` links; a "See details" control sets `focus` and switches to Advanced_Mode
     - _Requirements: 7.9, 7.10, 7.11, 7.12, 7.14, 7.15, 7.16, 7.17_
 
-  - [ ] 11.4 Create `frontend/src/advanced/` Advanced_Mode components
+  - [x] 11.4 Create `frontend/src/advanced/` Advanced_Mode components
     - Exhibit list, per-rule pass or fail table with observed values and limits, Sensitivity_Analysis results, trace panel (agent calls with Instruction_Hash, tool calls, Exhibits, Judge checks, Guardrail blocks, data events), Trace JSON download
     - Open and scroll to the item in `focus`; Exhibit citations render as clickable elements opening Exhibit details, including Snapshot_Id
     - _Requirements: 7.6, 7.7, 7.13, 7.17_
 
-  - [ ] 11.5 Create `frontend/src/App.tsx`, `src/api/client.ts`, and the sign-in gate
+  - [x] 11.5 Create `frontend/src/App.tsx`, `src/api/client.ts`, and the sign-in gate
     - Sign-in through Amplify Auth against the Cognito user pool; show no session data before sign-in; the API client sends the access token and reads `config.json` for the API URL and Cognito identifiers
     - Persona picker (every valid Persona_Template and saved Custom_Profile from `GET /personas` and `GET /profiles`; disabled with the loading error shown when the Persona_File fails to load), custom-profile form pre-filled from a selected template, save as Custom_Profile, request box, mode switch
     - `POST /sessions`, then poll `GET /sessions/{id}` every 2 seconds until `completed` or `failed`; stage progress from `stage` and `stages_done`
@@ -439,7 +439,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Validates: Requirements 22.15, 22.16**
 
 - [ ] 12. AWS configuration templates, data platform, guidance-only scan, and deliverable files
-  - [ ] 12.1 Create `deploy/` templates for the Guardrail and least-privilege IAM policies
+  - [x] 12.1 Create `deploy/` templates for the Guardrail and least-privilege IAM policies
     - Implemented as CDK constructs in `infra/stacks/guardrail_stack.py` and a shared `infra/iam.py` helper; the synthesized CloudFormation templates are the deployment templates
     - Guardrail already exists: `verdict-guardrail` (ID in `config.yaml`, version DRAFT). Output-only denied topics RealTransactions and ReturnPredictions, HIGH prompt-attack filter on input. No personalized-advice topic: it blocked valid demo verdicts; the guidance-only check covers that wording. A template is optional
     - IAM helper builds the roles of the design table: Application_Role (Bedrock on model and Guardrail ARNs; `s3:GetObject`, `s3:GetObjectVersion` on snapshot, curated, and pointer keys only; Session_Store item actions by table name; AgentCore Memory on one resource; trace and metric write), Seed_Import_Job (S3 get/put on snapshot, curated, pointer prefixes; `glue:GetTable`, `glue:BatchCreatePartition`; Athena query permissions), Athena query (workgroup, Glue read, curated read, results bucket prefix)
@@ -470,7 +470,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - Guardrail blocks a trade instruction, an order, transfer, or brokerage or bank action, and a return prediction; it passes the Robert and Mateo demo verdict texts
     - _Requirements: 5.7, 5.8, 13.5_
 
-  - [ ] 12.7 Create the CDK `DataStack` in `infra/stacks/data_stack.py` (S3, Glue, Athena)
+  - [x] 12.7 Create the CDK `DataStack` in `infra/stacks/data_stack.py` (S3, Glue, Athena)
     - Primary_Store bucket: versioning, SSE-S3, Block Public Access, TLS-only bucket policy, deny `s3:DeleteObject` and `s3:DeleteObjectVersion` on `snapshots/` and `curated/` for every principal; retain policy on destroy
     - Athena results bucket: SSE-S3, Block Public Access, 7-day expiration
     - Glue database `alphaforge_guide` and five tables with explicit columns generated from `TABLE_SCHEMAS`, Parquet SerDe, `snapshot_id` partition key, locations under `curated/{table}/`; no Glue crawler
@@ -478,7 +478,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - Seed_Import_Job role and Athena query role from the IAM helper of 12.1
     - _Requirements: 8.13, 8.14, 18.4, 18.7, 19.1, 24.7, 26.1_
 
-  - [ ] 12.8 Create `ingest/validate.py`
+  - [x] 12.8 Create `ingest/validate.py`
     - Python validation checks mirroring the checks of `data/build_dataset.py`: duplicate (date, ticker), missing tickers, currency mismatch with the universe, non-positive adj_close
     - `restrict_universe(requested, universe, additions, data_sources_doc)`: accept universe tickers and documented additions only, name rejected tickers
     - _Requirements: 20.2, 20.3, 20.6, 20.7, 20.8_
@@ -491,11 +491,11 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 47: Universe restriction**
     - **Validates: Requirements 20.2, 20.3, 20.8**
 
-  - [ ] 12.12 Create `data/catalog.py` for Glue partition registration
+  - [x] 12.12 Create `data/catalog.py` for Glue partition registration
     - `register_partitions(glue, database, bucket, prefix, snapshot_id)` calls `BatchCreatePartition` for the five tables; `AlreadyExistsException` counts as success
     - _Requirements: 18.5_
 
-  - [ ] 12.13 Create `athena/queries.py` and saved queries in `athena/sql/`
+  - [x] 12.13 Create `athena/queries.py` and saved queries in `athena/sql/`
     - `build_query(name, snapshot_id)` rejects ids not matching `SNAPSHOT_ID_RE` and uses `snapshot_id = ?` with `ExecutionParameters`; never concatenates the id into SQL
     - `validation_queries(snapshot_id)`: row counts per table, duplicates, ticker set equality, adj_close <= 0, currency mismatch; `run_query` with the configured workgroup and a timeout
     - At least one saved exploration query per Dataset table, each filtered by `snapshot_id`
@@ -505,7 +505,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 48: Athena queries are snapshot-scoped and injection-safe**
     - **Validates: Requirements 19.6, 19.7**
 
-  - [ ] 12.15 Create `ingest/writer.py` (Snapshot_Writer, Tier 2 lean)
+  - [x] 12.15 Create `ingest/writer.py` (Snapshot_Writer, Tier 2 lean)
     - `write_snapshot(draft, s3, glue, athena, config)` in order: Python validation, raw CSV and Parquet (collect SHA-256), Glue partitions, Athena row-count and duplicate queries (recorded as `skipped` if Athena is unavailable), manifest, then pointer last
     - Refuse to write when the Snapshot_Id prefix already exists (one `ListObjectsV2` check)
     - Return `WriteResult` with status, failed step, and violations; the pointer changes only at the last step
@@ -517,7 +517,7 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 44: Commit gating and snapshot immutability**
     - **Validates: Requirements 18.6, 18.10, 19.3, 19.4, 20.7**
 
-  - [ ] 12.17 Create `ingest/seed.py` (Seed_Import_Job library and CLI)
+  - [x] 12.17 Create `ingest/seed.py` (Seed_Import_Job library and CLI)
     - `seed_snapshot(config, s3, glue, athena, input_dir, label, retrieved_at, additions, dry_run, prefill_cache)` returns `SeedResult`; reads the five CSV files from `input_dir` (default `seed_dir`), applies `restrict_universe`, carries over unchanged tables and records `carried_over`, validates, stops with `exists` when the Snapshot_Id is present, then calls `write_snapshot`
     - Baseline run: `/workshop/Agent52/data`, label `starter`, retrieval date 2026-11-13 from `sources_metadata.csv`, Snapshot_Id `20261113T000000Z-starter`
     - CLI `python -m guide.ingest.seed` with `--input-dir`, `--label`, `--retrieved-at`, `--dry-run`, `--prefill-cache`; `--prefill-cache` copies the pointer, manifest, and Parquet objects into the Local_Cache; no network download of any kind and no yfinance import
@@ -608,33 +608,33 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 - [ ] 16. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 17. Session_API, Session_Store, and Agent_Runtime packaging (Req. 22, 23)
-  - [ ] 17.1 Create `tribunal/entrypoint.py` with `run_session` and the local runner `guide/run_session.py`
+- [x] 17. Session_API, Session_Store, and Agent_Runtime packaging (Req. 22, 23)
+  - [x] 17.1 Create `tribunal/entrypoint.py` with `run_session` and the local runner `guide/run_session.py`
     - `run_session(request, sink)` is the single entry point: load all Instruction_Files, pin the snapshot, run the orchestrator, publish SessionViews to the `SessionSink`; the Agent_Runtime, the tests, and `python -m guide.run_session` all call it
     - The local runner uses the in-memory sink and prints the final SessionView JSON
     - _Requirements: 22.6, 22.14_
 
-  - [ ] 17.2 Create `session/store.py` (`SessionStore` and the `SessionSink` protocol)
+  - [x] 17.2 Create `session/store.py` (`SessionStore` and the `SessionSink` protocol)
     - DynamoDB implementation: partition key `owner`, sort key `session#<id>` or `profile#<id>`, `view`, `status`, `updated_at`, `ttl` (creation plus 7 days, sessions only); `put_view`, `get_view(owner, id)`, `put_profile`, `list_profiles`; an in-memory implementation with the same interface
     - Reads always take the owner from the caller, so a foreign session identifier finds no item
     - _Requirements: 7.23, 22.5, 22.6, 22.7, 22.8, 22.12_
 
-  - [ ] 17.3 Extend `tribunal/orchestrator.py` to publish the SessionView to a `SessionSink` (follow-up to 9.2)
+  - [x] 17.3 Extend `tribunal/orchestrator.py` to publish the SessionView to a `SessionSink` (follow-up to 9.2)
     - Write the SessionView after each stage and on failure (`status=failed`, failing stage, message); call `load_all` for the Instruction_Files before the pin step
     - _Requirements: 21.5, 22.6, 22.17, 7.20_
 
-  - [ ] 17.4 Create `runtime/app.py` and `runtime/Dockerfile` (AgentCore Runtime entry point)
+  - [x] 17.4 Create `runtime/app.py` and `runtime/Dockerfile` (AgentCore Runtime entry point)
     - Entry point from the AgentCore Python SDK; validate the payload `{session_id, owner, profile, request_text}`; start `run_session` as a background task with the DynamoDB sink; return an acknowledgement before the Verdict exists; confirm the SDK's async task API names against the pinned version
     - Emit OpenTelemetry spans (agent call, tool call, Judge check) with Snapshot_Id, and EMF metrics `SessionsStarted`, `SessionsFailed`, `GuardrailInterventions`, `BedrockThrottles`, `CacheFallbacks`
     - Dockerfile for the container image; the image holds the guide package and the Instruction_Files and Skill_Files
     - _Requirements: 23.1, 23.2, 23.3, 23.5, 25.4_
 
-  - [ ] 17.5 Create `api/handler.py` (Session_API Lambda handlers)
+  - [x] 17.5 Create `api/handler.py` (Session_API Lambda handlers)
     - Routes: `GET /personas`, `GET /profiles`, `PUT /profiles/{id}`, `POST /sessions`, `GET /sessions/{id}`, `GET /sessions/{id}/trace`, and nothing else
     - Owner comes from the validated token claim `sub`; `POST /sessions` parses the request with `parse_request`, validates the contract, writes the `running` item, invokes the Agent_Runtime, and returns the identifier; a runtime failure writes `failed` with stage `runtime` and returns 503; every response validates against `session_view.schema.json`; CORS limited to the configured origin
     - _Requirements: 7.1, 7.13, 7.21, 7.23, 22.3, 22.4, 22.5, 22.7, 22.8, 22.9, 22.10, 22.11, 23.6_
 
-  - [ ] 17.6 Extend `memory.py` to key entries by user and profile (follow-up to 9.1)
+  - [x] 17.6 Extend `memory.py` to key entries by user and profile (follow-up to 9.1)
     - `MemoryStore` takes the Cognito user identifier; keys are `{user_id}/{profile_id}`; reads return only the caller's entries
     - _Requirements: 8.4, 23.4_
 
@@ -655,36 +655,36 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
     - **Property 53: Gateway and in-process parity (stretch)**
     - **Validates: Requirements 23.7, 23.8**
 
-- [ ] 18. Infrastructure as code (CDK Python) and one-command deployment (Req. 25, 26)
-  - [ ] 18.1 Create the CDK app skeleton `infra/app.py`, `infra/cdk.json`, `infra/requirements.txt`, and the `Makefile`
+- [x] 18. Infrastructure as code (CDK Python) and one-command deployment (Req. 25, 26)
+  - [x] 18.1 Create the CDK app skeleton `infra/app.py`, `infra/cdk.json`, `infra/requirements.txt`, and the `Makefile`
     - Context keys: region, bucket suffix, model id, budget amount, budget email, and the flags `enable_waf`, `enable_kms`, `enable_cloudtrail`, `enable_object_lock`, `enable_gateway`, `enable_identity`, `enable_pipeline`; no credentials
     - Pin an `aws-cdk-lib` version that contains the `aws_bedrockagentcore` constructs; if a resource type is missing, document the AWS CLI step that creates it and passes its ARN as context
     - `Makefile` targets `deploy`, `seed`, and `destroy` call scripts under `scripts/`
     - _Requirements: 26.1, 26.2, 26.3, 26.4_
 
-  - [ ] 18.2 Create `infra/stacks/auth_stack.py` (Cognito user pool and app client)
+  - [x] 18.2 Create `infra/stacks/auth_stack.py` (Cognito user pool and app client)
     - Authorization code with PKCE, no client secret, password policy, email sign-in; outputs the user pool and client identifiers
     - _Requirements: 22.2, 22.3_
 
-  - [ ] 18.3 Create `infra/stacks/runtime_stack.py` (AgentCore Runtime, Memory, Application_Role)
+  - [x] 18.3 Create `infra/stacks/runtime_stack.py` (AgentCore Runtime, Memory, Application_Role)
     - ECR image asset from `runtime/Dockerfile`; AgentCore Runtime and Memory resources; Application_Role from the IAM helper; the Session_Store table name is a config value, so ARNs are built from names and the stacks have no cycle
     - When `enable_identity` is set, add the JWT inbound authorizer with the Cognito user pool
     - _Requirements: 8.9, 8.10, 23.1, 23.3, 23.9, 25.1_
 
-  - [ ] 18.4 Create `infra/stacks/api_stack.py` (Session_Store, Lambdas, REST API)
+  - [x] 18.4 Create `infra/stacks/api_stack.py` (Session_Store, Lambdas, REST API)
     - DynamoDB on-demand table with `ttl`; Python Lambda functions with X-Ray active tracing and the scoped Session_API role; REST API with the Cognito authorizer on every method, only the routes of 17.5, CORS limited to the Amplify origin
     - _Requirements: 22.3, 22.9, 22.10, 22.11, 22.12, 25.2, 25.8_
 
-  - [ ] 18.5 Create `infra/stacks/frontend_stack.py` and `scripts/publish_frontend.sh`
+  - [x] 18.5 Create `infra/stacks/frontend_stack.py` and `scripts/publish_frontend.sh`
     - Amplify Hosting app and branch for manual deployment; the script builds `frontend/`, writes `config.json` from the stack outputs, zips `dist/`, and runs `aws amplify create-deployment` and `start-deployment`
     - _Requirements: 22.1, 26.2_
 
-  - [ ] 18.6 Create `infra/stacks/ops_stack.py` (Tier 2 lean)
+  - [x] 18.6 Create `infra/stacks/ops_stack.py` (Tier 2 lean)
     - Log groups with 30-day retention for the Session_API and the Agent_Runtime; Bedrock model invocation logging to a CloudWatch log group through an AWS-SDK custom resource
     - Dashboard, alarms, SNS topic, and AWS Budgets are task 18.12
     - _Requirements: 25.3, 25.6_
 
-  - [ ] 18.7 Wire all MVP stacks in `infra/app.py`, add outputs, and complete `make deploy`, `make seed`, `make destroy`
+  - [x] 18.7 Wire all MVP stacks in `infra/app.py`, add outputs, and complete `make deploy`, `make seed`, `make destroy`
     - Outputs: UI URL, Session_API URL, Cognito identifiers, Agent_Runtime ARN, Primary_Store bucket, Athena_Workgroup; `make deploy` builds the front end, runs `cdk deploy --all`, publishes the front end, and prints the UI URL; `make seed` runs `python -m guide.ingest.seed` against the new bucket; `make destroy` removes everything except the Primary_Store bucket
     - _Requirements: 26.2, 26.3, 26.5, 26.6_
 
@@ -730,21 +730,21 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
 - [ ] 20. Final deployment checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 21. Base portfolios and risk evidence (Req. 28)
-  - [ ] 21.1 Add `base_portfolio` to the three Persona_Templates, `personas.schema.json`, and `contract/portfolio.py::propose(base, asset, weight)`
+- [x] 21. Base portfolios and risk evidence (Req. 28)
+  - [x] 21.1 Add `base_portfolio` to the three Persona_Templates, `personas.schema.json`, and `contract/portfolio.py::propose(base, asset, weight)`
     - Values from the design table "Proposed Contract_Values": Robert XBB.TO 0.40, ZST.TO 0.15, XIU.TO 0.15, SPY 0.15, JNJ 0.08, RY.TO 0.07; Amira QQQ 0.25, SPY 0.20, XIU.TO 0.15, NVDA 0.10, MSFT 0.10, BTC-USD 0.10, SHOP.TO 0.05, XBB.TO 0.05; Mateo XIU.TO 0.25, XBB.TO 0.25, SPY 0.15, ESGV 0.15, RY.TO 0.10, MSFT 0.05, AGG 0.05; basis `assumption` with rationale
     - Mateo `esg_exclusions: ["fossil_fuel_screen"]` with basis `assumption` and the rationale of the design table
     - _Requirements: 28.1, 28.2, 28.7, 32.3_
 
-  - [ ] 21.2 Add `risk_contribution`, `portfolio_comparison`, and `max_weight_within_contract` to `toolkit/metrics.py` with Converse tool specs
+  - [x] 21.2 Add `risk_contribution`, `portfolio_comparison`, and `max_weight_within_contract` to `toolkit/metrics.py` with Converse tool specs
     - `max_weight_within_contract` steps by 0.5 percentage points and becomes the source of numeric conditions in `rules.decide`
     - _Requirements: 28.3, 28.4, 28.5, 5.3_
-  - [ ] 21.3 Write the Robert oracle test on the starter data
+  - [ ]* 21.3 Write the Robert oracle test on the starter data
     - Base max drawdown -10.4 %, +30 % TSLA max drawdown -30.1 % (tolerance 0.3 points), TSLA share of variance 86.7 % (tolerance 1 point)
     - _Requirements: 28.6_
 
-- [ ] 22. Soft preferences decided through the debate (Req. 29)
-  - [ ] 22.1 Add `soft_preferences` to the contract schema and to the three Persona_Templates with verbatim excerpts
+- [x] 22. Soft preferences decided through the debate (Req. 29)
+  - [x] 22.1 Add `soft_preferences` to the contract schema and to the three Persona_Templates with verbatim excerpts
     - _Requirements: 29.1_
   - [ ]* 22.2 (Superseded by 29.4; do not implement) Extend `agents/judge.py` and `rules.decide`
     - Party A and Party B in an order seeded by the session id, role words stripped, equal claim count; per-preference JSON validated by schema; role mapped back by code; `not_satisfied` turns accept into accept with conditions; code forbids any upgrade; Trace records the order
@@ -752,57 +752,57 @@ Deferred to Tier 3 (do not start before the freeze): 1.10, 12.25, 18.12, and eve
   - [ ]* 22.3 Write property test: no Soft_Preference assessment upgrades a Verdict, and the Hard_Rule result always wins
     - _Requirements: 29.4, 5.9_
 
-- [ ] 23. Documented ESG exclusion list (Req. 32)
+- [x] 23. Documented ESG exclusion list (Req. 32)
   - [x] 23.1 Create `data/esg_exclusions.csv` (31 rows) and its entry in `docs/data_sources.md`; list it in the Snapshot_Manifest
     - _Requirements: 32.1, 32.2, 32.5_
-  - [ ] 23.2 Add the `esg_exclusion` Hard_Rule and the `exclusion_cost` Exhibit
+  - [x] 23.2 Add the `esg_exclusion` Hard_Rule and the `exclusion_cost` Exhibit
     - _Requirements: 32.3, 32.4, 10.6_
 
-- [ ] 24. Ruling answers and demo cases (Req. 33)
-  - [ ] 24.1 Extend `agents/clerk.py` and the SessionView with the four answers built by code
+- [x] 24. Ruling answers and demo cases (Req. 33)
+  - [x] 24.1 Extend `agents/clerk.py` and the SessionView with the four answers built by code
     - _Requirements: 33.1, 33.4_
-  - [ ] 24.2 Create `demo/cases.yaml` with the five cases, the `canadian_heavy` Custom_Profile, the Robert Appeal, and the expected Verdicts and maximum weights of the design table "Demo cases"; add a code-only test of every expected Verdict; add the four-answers card to Friendly_Mode
+  - [x] 24.2 Create `demo/cases.yaml` with the five cases, the `canadian_heavy` Custom_Profile, the Robert Appeal, and the expected Verdicts and maximum weights of the design table "Demo cases"; add the four-answers card to Friendly_Mode
     - _Requirements: 33.2, 33.3, 33.4_
 
-- [ ] 25. Precedents (Req. 31)
-  - [ ] 25.1 Create `tribunal/precedents.py` (`put_precedent`, `closest`) on the Session_Store partition `precedent`, with an in-memory implementation for tests
+- [x] 25. Precedents (Req. 31)
+  - [x] 25.1 Create `tribunal/precedents.py` (`put_precedent`, `closest`) on the Session_Store partition `precedent`, with an in-memory implementation for tests
     - _Requirements: 31.1, 31.3_
-  - [ ] 25.2 Pass the closest Precedent to the Judge; check in code that a named differing field exists; create `scripts/seed_precedents.py`
+  - [x] 25.2 Pass the closest Precedent to the Judge; check in code that a named differing field exists; create `scripts/seed_precedents.py`
     - _Requirements: 31.2, 31.4_
 
-- [ ] 26. Appeal (Req. 30)
-  - [ ] 26.1 Accept `appeal_of` and `change` (position size, period, or one Investor_Contract value) in `POST /sessions`; create `tribunal/appeal.py::diff_sessions`
+- [x] 26. Appeal (Req. 30)
+  - [x] 26.1 Accept `appeal_of` and `change` (position size, period, or one Investor_Contract value) in `POST /sessions`; create `tribunal/appeal.py::diff_sessions`
     - _Requirements: 30.2, 30.3, 30.4_
-  - [ ] 26.2 Add the Appeal control and the side-by-side `AppealView` to the UI
+  - [x] 26.2 Add the Appeal control and the side-by-side `AppealView` to the UI
     - _Requirements: 30.1, 30.3_
 
 - [ ] 27. Benchmark (Req. 34)
-  - [ ] 27.1 Create `guide/bench/` (`baseline.py`, `run.py`, Wilson intervals, Confidence_Labels, call-count guard)
+  - [x] 27.1 Create `guide/bench/` (`baseline.py`, `run.py`, Wilson intervals, Confidence_Labels, call-count guard)
     - _Requirements: 34.1, 34.2, 34.3, 34.5_
   - [ ] 27.2 Write `bench/cases.yaml` (at least five extra cases), run N=5 on AWS before Sunday 16:00, commit `docs/benchmark.md` and `docs/benchmark.json`
     - _Requirements: 34.1, 34.4_
 
 - [ ] 28. Demo resilience and jury access (Req. 35)
-  - [ ] 28.1 Create `scripts/create_demo_user.sh` and document the jury credentials step in the README (password from the environment, never committed)
+  - [x] 28.1 Create `scripts/create_demo_user.sh` and document the jury credentials step in the README (password from the environment, never committed)
     - _Requirements: 35.1_
-  - [ ] 28.2 Add the `?replay=1` route and `npm run build:replay` with the "Replay of a recorded session" label
+  - [x] 28.2 Add the `?replay=1` route and `npm run build:replay` with the "Replay of a recorded session" label
     - _Requirements: 35.3, 35.4, 35.5_
   - [ ] 28.3 Create `scripts/export_demo.py`; export every demo and Benchmark session to `demo/sessions/` before Sunday 23:59
     - _Requirements: 35.2_
 
 
-- [ ] 29. Agent flow Advocate, Investigator, Judge (Req. 4, 29, 36; replaces the debate wording of 8.1, 8.2, 22.2)
-  - [ ] 29.1 Create `toolkit/risk_panel.py::risk_panel(option, contract)` returning the fixed Exhibit set of the Risk_Panel (uses 21.2) and `currency_exposure`, `sector_weights`, `correlation_with_base`
+- [x] 29. Agent flow Advocate, Investigator, Judge (Req. 4, 29, 36; replaces the debate wording of 8.1, 8.2, 22.2)
+  - [x] 29.1 Create `toolkit/risk_panel.py::risk_panel(option, contract)` returning the fixed Exhibit set of the Risk_Panel (uses 21.2) and `currency_exposure`, `sector_weights`, `correlation_with_base`
     - _Requirements: 4.3, 28.3, 28.4, 28.5_
-  - [ ] 29.2 Create `agents/advocate.py` and `instructions/advocate.md`: goal plus at most 3 Options as JSON; `advocate_scope` from config; no buy or sell wording
+  - [x] 29.2 Create `agents/advocate.py` and `instructions/advocate.md`: goal plus at most 3 Options as JSON; `advocate_scope` from config; no buy or sell wording
     - _Requirements: 4.1, 4.2, 4.8, 4.9_
-  - [ ] 29.3 Create `agents/investigator.py` and `instructions/investigator.md`: material risks per Option with Exhibit and contract field; code check that each named field exists
+  - [x] 29.3 Create `agents/investigator.py` and `instructions/investigator.md`: material risks per Option with Exhibit and contract field; code check that each named field exists
     - _Requirements: 4.4, 4.5_
-  - [ ] 29.4 Rework `agents/judge.py` and `instructions/judge.md`: Soft_Preference assessments per Option, comparison, narrative; code forbids any upgrade; remove evidence requests
+  - [x] 29.4 Rework `agents/judge.py` and `instructions/judge.md`: Soft_Preference assessments per Option, comparison, narrative; code forbids any upgrade; remove evidence requests
     - _Requirements: 5.5, 5.6, 29.2, 29.3, 29.4, 29.5_
-  - [ ] 29.5 Rework `tribunal/orchestrator.py` to the fixed order with 3 agent calls, schema validation, timeouts, and the fallbacks of Req. 36; turn the Clerk into a code template
+  - [x] 29.5 Rework `tribunal/orchestrator.py` to the fixed order with 3 agent calls, schema validation, timeouts, and the fallbacks of Req. 36; turn the Clerk into a code template
     - _Requirements: 36.1 to 36.8, 6.1_
-  - [ ] 29.6 Write tests: at most 3 agent calls; each agent failure still produces a valid Ruling; no output upgrades a Verdict
+  - [ ]* 29.6 Write tests: at most 3 agent calls; each agent failure still produces a valid Ruling; no output upgrades a Verdict
     - _Requirements: 36.3, 36.5, 36.6, 36.7, 29.4_
   - [ ]* 29.7 Add the ablation runs to `guide/bench`
     - _Requirements: 34.6, 34.7_

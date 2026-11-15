@@ -19,14 +19,16 @@ try:  # optional dependency
 except Exception:  # pragma: no cover - depends on environment
     _otel_trace = None
 
-MAX_SUMMARY_CHARS = 300
+DATA_EVENT_KINDS = ("snapshot_pinned", "cache_fallback", "ingestion_aborted")
 _EXHIBIT_RE = re.compile(r"Exhibit\s+(\d+)", re.IGNORECASE)
 
 
-def _summ(value: Any, limit: int = MAX_SUMMARY_CHARS) -> str:
+def _summ(value: Any, limit: int) -> str:
     text = value if isinstance(value, str) else json.dumps(value, default=str, sort_keys=True)
     text = " ".join(text.split())
-    return text if len(text) <= limit else text[: limit - 3] + "..."
+    if len(text) <= limit:
+        return text
+    return text[: limit - 3] + "..." if limit > 3 else text[:limit]
 
 
 @dataclass(frozen=True)
@@ -40,7 +42,13 @@ class TraceEvent:
 
 
 class TraceRecorder:
-    def __init__(self, emit_spans: bool = True, tracer: Any = None):
+    def __init__(self, emit_spans: bool = True, tracer: Any = None, max_summary_chars: int | None = None):
+        if max_summary_chars is None:
+            from guide.config import load_config  # Req. 9.6: limit comes from config
+            max_summary_chars = load_config().trace_summary_max_chars
+        if isinstance(max_summary_chars, bool) or max_summary_chars <= 0:
+            raise ValueError("max_summary_chars must be greater than zero")
+        self._max_chars = int(max_summary_chars)
         self._events: list[TraceEvent] = []
         self._lock = threading.Lock()
         self._tracer = None
@@ -52,6 +60,9 @@ class TraceRecorder:
                     self._tracer = _otel_trace.get_tracer("agentic-investment-guide")
             except Exception:
                 self._tracer = None
+
+    def _s(self, value: Any) -> str:
+        return _summ(value, self._max_chars)
 
     @property
     def events(self) -> tuple[TraceEvent, ...]:
@@ -85,22 +96,34 @@ class TraceRecorder:
         except Exception:
             pass  # observability must never break the pipeline
 
-    def agent_call(self, agent: str, input_summary: str, output_summary: str) -> TraceEvent:
-        return self._record("agent_call", agent,
-                            {"input": _summ(input_summary), "output": _summ(output_summary)})
+    def agent_call(self, agent: str, input_summary: str, output_summary: str,
+                   instruction_hash: str | None = None) -> TraceEvent:
+        summary = {"input": self._s(input_summary), "output": self._s(output_summary)}
+        if instruction_hash is not None:
+            summary["instruction_hash"] = str(instruction_hash)  # full hash, never truncated (Req. 9.8)
+        return self._record("agent_call", agent, summary)
 
     def tool_call(self, name: str, args: Mapping | Any, exhibit_number: int | None) -> TraceEvent:
-        return self._record("tool_call", name, {"args": _summ(args)}, exhibit_number)
+        return self._record("tool_call", name, {"args": self._s(args)}, exhibit_number)
 
     def judge_check(self, rule: str, inputs: Any, result: Any) -> TraceEvent:
         return self._record("judge_check", rule,
-                            {"inputs": _summ(inputs), "result": _summ(result)})
+                            {"inputs": self._s(inputs), "result": self._s(result)})
 
     def guardrail_block(self, stage: str, rule: str) -> TraceEvent:
-        return self._record("guardrail_block", stage, {"rule": _summ(rule)})
+        return self._record("guardrail_block", stage, {"rule": self._s(rule)})
 
     def claim_removed(self, agent: str, claim: str) -> TraceEvent:
-        return self._record("claim_removed", agent, {"claim": _summ(claim)})
+        return self._record("claim_removed", agent, {"claim": self._s(claim)})
+
+    def data_event(self, kind: str, snapshot_id: str, retrieved_at: str, cause: str | None = None) -> TraceEvent:
+        """Record a data-layer event (Req. 9.7, 17.10)."""
+        if kind not in DATA_EVENT_KINDS:
+            raise ValueError(f"data event kind must be one of {', '.join(DATA_EVENT_KINDS)}")
+        summary = {"snapshot_id": self._s(snapshot_id), "retrieved_at": self._s(retrieved_at)}
+        if cause is not None:
+            summary["cause"] = self._s(cause)
+        return self._record(kind, kind, summary)
 
     def to_list(self) -> list[dict]:
         return [asdict(e) for e in self._events]

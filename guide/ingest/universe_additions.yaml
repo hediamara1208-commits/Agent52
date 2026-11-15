@@ -1,0 +1,4 @@
+# Documented extra tickers for the Seed_Import_Job (Req. 20.2, 20.3, 20.8). Empty by default.
+# Each entry needs: ticker, name, asset_class, market, currency, sector, source_name, data_file.
+# docs/data_sources.md must also hold an entry with the terms-of-use URL and a permitted-use statement.
+additions: []

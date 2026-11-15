@@ -1,0 +1,290 @@
+# Persona_Templates (Req. 16). Default starting points, not a closed list: edit,
+# extend, duplicate, or replace entries. Facts are transcribed from section 3 of
+# data/context.md; every `excerpt` is copied verbatim from that file (including its
+# Markdown markup) so tests/test_personas.py can check it with a substring match.
+# Contract_Value basis: quoted = stated in context.md; assumption = team choice,
+# explained in `rationale`. A list-valued fact stores one excerpt per item.
+version: 1
+source: data/context.md, section 3
+personas:
+  - id: amira
+    display_name: Amira
+    risk_level: high
+    horizon: {min: 15}
+    facts:
+      age:
+        value: 26
+        excerpt: "AMIRA (26 ans, ingénieure logicielle)"
+      occupation:
+        value: software engineer
+        excerpt: "ingénieure logicielle"
+      risk_level:
+        value: high
+        excerpt: "**Risque : élevé**"
+      horizon:
+        value: {min: 15}
+        excerpt: "**Horizon : 15 ans ou +**"
+      family_situation:
+        value: single, no children
+        excerpt: "Célibataire, sans enfant"
+      experience:
+        value: intermediate
+        excerpt: "Expérience : intermédiaire"
+      objective:
+        value: grow capital over the long term
+        excerpt: "faire croître son capital à long terme"
+      preferences_constraints:
+        value:
+          - very interested in AI and emerging technologies
+          - open to high-growth companies and high volatility
+          - interested in crypto assets
+          - wants some diversification and to avoid betting only on tech
+        excerpt:
+          - "très intéressée par l'IA et technologies émergentes"
+          - "ouverte aux entreprises en forte croissance et à une forte volatilité"
+          - "intéressée par les cryptoactifs"
+          - "veut une certaine **diversification** et éviter de miser exclusivement sur la tech"
+      persona_tests:
+        value: how far the system accepts risk; high risk does not mean everything is acceptable
+        excerpt: "jusqu'où le système accepte le risque"
+    contract_values:
+      horizon_years:
+        value: 15
+        basis: quoted
+        excerpt: "**Horizon : 15 ans ou +**"
+        rationale: Lower bound of the quoted horizon; conservative for drawdown tolerance.
+      max_volatility:
+        value: 0.35
+        basis: assumption
+        rationale: Annualized volatility limit scaled to the high risk level.
+      max_drawdown:
+        value: 0.40
+        basis: assumption
+        rationale: Tolerates deep drawdowns on a 15-year horizon, but not total loss.
+      per_asset_cap:
+        value: 0.15
+        basis: assumption
+        rationale: Context asks for some diversification; applies to single securities and crypto, not to diversified ETFs.
+      per_asset_class_caps:
+        value: {crypto: 0.15}
+        basis: assumption
+        rationale: Interested in crypto, but high risk does not mean everything is acceptable.
+      sector_caps:
+        value: {Information Technology: 0.40}
+        basis: assumption
+        rationale: Context asks to avoid betting only on tech.
+      crypto_cap:
+        value: 0.15
+        basis: assumption
+        rationale: Interested in crypto assets; highest crypto cap of the three Personas, still bounded.
+      esg_exclusions:
+        value: []
+        basis: assumption
+        rationale: Context states no ESG preference for Amira.
+      speculative_limit:
+        value: null
+        basis: assumption
+        rationale: Open to high growth and high volatility, so no speculative-asset limit is set.
+      base_portfolio:
+        value: {QQQ: 0.25, SPY: 0.20, XIU.TO: 0.15, NVDA: 0.10, MSFT: 0.10, BTC-USD: 0.10, SHOP.TO: 0.05, XBB.TO: 0.05}
+        basis: assumption
+        rationale: Fictional portfolio consistent with a high-risk, tech-leaning growth profile; passes the persona's own Hard_Rules (Req. 28).
+    soft_preferences:
+      - id: diversification
+        text: Wants some diversification and to avoid betting only on tech.
+        basis: quoted
+        excerpt: "veut une certaine **diversification** et éviter de miser exclusivement sur la tech"
+      - id: growth_companies
+        text: Open to high-growth companies and high volatility.
+        basis: quoted
+        excerpt: "ouverte aux entreprises en forte croissance et à une forte volatilité"
+
+  - id: mateo
+    display_name: Mateo
+    risk_level: moderate
+    horizon: {min: 8, max: 12}
+    facts:
+      age:
+        value: 41
+        excerpt: "MATEO (41 ans, gestionnaire des opérations)"
+      occupation:
+        value: operations manager
+        excerpt: "gestionnaire des opérations"
+      risk_level:
+        value: moderate
+        excerpt: "**Risque : modéré**"
+      horizon:
+        value: {min: 8, max: 12}
+        excerpt: "**Horizon : 8 à 12 ans**"
+      family_situation:
+        value: in a couple, 2 children
+        excerpt: "En couple, 2 enfants"
+      experience:
+        value: intermediate
+        excerpt: "Expérience : intermédiaire"
+      objective:
+        value: balanced capital growth over the medium to long term
+        excerpt: "croissance du capital **équilibrée** à moyen/long terme"
+      preferences_constraints:
+        value:
+          - great importance to ESG factors
+          - avoid companies tied to major environmental or social controversies
+          - balance between growth and stability
+          - open to emerging technologies compatible with the risk profile
+          - little interest in highly speculative assets
+        excerpt:
+          - "grande importance aux **facteurs ESG**"
+          - "éviter les entreprises liées à d'importantes controverses environnementales ou sociales"
+          - "équilibre croissance/stabilité"
+          - "ouvert aux technos émergentes si compatibles avec son profil de risque"
+          - "peu intéressé par le hautement spéculatif"
+      persona_tests:
+        value: integrate more than return and risk, namely financial criteria and personal preferences (ESG)
+        excerpt: "intégrer autre chose que rendement et risque"
+    contract_values:
+      horizon_years:
+        value: 8
+        basis: quoted
+        excerpt: "**Horizon : 8 à 12 ans**"
+        rationale: Lower bound of the quoted range; conservative for drawdown tolerance.
+      max_volatility:
+        value: 0.18
+        basis: assumption
+        rationale: Annualized volatility limit scaled to the moderate risk level.
+      max_drawdown:
+        value: 0.25
+        basis: assumption
+        rationale: Moderate risk level and balanced growth objective.
+      per_asset_cap:
+        value: 0.10
+        basis: assumption
+        rationale: Balance between growth and stability; applies to single securities and crypto, not to diversified ETFs.
+      per_asset_class_caps:
+        value: {crypto: 0.05}
+        basis: assumption
+        rationale: Little interest in the highly speculative.
+      sector_caps:
+        value: {Information Technology: 0.35}
+        basis: assumption
+        rationale: Open to emerging technologies if compatible with a moderate risk profile.
+      crypto_cap:
+        value: 0.05
+        basis: assumption
+        rationale: Little interest in the highly speculative.
+      esg_exclusions:
+        value: [fossil_fuel_screen]
+        basis: assumption
+        excerpt: "éviter les entreprises liées à d'importantes controverses environnementales ou sociales"
+        rationale: Team interpretation of the quoted ESG preference, applied through data/esg_exclusions.csv; the Dataset has no ESG scores.
+      speculative_limit:
+        value: 0.10
+        basis: assumption
+        excerpt: "peu intéressé par le hautement spéculatif"
+        rationale: Little interest in the highly speculative.
+      base_portfolio:
+        value: {XIU.TO: 0.25, XBB.TO: 0.25, SPY: 0.15, ESGV: 0.15, RY.TO: 0.10, MSFT: 0.05, AGG: 0.05}
+        basis: assumption
+        rationale: Fictional balanced portfolio with an ESG-screened fund; passes the persona's own Hard_Rules (Req. 28).
+    soft_preferences:
+      - id: growth_stability_balance
+        text: Balance between growth and stability.
+        basis: quoted
+        excerpt: "équilibre croissance/stabilité"
+      - id: little_speculation
+        text: Little interest in highly speculative assets.
+        basis: quoted
+        excerpt: "peu intéressé par le hautement spéculatif"
+
+  - id: robert
+    display_name: Robert
+    risk_level: low_to_moderate
+    horizon: {min: 3, max: 5}
+    facts:
+      age:
+        value: 59
+        excerpt: "ROBERT (59 ans, professionnel de la santé)"
+      occupation:
+        value: health professional
+        excerpt: "professionnel de la santé"
+      risk_level:
+        value: low_to_moderate
+        excerpt: "**Risque : faible à modéré**"
+      horizon:
+        value: {min: 3, max: 5}
+        excerpt: "**Horizon : 3 à 5 ans**"
+      family_situation:
+        value: married, adult children, retiring in the next few years
+        excerpt: "Marié, enfants adultes, retraite dans les prochaines années"
+      experience:
+        value: advanced
+        excerpt: "Expérience : avancée"
+      objective:
+        value: preserve capital while keeping growth potential
+        excerpt: "**préserver le capital** tout en gardant un potentiel de croissance"
+      preferences_constraints:
+        value:
+          - established companies with an understandable business model
+          - stability and quality
+          - little interest in crypto
+          - may be tempted by a heavily publicized company, even if riskier than his profile
+        excerpt:
+          - "entreprises établies, modèle d'affaires compréhensible"
+          - "stabilité et qualité"
+          - "peu intéressé par les cryptos"
+          - "**peut être tenté par une entreprise très médiatisée, même plus risquée** que son profil"
+      persona_tests:
+        value: challenge a request inconsistent with the profile; do not agree automatically
+        excerpt: "**remettre en question une demande incohérente** avec le profil"
+    contract_values:
+      horizon_years:
+        value: 3
+        basis: quoted
+        excerpt: "**Horizon : 3 à 5 ans**"
+        rationale: Lower bound of the quoted range; conservative for drawdown tolerance.
+      max_volatility:
+        value: 0.12
+        basis: assumption
+        rationale: Annualized volatility limit scaled to the low-to-moderate risk level.
+      max_drawdown:
+        value: 0.15
+        basis: assumption
+        excerpt: "**préserver le capital** tout en gardant un potentiel de croissance"
+        rationale: Retires within 3 to 5 years and wants to preserve capital.
+      per_asset_cap:
+        value: 0.10
+        basis: assumption
+        rationale: Stability and quality; applies to single securities and crypto, not to diversified ETFs.
+      per_asset_class_caps:
+        value: {crypto: 0.02}
+        basis: assumption
+        rationale: Little interest in crypto.
+      sector_caps:
+        value: {Information Technology: 0.25}
+        basis: assumption
+        rationale: Stability and quality over concentration in one sector.
+      crypto_cap:
+        value: 0.02
+        basis: assumption
+        excerpt: "peu intéressé par les cryptos"
+        rationale: Context says little interest in crypto; lowest crypto cap of the three Personas.
+      esg_exclusions:
+        value: []
+        basis: assumption
+        rationale: Context states no ESG preference for Robert.
+      speculative_limit:
+        value: 0.05
+        basis: assumption
+        rationale: Capital preservation; a heavily publicized, riskier company is the case to challenge.
+      base_portfolio:
+        value: {XBB.TO: 0.40, ZST.TO: 0.15, XIU.TO: 0.15, SPY: 0.15, JNJ: 0.08, RY.TO: 0.07}
+        basis: assumption
+        rationale: Fictional capital-preservation portfolio, bond-heavy; passes the persona's own Hard_Rules (Req. 28).
+    soft_preferences:
+      - id: established_companies
+        text: Established companies with an understandable business model.
+        basis: quoted
+        excerpt: "entreprises établies, modèle d'affaires compréhensible"
+      - id: stability_quality
+        text: Stability and quality.
+        basis: quoted
+        excerpt: "stabilité et qualité"

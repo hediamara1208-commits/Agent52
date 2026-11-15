@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "session_view.schema.json",
+  "title": "SessionView",
+  "description": "The single document both UI modes render. Browser mode and focus are not part of it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "session_id", "status", "contract", "stage", "stages_done", "active_agent", "exhibits",
+    "verdict", "ruling", "rule_results", "sensitivity", "trace", "summaries", "snapshot",
+    "data_notices", "error"
+  ],
+  "properties": {
+    "session_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["running", "completed", "failed"]},
+    "contract": {"type": ["object", "null"]},
+    "stage": {"type": "string"},
+    "stages_done": {"type": "array", "items": {"type": "string"}},
+    "active_agent": {"type": ["string", "null"]},
+    "exhibits": {"type": "array", "items": {"$ref": "#/$defs/exhibit"}},
+    "verdict": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/verdict"}]},
+    "ruling": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/ruling"}]},
+    "rule_results": {"type": "array", "items": {"$ref": "#/$defs/rule_result"}},
+    "sensitivity": {"type": "array", "items": {"$ref": "#/$defs/sensitivity_result"}},
+    "trace": {"type": "array", "items": {"$ref": "#/$defs/trace_event"}},
+    "summaries": {"type": "object", "additionalProperties": {"type": "string"}},
+    "snapshot": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/snapshot"}]},
+    "data_notices": {"type": "array", "items": {"type": "string"}},
+    "error": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/stage_error"}]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "failed"}}},
+      "then": {"properties": {"error": {"type": "object"}}}
+    }
+  ],
+  "$defs": {
+    "statement": {
+      "type": "object",
+      "required": ["text", "citations"],
+      "properties": {
+        "text": {"type": "string"},
+        "citations": {"type": "array", "items": {"type": "integer", "minimum": 1}}
+      }
+    },
+    "exhibit": {
+      "type": "object",
+      "required": ["number", "metric", "value", "currency", "snapshot_id"],
+      "properties": {
+        "number": {"type": "integer", "minimum": 1},
+        "metric": {"type": "string"},
+        "value": {"type": ["number", "object"]},
+        "period_start": {"type": "string"},
+        "period_end": {"type": "string"},
+        "assets": {"type": "array", "items": {"type": "string"}},
+        "currency": {"type": "string"},
+        "source_files": {"type": "array", "items": {"type": "string"}},
+        "processing_notes": {"type": "array", "items": {"type": "string"}},
+        "inputs": {"type": "object"},
+        "snapshot_id": {"type": ["string", "null"]},
+        "snapshot_retrieved_at": {"type": ["string", "null"]}
+      }
+    },
+    "rule_result": {
+      "type": "object",
+      "required": ["rule", "status"],
+      "properties": {
+        "rule": {"type": "string"},
+        "status": {"enum": ["pass", "fail", "unverified"]},
+        "observed": {"type": ["number", "null"]},
+        "limit": {"type": ["number", "null"]},
+        "exhibits": {"type": "array", "items": {"type": "integer"}},
+        "detail": {"type": "string"}
+      }
+    },
+    "verdict": {
+      "type": "object",
+      "required": ["verdict"],
+      "properties": {
+        "verdict": {"enum": ["accept", "accept_with_conditions", "reject"]},
+        "max_weight": {"type": ["number", "null"]},
+        "failing_rules": {"type": "array", "items": {"type": "string"}},
+        "unverified_rules": {"type": "array", "items": {"type": "string"}},
+        "conditions": {"type": "array", "items": {"type": "string"}},
+        "tension": {"type": ["string", "null"]},
+        "exhibits": {"type": "array", "items": {"type": "integer"}},
+        "reason": {"type": "string"}
+      }
+    },
+    "ruling": {
+      "type": "object",
+      "required": ["verdict", "facts", "what_would_change", "disclaimers"],
+      "properties": {
+        "verdict": {"type": "string"},
+        "facts": {"type": "array", "items": {"$ref": "#/$defs/statement"}},
+        "assumptions": {"type": "array", "items": {"type": "string"}},
+        "fictional_scenarios": {"type": "array", "items": {"type": "string"}},
+        "limits": {"type": "array", "items": {"type": "string"}},
+        "what_would_change": {"type": "array", "items": {"$ref": "#/$defs/statement"}},
+        "disclaimers": {"type": "array", "items": {"type": "string"}},
+        "questions": {"type": "array", "items": {"$ref": "#/$defs/answer"}}
+      }
+    },
+    "answer": {
+      "type": "object",
+      "required": ["id", "heading", "statements"],
+      "properties": {
+        "id": {"enum": ["which_data", "why_this_choice", "which_limits", "what_would_change"]},
+        "heading": {"enum": ["Which data?", "Why this choice?", "Which limits?", "What would change the answer?"]},
+        "statements": {"type": "array", "items": {"$ref": "#/$defs/statement"}}
+      }
+    },
+    "sensitivity_result": {
+      "type": "object",
+      "required": ["variable", "changed", "exhibit"],
+      "properties": {
+        "variable": {"type": "string"},
+        "changed": {"type": "boolean"},
+        "threshold": {"type": ["number", "string", "null"]},
+        "baseline_verdict": {"type": "string"},
+        "verdict_at_threshold": {"type": ["string", "null"]},
+        "exhibit": {"type": "integer"},
+        "text": {"type": "string"}
+      }
+    },
+    "trace_event": {
+      "type": "object",
+      "required": ["seq", "kind", "name"],
+      "properties": {
+        "seq": {"type": "integer"},
+        "timestamp": {"type": "string"},
+        "kind": {"type": "string"},
+        "name": {"type": "string"},
+        "summary": {"type": ["object", "string"]},
+        "exhibit_number": {"type": ["integer", "null"]}
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["snapshot_id", "source", "retrieved_at", "coverage_end", "served_from", "fallback_cause"],
+      "properties": {
+        "snapshot_id": {"type": "string"},
+        "source": {"type": "string"},
+        "retrieved_at": {"type": "string"},
+        "coverage_end": {"type": "string"},
+        "served_from": {"enum": ["primary", "cache", "cache_fallback"]},
+        "fallback_cause": {"type": ["string", "null"]}
+      }
+    },
+    "stage_error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "message"],
+      "properties": {
+        "stage": {"type": "string", "minLength": 1},
+        "message": {"type": "string"}
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+# CDK v2 for Python. 2.277.0 includes the stable aws_bedrockagentcore constructs
+# (aws-cdk-lib/aws-bedrockagentcore: CfnRuntime, CfnMemory, ...). If a resource type is
+# missing in this version, create it with the AWS CLI (document the step in README) and
+# pass its ARN to the stacks as CDK context. No credentials belong here.
+aws-cdk-lib==2.277.0
+constructs>=10.0.0,<11.0.0

@@ -1,0 +1,23 @@
+{
+  "app": "python3 app.py",
+  "watch": {
+    "include": ["**"],
+    "exclude": ["README.md", "cdk*.json", "requirements*.txt", "**/__pycache__", "cdk.out"]
+  },
+  "context": {
+    "region": "us-east-1",
+    "bucket_suffix": "",
+    "model_id": "us.anthropic.claude-sonnet-5-5",
+    "budget_amount": 50,
+    "budget_email": "",
+    "enable_waf": false,
+    "enable_kms": false,
+    "enable_cloudtrail": false,
+    "enable_object_lock": false,
+    "enable_gateway": false,
+    "enable_identity": false,
+    "enable_pipeline": false,
+    "@aws-cdk/core:checkSecretUsage": true,
+    "@aws-cdk/core:target-partitions": ["aws"]
+  }
+}

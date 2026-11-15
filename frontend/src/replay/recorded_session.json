@@ -1,0 +1,3076 @@
+{
+ "session_id": "replay-robert-tsla",
+ "status": "completed",
+ "contract": {
+  "risk_level": "low_to_moderate",
+  "horizon_years": 3,
+  "max_volatility": 0.12,
+  "max_drawdown": 0.15,
+  "per_asset_cap": 0.1,
+  "per_asset_class_caps": {
+   "crypto": 0.02
+  },
+  "crypto_cap": 0.02,
+  "sector_caps": {
+   "Information Technology": 0.25
+  },
+  "esg_exclusions": [],
+  "speculative_limit": 0.05,
+  "soft_preferences": [
+   {
+    "id": "established_companies",
+    "text": "Established companies with an understandable business model.",
+    "provenance": "persona_quoted",
+    "excerpt": "entreprises \u00e9tablies, mod\u00e8le d'affaires compr\u00e9hensible"
+   },
+   {
+    "id": "stability_quality",
+    "text": "Stability and quality.",
+    "provenance": "persona_quoted",
+    "excerpt": "stabilit\u00e9 et qualit\u00e9"
+   }
+  ],
+  "horizon_range": {
+   "min": 3,
+   "max": 5
+  },
+  "provenance": {
+   "risk_level": "persona_quoted",
+   "horizon_years": "persona_quoted",
+   "max_volatility": "persona_assumption",
+   "max_drawdown": "persona_assumption",
+   "per_asset_cap": "persona_assumption",
+   "per_asset_class_caps": "persona_assumption",
+   "crypto_cap": "persona_assumption",
+   "sector_caps": "persona_assumption",
+   "esg_exclusions": "persona_assumption",
+   "speculative_limit": "persona_assumption"
+  }
+ },
+ "stage": "clerk",
+ "stages_done": [
+  "snapshot",
+  "profiler",
+  "request_rules",
+  "advocate",
+  "option_rules",
+  "investigator",
+  "judge",
+  "clerk"
+ ],
+ "active_agent": null,
+ "exhibits": [
+  {
+   "number": 1,
+   "metric": "portfolio_comparison",
+   "value": {
+    "base": {
+     "annualized_volatility": 0.06451748344360492,
+     "max_drawdown": -0.10441991074843782,
+     "worst_rolling_252d_return": -0.058570944487169374,
+     "return_2022": -0.06104626501677435,
+     "annualized_return": 0.08338970117977262
+    },
+    "proposed": {
+     "annualized_volatility": 0.20104484457395663,
+     "max_drawdown": -0.30068413529069726,
+     "worst_rolling_252d_return": -0.27409515480883617,
+     "return_2022": -0.259630666000653,
+     "annualized_return": 0.11246081110690298
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Both portfolios are rebalanced daily. Worst rolling return is null when fewer than 253 aligned prices exist; the 2022 return is null when the period has no 2022 observation."
+   ],
+   "inputs": {
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "proposed": {
+     "JNJ": 0.055999999999999994,
+     "RY.TO": 0.049,
+     "SPY": 0.105,
+     "TSLA": 0.3,
+     "XBB.TO": 0.27999999999999997,
+     "XIU.TO": 0.105,
+     "ZST.TO": 0.105
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 2,
+   "metric": "risk_contribution",
+   "value": {
+    "share_of_variance_pct": {
+     "JNJ": 0.1369554032323615,
+     "RY.TO": 1.454397542069652,
+     "SPY": 6.084739221275141,
+     "TSLA": 86.74361742855525,
+     "XBB.TO": 1.8603987206534796,
+     "XIU.TO": 3.6864884842471017,
+     "ZST.TO": 0.03340319996697967
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Shares are w_i * (Cov w)_i / (w' Cov w) of daily returns, in percent."
+   ],
+   "inputs": {
+    "weights": {
+     "JNJ": 0.055999999999999994,
+     "RY.TO": 0.049,
+     "SPY": 0.105,
+     "TSLA": 0.3,
+     "XBB.TO": 0.27999999999999997,
+     "XIU.TO": 0.105,
+     "ZST.TO": 0.105
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 3,
+   "metric": "currency_exposure",
+   "value": {
+    "base": {
+     "CAD": 0.77,
+     "USD": 0.22999999999999998
+    },
+    "proposed": {
+     "CAD": 0.5389999999999999,
+     "USD": 0.46099999999999997
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Share of portfolio weight by listing currency of each asset (before conversion to CAD)."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "weight": 0.3,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 4,
+   "metric": "sector_weights",
+   "value": {
+    "base": {
+     "Bonds (Canada aggregate)": 0.4,
+     "Bonds (Canada ultra short-term)": 0.15,
+     "Broad market (Canada)": 0.15,
+     "Broad market (U.S.)": 0.15,
+     "Financials": 0.07,
+     "Health Care": 0.08
+    },
+    "proposed": {
+     "Bonds (Canada aggregate)": 0.27999999999999997,
+     "Bonds (Canada ultra short-term)": 0.105,
+     "Broad market (Canada)": 0.105,
+     "Broad market (U.S.)": 0.105,
+     "Consumer Discretionary": 0.3,
+     "Financials": 0.049,
+     "Health Care": 0.055999999999999994
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Share of portfolio weight by sector in assets_universe; assets without a sector are Unclassified."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "weight": 0.3,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 5,
+   "metric": "correlation_with_base",
+   "value": 0.41242276250771115,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Correlation of TSLA daily returns with the daily-rebalanced Base_Portfolio returns."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 6,
+   "metric": "max_weight_within_contract",
+   "value": {
+    "asset": "TSLA",
+    "max_weight": 0.05,
+    "step": 0.005,
+    "searched_up_to": 1.0
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Largest weight on a 0.5% grid for which every Hard_Rule passes; 0 means no positive size passes."
+   ],
+   "inputs": {
+    "asset": "TSLA",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "step": 0.005,
+    "max_weight": 1.0,
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 7,
+   "metric": "annualized_volatility",
+   "value": 0.18367574992546873,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: JNJ=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "JNJ",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 8,
+   "metric": "annualized_volatility",
+   "value": 0.15466694552290577,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "RY.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: RY.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "RY.TO",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 9,
+   "metric": "annualized_volatility",
+   "value": 0.5891162747078174,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "TSLA"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: TSLA=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 10,
+   "metric": "portfolio_metrics",
+   "value": {
+    "annualized_return": 0.11246081110690298,
+    "annualized_volatility": 0.20104484457395663,
+    "max_drawdown": -0.30068413529069726,
+    "peak_date": "2022-01-04",
+    "trough_date": "2023-01-03"
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Portfolio is rebalanced daily to the stated weights."
+   ],
+   "inputs": {
+    "weights": {
+     "JNJ": 0.055999999999999994,
+     "RY.TO": 0.049,
+     "SPY": 0.105,
+     "TSLA": 0.3,
+     "XBB.TO": 0.27999999999999997,
+     "XIU.TO": 0.105,
+     "ZST.TO": 0.105
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 11,
+   "metric": "max_weight_within_contract",
+   "value": {
+    "asset": "TSLA",
+    "max_weight": 0.05,
+    "step": 0.005,
+    "searched_up_to": 0.3
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Largest weight on a 0.5% grid for which every Hard_Rule passes; 0 means no positive size passes."
+   ],
+   "inputs": {
+    "asset": "TSLA",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "step": 0.005,
+    "max_weight": 0.3,
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 12,
+   "metric": "annualized_volatility",
+   "value": 0.18367574992546873,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: JNJ=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "JNJ",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 13,
+   "metric": "annualized_volatility",
+   "value": 0.15466694552290577,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "RY.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: RY.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "RY.TO",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 14,
+   "metric": "annualized_volatility",
+   "value": 0.5891162747078174,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "TSLA"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: TSLA=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 15,
+   "metric": "portfolio_metrics",
+   "value": {
+    "annualized_return": 0.09038676111136468,
+    "annualized_volatility": 0.07835566595413528,
+    "max_drawdown": -0.11819988118055913,
+    "peak_date": "2021-12-29",
+    "trough_date": "2022-06-16"
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Portfolio is rebalanced daily to the stated weights."
+   ],
+   "inputs": {
+    "weights": {
+     "JNJ": 0.076,
+     "RY.TO": 0.0665,
+     "SPY": 0.1425,
+     "TSLA": 0.05,
+     "XBB.TO": 0.38,
+     "XIU.TO": 0.1425,
+     "ZST.TO": 0.1425
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 16,
+   "metric": "portfolio_comparison",
+   "value": {
+    "base": {
+     "annualized_volatility": 0.06451748344360492,
+     "max_drawdown": -0.10441991074843782,
+     "worst_rolling_252d_return": -0.058570944487169374,
+     "return_2022": -0.06104626501677435,
+     "annualized_return": 0.08338970117977262
+    },
+    "proposed": {
+     "annualized_volatility": 0.07835566595413528,
+     "max_drawdown": -0.11819988118055913,
+     "worst_rolling_252d_return": -0.09411814876555846,
+     "return_2022": -0.0954392717406567,
+     "annualized_return": 0.09038676111136468
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Both portfolios are rebalanced daily. Worst rolling return is null when fewer than 253 aligned prices exist; the 2022 return is null when the period has no 2022 observation."
+   ],
+   "inputs": {
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "proposed": {
+     "JNJ": 0.076,
+     "RY.TO": 0.0665,
+     "SPY": 0.1425,
+     "TSLA": 0.05,
+     "XBB.TO": 0.38,
+     "XIU.TO": 0.1425,
+     "ZST.TO": 0.1425
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 17,
+   "metric": "risk_contribution",
+   "value": {
+    "share_of_variance_pct": {
+     "JNJ": 4.765550791393018,
+     "RY.TO": 8.130773158287147,
+     "SPY": 25.57641029075217,
+     "TSLA": 26.587060688838303,
+     "XBB.TO": 15.918786172792926,
+     "XIU.TO": 18.772598577575238,
+     "ZST.TO": 0.24882032036117147
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Shares are w_i * (Cov w)_i / (w' Cov w) of daily returns, in percent."
+   ],
+   "inputs": {
+    "weights": {
+     "JNJ": 0.076,
+     "RY.TO": 0.0665,
+     "SPY": 0.1425,
+     "TSLA": 0.05,
+     "XBB.TO": 0.38,
+     "XIU.TO": 0.1425,
+     "ZST.TO": 0.1425
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 18,
+   "metric": "currency_exposure",
+   "value": {
+    "base": {
+     "CAD": 0.77,
+     "USD": 0.22999999999999998
+    },
+    "proposed": {
+     "CAD": 0.7314999999999999,
+     "USD": 0.26849999999999996
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Share of portfolio weight by listing currency of each asset (before conversion to CAD)."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "weight": 0.05,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 19,
+   "metric": "sector_weights",
+   "value": {
+    "base": {
+     "Bonds (Canada aggregate)": 0.4,
+     "Bonds (Canada ultra short-term)": 0.15,
+     "Broad market (Canada)": 0.15,
+     "Broad market (U.S.)": 0.15,
+     "Financials": 0.07,
+     "Health Care": 0.08
+    },
+    "proposed": {
+     "Bonds (Canada aggregate)": 0.38,
+     "Bonds (Canada ultra short-term)": 0.1425,
+     "Broad market (Canada)": 0.1425,
+     "Broad market (U.S.)": 0.1425,
+     "Consumer Discretionary": 0.05,
+     "Financials": 0.0665,
+     "Health Care": 0.076
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Share of portfolio weight by sector in assets_universe; assets without a sector are Unclassified."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "weight": 0.05,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 20,
+   "metric": "correlation_with_base",
+   "value": 0.41242276250771115,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Correlation of TSLA daily returns with the daily-rebalanced Base_Portfolio returns."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 21,
+   "metric": "max_weight_within_contract",
+   "value": {
+    "asset": "TSLA",
+    "max_weight": 0.05,
+    "step": 0.005,
+    "searched_up_to": 1.0
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Largest weight on a 0.5% grid for which every Hard_Rule passes; 0 means no positive size passes."
+   ],
+   "inputs": {
+    "asset": "TSLA",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "step": 0.005,
+    "max_weight": 1.0,
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 22,
+   "metric": "annualized_volatility",
+   "value": 0.18367574992546873,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: JNJ=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "JNJ",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 23,
+   "metric": "annualized_volatility",
+   "value": 0.15466694552290577,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "RY.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: RY.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "RY.TO",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 24,
+   "metric": "annualized_volatility",
+   "value": 0.5891162747078174,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "TSLA"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: TSLA=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 25,
+   "metric": "portfolio_metrics",
+   "value": {
+    "annualized_return": 0.09038676111136468,
+    "annualized_volatility": 0.07835566595413528,
+    "max_drawdown": -0.11819988118055913,
+    "peak_date": "2021-12-29",
+    "trough_date": "2022-06-16"
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Portfolio is rebalanced daily to the stated weights."
+   ],
+   "inputs": {
+    "weights": {
+     "JNJ": 0.076,
+     "RY.TO": 0.0665,
+     "SPY": 0.1425,
+     "TSLA": 0.05,
+     "XBB.TO": 0.38,
+     "XIU.TO": 0.1425,
+     "ZST.TO": 0.1425
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 26,
+   "metric": "portfolio_comparison",
+   "value": {
+    "base": {
+     "annualized_volatility": 0.06451748344360492,
+     "max_drawdown": -0.10441991074843782,
+     "worst_rolling_252d_return": -0.058570944487169374,
+     "return_2022": -0.06104626501677435,
+     "annualized_return": 0.08338970117977262
+    },
+    "proposed": {
+     "annualized_volatility": 0.1477446539181583,
+     "max_drawdown": -0.22429255607695864,
+     "worst_rolling_252d_return": -0.2016863976333063,
+     "return_2022": -0.19566276084958723,
+     "annualized_return": 0.10625911800501808
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Both portfolios are rebalanced daily. Worst rolling return is null when fewer than 253 aligned prices exist; the 2022 return is null when the period has no 2022 observation."
+   ],
+   "inputs": {
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "proposed": {
+     "JNJ": 0.064,
+     "RY.TO": 0.05600000000000001,
+     "SPY": 0.12,
+     "TSLA": 0.2,
+     "XBB.TO": 0.32000000000000006,
+     "XIU.TO": 0.12,
+     "ZST.TO": 0.12
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 27,
+   "metric": "risk_contribution",
+   "value": {
+    "share_of_variance_pct": {
+     "JNJ": 0.6253929838071095,
+     "RY.TO": 2.6169949464691387,
+     "SPY": 10.149038157192404,
+     "TSLA": 76.21289405585392,
+     "XBB.TO": 3.87035365206069,
+     "XIU.TO": 6.459339937227168,
+     "ZST.TO": 0.06598626738956936
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Shares are w_i * (Cov w)_i / (w' Cov w) of daily returns, in percent."
+   ],
+   "inputs": {
+    "weights": {
+     "JNJ": 0.064,
+     "RY.TO": 0.05600000000000001,
+     "SPY": 0.12,
+     "TSLA": 0.2,
+     "XBB.TO": 0.32000000000000006,
+     "XIU.TO": 0.12,
+     "ZST.TO": 0.12
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 28,
+   "metric": "currency_exposure",
+   "value": {
+    "base": {
+     "CAD": 0.77,
+     "USD": 0.22999999999999998
+    },
+    "proposed": {
+     "CAD": 0.6160000000000001,
+     "USD": 0.384
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Share of portfolio weight by listing currency of each asset (before conversion to CAD)."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "weight": 0.2,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 29,
+   "metric": "sector_weights",
+   "value": {
+    "base": {
+     "Bonds (Canada aggregate)": 0.4,
+     "Bonds (Canada ultra short-term)": 0.15,
+     "Broad market (Canada)": 0.15,
+     "Broad market (U.S.)": 0.15,
+     "Financials": 0.07,
+     "Health Care": 0.08
+    },
+    "proposed": {
+     "Bonds (Canada aggregate)": 0.32000000000000006,
+     "Bonds (Canada ultra short-term)": 0.12,
+     "Broad market (Canada)": 0.12,
+     "Broad market (U.S.)": 0.12,
+     "Consumer Discretionary": 0.2,
+     "Financials": 0.05600000000000001,
+     "Health Care": 0.064
+    }
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Share of portfolio weight by sector in assets_universe; assets without a sector are Unclassified."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "weight": 0.2,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 30,
+   "metric": "correlation_with_base",
+   "value": 0.41242276250771115,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Correlation of TSLA daily returns with the daily-rebalanced Base_Portfolio returns."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 31,
+   "metric": "max_weight_within_contract",
+   "value": {
+    "asset": "TSLA",
+    "max_weight": 0.05,
+    "step": 0.005,
+    "searched_up_to": 1.0
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Largest weight on a 0.5% grid for which every Hard_Rule passes; 0 means no positive size passes."
+   ],
+   "inputs": {
+    "asset": "TSLA",
+    "base": {
+     "JNJ": 0.08,
+     "RY.TO": 0.07,
+     "SPY": 0.15,
+     "XBB.TO": 0.4,
+     "XIU.TO": 0.15,
+     "ZST.TO": 0.15
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "step": 0.005,
+    "max_weight": 1.0,
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 32,
+   "metric": "annualized_volatility",
+   "value": 0.18367574992546873,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: JNJ=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "JNJ",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 33,
+   "metric": "annualized_volatility",
+   "value": 0.15466694552290577,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "RY.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: RY.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "RY.TO",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 34,
+   "metric": "annualized_volatility",
+   "value": 0.5891162747078174,
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "TSLA"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1255 (before alignment: TSLA=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD)."
+   ],
+   "inputs": {
+    "ticker": "TSLA",
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "display_ccy": "CAD",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 35,
+   "metric": "portfolio_metrics",
+   "value": {
+    "annualized_return": 0.10625911800501808,
+    "annualized_volatility": 0.1477446539181583,
+    "max_drawdown": -0.22429255607695864,
+    "peak_date": "2022-01-04",
+    "trough_date": "2022-12-28"
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "assets_universe@20261113T000000Z-test",
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test"
+   ],
+   "processing_notes": [
+    "JNJ: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "JNJ: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "SPY: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "SPY: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "TSLA: converted from USD to CAD using usdcad from fx_usdcad_daily.csv",
+    "TSLA: FX rate missing on 37 date(s); carried forward the most recent earlier usdcad rate (first: 2021-12-27, last: 2026-11-11)",
+    "Calendar alignment: date intersection (only dates on which all compared assets have a price)",
+    "Observation count after alignment: 1228 (before alignment: JNJ=1255, RY.TO=1255, SPY=1255, TSLA=1255, XBB.TO=1255, XIU.TO=1255, ZST.TO=1255)",
+    "Returns are daily simple returns computed from adj_close (ratios of adjusted closes, in CAD).",
+    "Portfolio is rebalanced daily to the stated weights."
+   ],
+   "inputs": {
+    "weights": {
+     "JNJ": 0.064,
+     "RY.TO": 0.05600000000000001,
+     "SPY": 0.12,
+     "TSLA": 0.2,
+     "XBB.TO": 0.32000000000000006,
+     "XIU.TO": 0.12,
+     "ZST.TO": 0.12
+    },
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 36,
+   "metric": "sensitivity",
+   "value": {
+    "variable": "position_size",
+    "changed": true,
+    "threshold": 0.05,
+    "baseline_verdict": "accept_with_conditions",
+    "verdict_at_threshold": "accept"
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test",
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [],
+   "inputs": {
+    "variable": "position_size",
+    "ticker": "TSLA",
+    "weight": 0.3,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 37,
+   "metric": "sensitivity",
+   "value": {
+    "variable": "contract.per_asset_cap",
+    "changed": false,
+    "threshold": "no change in tested range",
+    "baseline_verdict": "accept_with_conditions",
+    "verdict_at_threshold": null
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test",
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [],
+   "inputs": {
+    "variable": "contract.per_asset_cap",
+    "ticker": "TSLA",
+    "weight": 0.3,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 38,
+   "metric": "sensitivity",
+   "value": {
+    "variable": "contract.max_volatility",
+    "changed": false,
+    "threshold": "no change in tested range",
+    "baseline_verdict": "accept_with_conditions",
+    "verdict_at_threshold": null
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test",
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [],
+   "inputs": {
+    "variable": "contract.max_volatility",
+    "ticker": "TSLA",
+    "weight": 0.3,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 39,
+   "metric": "sensitivity",
+   "value": {
+    "variable": "contract.max_drawdown",
+    "changed": false,
+    "threshold": "no change in tested range",
+    "baseline_verdict": "accept_with_conditions",
+    "verdict_at_threshold": null
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test",
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [],
+   "inputs": {
+    "variable": "contract.max_drawdown",
+    "ticker": "TSLA",
+    "weight": 0.3,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 40,
+   "metric": "sensitivity",
+   "value": {
+    "variable": "contract.speculative_limit",
+    "changed": false,
+    "threshold": "no change in tested range",
+    "baseline_verdict": "accept_with_conditions",
+    "verdict_at_threshold": null
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test",
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [],
+   "inputs": {
+    "variable": "contract.speculative_limit",
+    "ticker": "TSLA",
+    "weight": 0.3,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 41,
+   "metric": "sensitivity",
+   "value": {
+    "variable": "horizon_years",
+    "changed": false,
+    "threshold": "no change in tested range",
+    "baseline_verdict": "accept_with_conditions",
+    "verdict_at_threshold": null
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test",
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [],
+   "inputs": {
+    "variable": "horizon_years",
+    "ticker": "TSLA",
+    "weight": 0.3,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  },
+  {
+   "number": 42,
+   "metric": "sensitivity",
+   "value": {
+    "variable": "period_2022",
+    "changed": false,
+    "threshold": "no change in tested range",
+    "baseline_verdict": "accept_with_conditions",
+    "verdict_at_threshold": null
+   },
+   "period_start": "2021-11-12",
+   "period_end": "2026-11-12",
+   "assets": [
+    "JNJ",
+    "RY.TO",
+    "SPY",
+    "TSLA",
+    "XBB.TO",
+    "XIU.TO",
+    "ZST.TO"
+   ],
+   "currency": "CAD",
+   "source_files": [
+    "prices_daily@20261113T000000Z-test",
+    "fx_usdcad_daily@20261113T000000Z-test",
+    "assets_universe@20261113T000000Z-test"
+   ],
+   "processing_notes": [],
+   "inputs": {
+    "variable": "period_2022",
+    "ticker": "TSLA",
+    "weight": 0.3,
+    "start": "2021-11-12",
+    "end": "2026-11-12",
+    "as_of": null
+   },
+   "snapshot_id": "20261113T000000Z-test",
+   "snapshot_retrieved_at": "2026-11-13T00:00:00Z"
+  }
+ ],
+ "verdict": {
+  "verdict": "accept_with_conditions",
+  "max_weight": 0.05,
+  "failing_rules": [
+   "per_asset_cap",
+   "max_volatility",
+   "max_drawdown",
+   "speculative_limit"
+  ],
+  "unverified_rules": [],
+  "conditions": [
+   "Keep the position in TSLA at or below 5.0% of the portfolio (requested 30.0%); failing rules: per_asset_cap, max_volatility, max_drawdown, speculative_limit."
+  ],
+  "tension": "The requested 30.0% in TSLA exceeds the per-asset cap of 10.0% for a low-to-moderate investor.",
+  "exhibits": [
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15
+  ],
+  "reason": "Some Hard_Rules fail at the requested size and pass at the stated maximum."
+ },
+ "ruling": {
+  "verdict": "accept_with_conditions",
+  "facts": [
+   {
+    "text": "Verdict computed by code: accept_with_conditions; largest position size meeting every rule: 5.0 %.",
+    "citations": [
+     7,
+     8,
+     9,
+     10,
+     11,
+     12,
+     13,
+     14,
+     15
+    ]
+   },
+   {
+    "text": "Rule max_volatility: fail; observed 20.1 % against a limit of 12.0 %.",
+    "citations": [
+     10
+    ]
+   },
+   {
+    "text": "Rule max_drawdown: fail; observed 30.1 % against a limit of 15.0 %.",
+    "citations": [
+     10
+    ]
+   },
+   {
+    "text": "Rule speculative_limit: fail; observed 30.0 % against a limit of 5.0 %.",
+    "citations": [
+     7,
+     8,
+     9
+    ]
+   }
+  ],
+  "assumptions": [
+   "Period: 2021-11-12 to 2026-11-12.",
+   "Currency: CAD; USD amounts converted with the USD/CAD series.",
+   "Calendar alignment: dates where every held asset has a price (date intersection), portfolio rebalanced daily.",
+   "Snapshot_Id 20261113T000000Z-test, retrieved 2026-11-13.",
+   "Contract field per_asset_cap = 0.1 (persona_assumption): no Persona_File rationale recorded.",
+   "Contract field per_asset_class_caps = {'crypto': 0.02} (persona_assumption): no Persona_File rationale recorded.",
+   "Contract field sector_caps = {'Information Technology': 0.25} (persona_assumption): no Persona_File rationale recorded.",
+   "Contract field crypto_cap = 0.02 (persona_assumption): no Persona_File rationale recorded.",
+   "Contract field max_volatility = 0.12 (persona_assumption): no Persona_File rationale recorded.",
+   "Contract field max_drawdown = 0.15 (persona_assumption): no Persona_File rationale recorded.",
+   "Contract field speculative_limit = 0.05 (persona_assumption): no Persona_File rationale recorded."
+  ],
+  "fictional_scenarios": [
+   "Simulation: 30.0 % of the portfolio in TSLA from 2021-11-12 to 2026-11-12.",
+   "Simulation: 5.0 % of the portfolio in TSLA is the largest size on the 0.5-point grid that meets every rule."
+  ],
+  "limits": [
+   "Survivorship-bias limitation: the Dataset holds 31 assets that exist today, covering about five years. Assets that were delisted or failed in the window are absent, so historical results are likely better than an investor would have experienced, and a five-year window limits any conclusion.",
+   "Volatility is one risk indicator. Your 3-year horizon, diversification across holdings, and your stated preferences also matter."
+  ],
+  "What would change the verdict": [
+   {
+    "text": "Position size: at 5.0% or less the Verdict becomes accept.",
+    "citations": [
+     36
+    ]
+   },
+   {
+    "text": "per_asset_cap: no change in tested range; other rules still fail.",
+    "citations": [
+     37
+    ]
+   },
+   {
+    "text": "max_volatility: no change in tested range; other rules still fail.",
+    "citations": [
+     38
+    ]
+   },
+   {
+    "text": "max_drawdown: no change in tested range; other rules still fail.",
+    "citations": [
+     39
+    ]
+   },
+   {
+    "text": "speculative_limit: no change in tested range; other rules still fail.",
+    "citations": [
+     40
+    ]
+   },
+   {
+    "text": "Horizon: no change in tested range (1 to 20 years); no Hard_Rule uses it.",
+    "citations": [
+     41
+    ]
+   },
+   {
+    "text": "2022 drawdown period: no change in tested range.",
+    "citations": [
+     42
+    ]
+   },
+   {
+    "text": "You may wish to consider Keep the position in TSLA at or below 5.0% of the portfolio (requested 30.0%); failing rules: per_asset_cap, max_volatility, max_drawdown, speculative_limit and decide personally.",
+    "citations": []
+   }
+  ],
+  "what_would_change": [
+   {
+    "text": "Position size: at 5.0% or less the Verdict becomes accept.",
+    "citations": [
+     36
+    ]
+   },
+   {
+    "text": "per_asset_cap: no change in tested range; other rules still fail.",
+    "citations": [
+     37
+    ]
+   },
+   {
+    "text": "max_volatility: no change in tested range; other rules still fail.",
+    "citations": [
+     38
+    ]
+   },
+   {
+    "text": "max_drawdown: no change in tested range; other rules still fail.",
+    "citations": [
+     39
+    ]
+   },
+   {
+    "text": "speculative_limit: no change in tested range; other rules still fail.",
+    "citations": [
+     40
+    ]
+   },
+   {
+    "text": "Horizon: no change in tested range (1 to 20 years); no Hard_Rule uses it.",
+    "citations": [
+     41
+    ]
+   },
+   {
+    "text": "2022 drawdown period: no change in tested range.",
+    "citations": [
+     42
+    ]
+   },
+   {
+    "text": "You may wish to consider Keep the position in TSLA at or below 5.0% of the portfolio (requested 30.0%); failing rules: per_asset_cap, max_volatility, max_drawdown, speculative_limit and decide personally.",
+    "citations": []
+   }
+  ],
+  "disclaimers": [
+   "This output is a simulation.",
+   "This output is not personalized financial advice.",
+   "This output does not predict future returns."
+  ],
+  "questions": [
+   {
+    "id": "which_data",
+    "heading": "Which data?",
+    "statements": [
+     {
+      "text": "Tables used: assets_universe@20261113T000000Z-test, fx_usdcad_daily@20261113T000000Z-test, prices_daily@20261113T000000Z-test.",
+      "citations": [
+       7,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15
+      ]
+     },
+     {
+      "text": "Period: 2021-11-12 to 2026-11-12; amounts in CAD.",
+      "citations": []
+     },
+     {
+      "text": "Snapshot_Id 20261113T000000Z-test, retrieved 2026-11-13.",
+      "citations": []
+     }
+    ]
+   },
+   {
+    "id": "why_this_choice",
+    "heading": "Why this choice?",
+    "statements": [
+     {
+      "text": "Verdict computed by code: accept_with_conditions.",
+      "citations": [
+       7,
+       8,
+       9,
+       10,
+       11,
+       12,
+       13,
+       14,
+       15
+      ]
+     },
+     {
+      "text": "Rule per_asset_cap: fail; observed 30.0 % against a limit of 10.0 %.",
+      "citations": []
+     },
+     {
+      "text": "Rule max_volatility: fail; observed 20.1 % against a limit of 12.0 %.",
+      "citations": [
+       10
+      ]
+     },
+     {
+      "text": "Rule max_drawdown: fail; observed 30.1 % against a limit of 15.0 %.",
+      "citations": [
+       10
+      ]
+     },
+     {
+      "text": "Rule speculative_limit: fail; observed 30.0 % against a limit of 5.0 %.",
+      "citations": [
+       7,
+       8,
+       9
+      ]
+     },
+     {
+      "text": "Soft_Preference established_companies: Established companies with an understandable business model.",
+      "citations": []
+     },
+     {
+      "text": "Soft_Preference stability_quality: Stability and quality.",
+      "citations": []
+     }
+    ]
+   },
+   {
+    "id": "which_limits",
+    "heading": "Which limits?",
+    "statements": [
+     {
+      "text": "Survivorship-bias limitation: the Dataset holds 31 assets that exist today, covering about five years. Assets that were delisted or failed in the window are absent, so historical results are likely better than an investor would have experienced, and a five-year window limits any conclusion.",
+      "citations": []
+     },
+     {
+      "text": "Volatility is one risk indicator. Your 3-year horizon, diversification across holdings, and your stated preferences also matter.",
+      "citations": []
+     }
+    ]
+   },
+   {
+    "id": "what_would_change",
+    "heading": "What would change the answer?",
+    "statements": [
+     {
+      "text": "Position size: at 5.0% or less the Verdict becomes accept.",
+      "citations": [
+       36
+      ]
+     },
+     {
+      "text": "per_asset_cap: no change in tested range; other rules still fail.",
+      "citations": [
+       37
+      ]
+     },
+     {
+      "text": "max_volatility: no change in tested range; other rules still fail.",
+      "citations": [
+       38
+      ]
+     },
+     {
+      "text": "max_drawdown: no change in tested range; other rules still fail.",
+      "citations": [
+       39
+      ]
+     },
+     {
+      "text": "speculative_limit: no change in tested range; other rules still fail.",
+      "citations": [
+       40
+      ]
+     },
+     {
+      "text": "Horizon: no change in tested range (1 to 20 years); no Hard_Rule uses it.",
+      "citations": [
+       41
+      ]
+     },
+     {
+      "text": "2022 drawdown period: no change in tested range.",
+      "citations": [
+       42
+      ]
+     },
+     {
+      "text": "You may wish to consider Keep the position in TSLA at or below 5.0% of the portfolio (requested 30.0%); failing rules: per_asset_cap, max_volatility, max_drawdown, speculative_limit and decide personally.",
+      "citations": []
+     },
+     {
+      "text": "You may wish to consider an Appeal that changes the contract field per_asset_cap; the tribunal would run again with that value.",
+      "citations": []
+     },
+     {
+      "text": "You may wish to consider an Appeal that changes the contract field max_volatility; the tribunal would run again with that value.",
+      "citations": []
+     },
+     {
+      "text": "You may wish to consider an Appeal that changes the contract field max_drawdown; the tribunal would run again with that value.",
+      "citations": []
+     },
+     {
+      "text": "You may wish to consider an Appeal that changes the contract field speculative_limit; the tribunal would run again with that value.",
+      "citations": []
+     }
+    ]
+   }
+  ],
+  "narrative": "Options weighed against stated preferences.",
+  "options": [
+   {
+    "option_id": "request",
+    "ticker": "TSLA",
+    "weight": 0.3,
+    "rationale": "The request as stated.",
+    "source": "request",
+    "rejected": true,
+    "failing_rules": [
+     "per_asset_cap",
+     "max_volatility",
+     "max_drawdown",
+     "speculative_limit"
+    ],
+    "hard_rule_results": [
+     {
+      "rule": "per_asset_cap",
+      "status": "fail",
+      "observed": 0.3,
+      "limit": 0.1,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "per_asset_class_caps",
+      "status": "pass",
+      "observed": null,
+      "limit": null,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "sector_caps",
+      "status": "pass",
+      "observed": null,
+      "limit": null,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "crypto_cap",
+      "status": "pass",
+      "observed": 0.0,
+      "limit": 0.02,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "max_volatility",
+      "status": "fail",
+      "observed": 0.20104484457395663,
+      "limit": 0.12,
+      "exhibits": [
+       10
+      ],
+      "detail": ""
+     },
+     {
+      "rule": "max_drawdown",
+      "status": "fail",
+      "observed": 0.30068413529069726,
+      "limit": 0.15,
+      "exhibits": [
+       10
+      ],
+      "detail": ""
+     },
+     {
+      "rule": "speculative_limit",
+      "status": "fail",
+      "observed": 0.3,
+      "limit": 0.05,
+      "exhibits": [
+       7,
+       8,
+       9
+      ],
+      "detail": ""
+     }
+    ],
+    "risk_panel": {
+     "portfolio_comparison": 1,
+     "risk_contribution": 2,
+     "currency_exposure": 3,
+     "sector_weights": 4,
+     "correlation_with_base": 5,
+     "max_weight_within_contract": 6
+    }
+   },
+   {
+    "option_id": "option_1",
+    "ticker": "TSLA",
+    "weight": 0.05,
+    "rationale": "A smaller position.",
+    "source": "advocate",
+    "rejected": false,
+    "failing_rules": [],
+    "hard_rule_results": [
+     {
+      "rule": "per_asset_cap",
+      "status": "pass",
+      "observed": 0.076,
+      "limit": 0.1,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "per_asset_class_caps",
+      "status": "pass",
+      "observed": null,
+      "limit": null,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "sector_caps",
+      "status": "pass",
+      "observed": null,
+      "limit": null,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "crypto_cap",
+      "status": "pass",
+      "observed": 0.0,
+      "limit": 0.02,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "max_volatility",
+      "status": "pass",
+      "observed": 0.07835566595413528,
+      "limit": 0.12,
+      "exhibits": [
+       25
+      ],
+      "detail": ""
+     },
+     {
+      "rule": "max_drawdown",
+      "status": "pass",
+      "observed": 0.11819988118055913,
+      "limit": 0.15,
+      "exhibits": [
+       25
+      ],
+      "detail": ""
+     },
+     {
+      "rule": "speculative_limit",
+      "status": "pass",
+      "observed": 0.05,
+      "limit": 0.05,
+      "exhibits": [
+       22,
+       23,
+       24
+      ],
+      "detail": ""
+     }
+    ],
+    "risk_panel": {
+     "portfolio_comparison": 16,
+     "risk_contribution": 17,
+     "currency_exposure": 18,
+     "sector_weights": 19,
+     "correlation_with_base": 20,
+     "max_weight_within_contract": 21
+    }
+   },
+   {
+    "option_id": "option_2",
+    "ticker": "TSLA",
+    "weight": 0.2,
+    "rationale": "A mid-size position.",
+    "source": "advocate",
+    "rejected": true,
+    "failing_rules": [
+     "per_asset_cap",
+     "max_volatility",
+     "max_drawdown",
+     "speculative_limit"
+    ],
+    "hard_rule_results": [
+     {
+      "rule": "per_asset_cap",
+      "status": "fail",
+      "observed": 0.2,
+      "limit": 0.1,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "per_asset_class_caps",
+      "status": "pass",
+      "observed": null,
+      "limit": null,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "sector_caps",
+      "status": "pass",
+      "observed": null,
+      "limit": null,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "crypto_cap",
+      "status": "pass",
+      "observed": 0.0,
+      "limit": 0.02,
+      "exhibits": [],
+      "detail": ""
+     },
+     {
+      "rule": "max_volatility",
+      "status": "fail",
+      "observed": 0.1477446539181583,
+      "limit": 0.12,
+      "exhibits": [
+       35
+      ],
+      "detail": ""
+     },
+     {
+      "rule": "max_drawdown",
+      "status": "fail",
+      "observed": 0.22429255607695864,
+      "limit": 0.15,
+      "exhibits": [
+       35
+      ],
+      "detail": ""
+     },
+     {
+      "rule": "speculative_limit",
+      "status": "fail",
+      "observed": 0.2,
+      "limit": 0.05,
+      "exhibits": [
+       32,
+       33,
+       34
+      ],
+      "detail": ""
+     }
+    ],
+    "risk_panel": {
+     "portfolio_comparison": 26,
+     "risk_contribution": 27,
+     "currency_exposure": 28,
+     "sector_weights": 29,
+     "correlation_with_base": 30,
+     "max_weight_within_contract": 31
+    }
+   }
+  ],
+  "assessments": [],
+  "material_risks": [
+   {
+    "option": "request",
+    "risk": "Single-stock concentration.",
+    "exhibits": [
+     1
+    ],
+    "why_for_this_person": "Low risk tolerance.",
+    "contract_fields": [
+     "per_asset_cap"
+    ]
+   }
+  ],
+  "agents": {
+   "ran": [
+    "advocate",
+    "investigator",
+    "judge"
+   ],
+   "failed": []
+  }
+ },
+ "rule_results": [
+  {
+   "rule": "per_asset_cap",
+   "status": "fail",
+   "observed": 0.3,
+   "limit": 0.1,
+   "exhibits": [],
+   "detail": ""
+  },
+  {
+   "rule": "per_asset_class_caps",
+   "status": "pass",
+   "observed": null,
+   "limit": null,
+   "exhibits": [],
+   "detail": ""
+  },
+  {
+   "rule": "sector_caps",
+   "status": "pass",
+   "observed": null,
+   "limit": null,
+   "exhibits": [],
+   "detail": ""
+  },
+  {
+   "rule": "crypto_cap",
+   "status": "pass",
+   "observed": 0.0,
+   "limit": 0.02,
+   "exhibits": [],
+   "detail": ""
+  },
+  {
+   "rule": "max_volatility",
+   "status": "fail",
+   "observed": 0.20104484457395663,
+   "limit": 0.12,
+   "exhibits": [
+    10
+   ],
+   "detail": ""
+  },
+  {
+   "rule": "max_drawdown",
+   "status": "fail",
+   "observed": 0.30068413529069726,
+   "limit": 0.15,
+   "exhibits": [
+    10
+   ],
+   "detail": ""
+  },
+  {
+   "rule": "speculative_limit",
+   "status": "fail",
+   "observed": 0.3,
+   "limit": 0.05,
+   "exhibits": [
+    7,
+    8,
+    9
+   ],
+   "detail": ""
+  }
+ ],
+ "sensitivity": [
+  {
+   "variable": "position_size",
+   "changed": true,
+   "threshold": 0.05,
+   "baseline_verdict": "accept_with_conditions",
+   "verdict_at_threshold": "accept",
+   "exhibit": 36,
+   "text": "Position size: at 5.0% or less the Verdict becomes accept."
+  },
+  {
+   "variable": "contract.per_asset_cap",
+   "changed": false,
+   "threshold": "no change in tested range",
+   "baseline_verdict": "accept_with_conditions",
+   "verdict_at_threshold": null,
+   "exhibit": 37,
+   "text": "per_asset_cap: no change in tested range; other rules still fail."
+  },
+  {
+   "variable": "contract.max_volatility",
+   "changed": false,
+   "threshold": "no change in tested range",
+   "baseline_verdict": "accept_with_conditions",
+   "verdict_at_threshold": null,
+   "exhibit": 38,
+   "text": "max_volatility: no change in tested range; other rules still fail."
+  },
+  {
+   "variable": "contract.max_drawdown",
+   "changed": false,
+   "threshold": "no change in tested range",
+   "baseline_verdict": "accept_with_conditions",
+   "verdict_at_threshold": null,
+   "exhibit": 39,
+   "text": "max_drawdown: no change in tested range; other rules still fail."
+  },
+  {
+   "variable": "contract.speculative_limit",
+   "changed": false,
+   "threshold": "no change in tested range",
+   "baseline_verdict": "accept_with_conditions",
+   "verdict_at_threshold": null,
+   "exhibit": 40,
+   "text": "speculative_limit: no change in tested range; other rules still fail."
+  },
+  {
+   "variable": "horizon_years",
+   "changed": false,
+   "threshold": "no change in tested range",
+   "baseline_verdict": "accept_with_conditions",
+   "verdict_at_threshold": null,
+   "exhibit": 41,
+   "text": "Horizon: no change in tested range (1 to 20 years); no Hard_Rule uses it."
+  },
+  {
+   "variable": "period_2022",
+   "changed": false,
+   "threshold": "no change in tested range",
+   "baseline_verdict": "accept_with_conditions",
+   "verdict_at_threshold": null,
+   "exhibit": 42,
+   "text": "2022 drawdown period: no change in tested range."
+  }
+ ],
+ "trace": [
+  {
+   "seq": 1,
+   "timestamp": "2026-11-15T01:16:08.369177+00:00",
+   "kind": "snapshot_pinned",
+   "name": "snapshot_pinned",
+   "summary": {
+    "snapshot_id": "20261113T000000Z-test",
+    "retrieved_at": "2026-11-13T00:00:00+00:00"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 2,
+   "timestamp": "2026-11-15T01:16:08.702649+00:00",
+   "kind": "judge_check",
+   "name": "per_asset_cap",
+   "summary": {
+    "inputs": "{\"limit\": 0.1, \"observed\": 0.3, \"weight\": 0.3}",
+    "result": "fail"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 3,
+   "timestamp": "2026-11-15T01:16:08.702668+00:00",
+   "kind": "judge_check",
+   "name": "per_asset_class_caps",
+   "summary": {
+    "inputs": "{\"limit\": null, \"observed\": null, \"weight\": 0.3}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 4,
+   "timestamp": "2026-11-15T01:16:08.702678+00:00",
+   "kind": "judge_check",
+   "name": "sector_caps",
+   "summary": {
+    "inputs": "{\"limit\": null, \"observed\": null, \"weight\": 0.3}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 5,
+   "timestamp": "2026-11-15T01:16:08.702686+00:00",
+   "kind": "judge_check",
+   "name": "crypto_cap",
+   "summary": {
+    "inputs": "{\"limit\": 0.02, \"observed\": 0.0, \"weight\": 0.3}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 6,
+   "timestamp": "2026-11-15T01:16:08.702694+00:00",
+   "kind": "judge_check",
+   "name": "max_volatility",
+   "summary": {
+    "inputs": "{\"limit\": 0.12, \"observed\": 0.20104484457395663, \"weight\": 0.3}",
+    "result": "fail"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 7,
+   "timestamp": "2026-11-15T01:16:08.702701+00:00",
+   "kind": "judge_check",
+   "name": "max_drawdown",
+   "summary": {
+    "inputs": "{\"limit\": 0.15, \"observed\": 0.30068413529069726, \"weight\": 0.3}",
+    "result": "fail"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 8,
+   "timestamp": "2026-11-15T01:16:08.702710+00:00",
+   "kind": "judge_check",
+   "name": "speculative_limit",
+   "summary": {
+    "inputs": "{\"limit\": 0.05, \"observed\": 0.3, \"weight\": 0.3}",
+    "result": "fail"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 9,
+   "timestamp": "2026-11-15T01:16:08.911196+00:00",
+   "kind": "judge_check",
+   "name": "verdict",
+   "summary": {
+    "inputs": "{\"failing\": [\"per_asset_cap\", \"max_volatility\", \"max_drawdown\", \"speculative_limit\"], \"unverified\": []}",
+    "result": "{\"max_weight\": 0.05, \"verdict\": \"accept_with_conditions\"}"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 10,
+   "timestamp": "2026-11-15T01:16:08.912198+00:00",
+   "kind": "judge_check",
+   "name": "guidance_only",
+   "summary": {
+    "inputs": "{\"agent\": \"advocate\", \"statements\": 3}",
+    "result": "{\"patterns\": [], \"result\": \"pass\"}"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 11,
+   "timestamp": "2026-11-15T01:16:09.231281+00:00",
+   "kind": "judge_check",
+   "name": "per_asset_cap",
+   "summary": {
+    "inputs": "{\"limit\": 0.1, \"observed\": 0.076, \"weight\": 0.05}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 12,
+   "timestamp": "2026-11-15T01:16:09.231299+00:00",
+   "kind": "judge_check",
+   "name": "per_asset_class_caps",
+   "summary": {
+    "inputs": "{\"limit\": null, \"observed\": null, \"weight\": 0.05}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 13,
+   "timestamp": "2026-11-15T01:16:09.231306+00:00",
+   "kind": "judge_check",
+   "name": "sector_caps",
+   "summary": {
+    "inputs": "{\"limit\": null, \"observed\": null, \"weight\": 0.05}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 14,
+   "timestamp": "2026-11-15T01:16:09.231313+00:00",
+   "kind": "judge_check",
+   "name": "crypto_cap",
+   "summary": {
+    "inputs": "{\"limit\": 0.02, \"observed\": 0.0, \"weight\": 0.05}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 15,
+   "timestamp": "2026-11-15T01:16:09.231319+00:00",
+   "kind": "judge_check",
+   "name": "max_volatility",
+   "summary": {
+    "inputs": "{\"limit\": 0.12, \"observed\": 0.07835566595413528, \"weight\": 0.05}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 16,
+   "timestamp": "2026-11-15T01:16:09.231325+00:00",
+   "kind": "judge_check",
+   "name": "max_drawdown",
+   "summary": {
+    "inputs": "{\"limit\": 0.15, \"observed\": 0.11819988118055913, \"weight\": 0.05}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 17,
+   "timestamp": "2026-11-15T01:16:09.231331+00:00",
+   "kind": "judge_check",
+   "name": "speculative_limit",
+   "summary": {
+    "inputs": "{\"limit\": 0.05, \"observed\": 0.05, \"weight\": 0.05}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 18,
+   "timestamp": "2026-11-15T01:16:09.562039+00:00",
+   "kind": "judge_check",
+   "name": "per_asset_cap",
+   "summary": {
+    "inputs": "{\"limit\": 0.1, \"observed\": 0.2, \"weight\": 0.2}",
+    "result": "fail"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 19,
+   "timestamp": "2026-11-15T01:16:09.562057+00:00",
+   "kind": "judge_check",
+   "name": "per_asset_class_caps",
+   "summary": {
+    "inputs": "{\"limit\": null, \"observed\": null, \"weight\": 0.2}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 20,
+   "timestamp": "2026-11-15T01:16:09.562065+00:00",
+   "kind": "judge_check",
+   "name": "sector_caps",
+   "summary": {
+    "inputs": "{\"limit\": null, \"observed\": null, \"weight\": 0.2}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 21,
+   "timestamp": "2026-11-15T01:16:09.562072+00:00",
+   "kind": "judge_check",
+   "name": "crypto_cap",
+   "summary": {
+    "inputs": "{\"limit\": 0.02, \"observed\": 0.0, \"weight\": 0.2}",
+    "result": "pass"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 22,
+   "timestamp": "2026-11-15T01:16:09.562079+00:00",
+   "kind": "judge_check",
+   "name": "max_volatility",
+   "summary": {
+    "inputs": "{\"limit\": 0.12, \"observed\": 0.1477446539181583, \"weight\": 0.2}",
+    "result": "fail"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 23,
+   "timestamp": "2026-11-15T01:16:09.562086+00:00",
+   "kind": "judge_check",
+   "name": "max_drawdown",
+   "summary": {
+    "inputs": "{\"limit\": 0.15, \"observed\": 0.22429255607695864, \"weight\": 0.2}",
+    "result": "fail"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 24,
+   "timestamp": "2026-11-15T01:16:09.562092+00:00",
+   "kind": "judge_check",
+   "name": "speculative_limit",
+   "summary": {
+    "inputs": "{\"limit\": 0.05, \"observed\": 0.2, \"weight\": 0.2}",
+    "result": "fail"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 25,
+   "timestamp": "2026-11-15T01:16:09.563752+00:00",
+   "kind": "judge_check",
+   "name": "guidance_only",
+   "summary": {
+    "inputs": "{\"agent\": \"investigator\", \"statements\": 1}",
+    "result": "{\"patterns\": [], \"result\": \"pass\"}"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 26,
+   "timestamp": "2026-11-15T01:16:09.564177+00:00",
+   "kind": "judge_check",
+   "name": "guidance_only",
+   "summary": {
+    "inputs": "{\"agent\": \"judge\", \"statements\": 1}",
+    "result": "{\"patterns\": [], \"result\": \"pass\"}"
+   },
+   "exhibit_number": null
+  },
+  {
+   "seq": 27,
+   "timestamp": "2026-11-15T01:16:11.459434+00:00",
+   "kind": "judge_check",
+   "name": "guidance_only",
+   "summary": {
+    "inputs": "{\"agent\": \"clerk\", \"statements\": 55}",
+    "result": "{\"patterns\": [], \"result\": \"pass\"}"
+   },
+   "exhibit_number": null
+  }
+ ],
+ "summaries": {
+  "advocate": "The Advocate sees the goal as: Keep exposure to one stock small. It proposes 2 options for the court.",
+  "investigator": "The Investigator names 1 material risk across 1 option.",
+  "judge": "The Judge's verdict is: accept with conditions. 4 rules failed: per_asset_cap, max_volatility, max_drawdown, speculative_limit. 1 condition apply."
+ },
+ "snapshot": {
+  "snapshot_id": "20261113T000000Z-test",
+  "source": "starter",
+  "retrieved_at": "2026-11-13T00:00:00Z",
+  "coverage_end": "2026-11-12",
+  "served_from": "primary",
+  "fallback_cause": null
+ },
+ "data_notices": [],
+ "error": null
+}

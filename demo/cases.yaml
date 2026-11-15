@@ -1,0 +1,60 @@
+# Demo cases (Req. 33). Expected Verdicts and maximum weights are computed by code on
+# the starter data (design.md, "Demo cases"); tests/test_demo_cases.py checks them
+# without any model call. max_weight is on the 0.5-point grid; null when no weight is valid.
+version: 1
+custom_profiles:
+  canadian_heavy:
+    description: Mateo's contract with an all-Canadian Base_Portfolio.
+    based_on: mateo
+    base_portfolio:
+      XIU.TO: 0.40
+      XBB.TO: 0.30
+      RY.TO: 0.10
+      TD.TO: 0.10
+      CNR.TO: 0.10
+cases:
+  - id: robert_tsla
+    profile: robert
+    request: {ticker: TSLA, weight: 0.30}
+    expected:
+      verdict: accept_with_conditions
+      max_weight: 0.05
+      failing_rules: [max_volatility, max_drawdown, per_asset_cap, speculative_limit]
+      note: speculative limit binds
+    appeal:
+      id: robert_appeal
+      description: Robert raises speculative_limit from 5% to 10%.
+      contract_patch: {speculative_limit: 0.10}
+      expected:
+        verdict: accept_with_conditions
+        max_weight: 0.10
+        note: per-asset cap binds next
+  - id: amira_tsla
+    profile: amira
+    request: {ticker: TSLA, weight: 0.30}
+    expected:
+      verdict: accept_with_conditions
+      max_weight: 0.15
+      failing_rules: [max_drawdown, per_asset_cap]
+  - id: mateo_xom
+    profile: mateo
+    request: {ticker: XOM, weight: 0.10}
+    expected:
+      verdict: reject
+      max_weight: null
+      failing_rules: [esg_exclusion]
+  - id: amira_btc
+    profile: amira
+    request: {ticker: BTC-USD, weight: 0.40}
+    expected:
+      verdict: accept_with_conditions
+      max_weight: 0.055
+      failing_rules: [max_drawdown, per_asset_cap, crypto_cap, per_asset_class_caps]
+      note: Amira already holds 10% BTC-USD
+  - id: canadian_heavy_spy
+    profile: canadian_heavy
+    request: {ticker: SPY, weight: 0.20}
+    expected:
+      verdict: accept
+      max_weight: 0.20
+      failing_rules: []

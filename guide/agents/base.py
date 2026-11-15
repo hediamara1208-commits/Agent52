@@ -18,6 +18,7 @@ import boto3
 from botocore.config import Config as BotoConfig
 from botocore.exceptions import ClientError
 
+from guide.agents.instructions import SystemPrompt
 from guide.config import Config
 from guide.trace.recorder import TraceRecorder
 
@@ -149,16 +150,24 @@ class BedrockAgent:
 
     def run(
         self,
-        system_prompt: str,
+        system_prompt: "str | SystemPrompt",
         messages: Sequence[Mapping[str, Any]],
         tools: Mapping[str, Any] | Sequence[Mapping[str, Any]] | Any | None,
         trace: TraceRecorder,
+        instruction_hash: str | None = None,
     ) -> AgentOutput:
         """Run the Converse tool-use loop and return sanitized output.
+
+        ``system_prompt`` is the composed text or a ``SystemPrompt`` from the
+        Instruction_Loader; the latter also supplies the Instruction_Hash that
+        is recorded on every agent_call event (Req. 9.8, 21.8).
 
         Every individual Converse call, including follow-up turns after a tool
         result, includes the configured Bedrock Guardrail.
         """
+        if isinstance(system_prompt, SystemPrompt):
+            instruction_hash = instruction_hash or system_prompt.instruction_hash
+            system_prompt = system_prompt.text
         if not isinstance(system_prompt, str):
             raise ValueError("system_prompt must be text")
         conversation = [deepcopy(dict(message)) for message in messages]
@@ -172,7 +181,8 @@ class BedrockAgent:
             if stop_reason == "guardrail_intervened":
                 rule = self._challenge_rule(conversation, output_message)
                 trace.guardrail_block(self.stage, rule)
-                trace.agent_call(self.agent, "Bedrock Converse invocation", "guardrail intervened")
+                trace.agent_call(self.agent, "Bedrock Converse invocation", "guardrail intervened",
+                                 instruction_hash=instruction_hash)
                 return AgentOutput(
                     message={"role": "assistant", "content": [{"text": GUIDANCE_ONLY_MESSAGE}]},
                     content=({"text": GUIDANCE_ONLY_MESSAGE},),
@@ -188,7 +198,8 @@ class BedrockAgent:
                     content=tuple(output_message["content"]),
                     stop_reason=stop_reason,
                 )
-                trace.agent_call(self.agent, "Bedrock Converse invocation", output.text or stop_reason)
+                trace.agent_call(self.agent, "Bedrock Converse invocation", output.text or stop_reason,
+                                 instruction_hash=instruction_hash)
                 return output
 
             if tool_round == self.max_tool_rounds:
