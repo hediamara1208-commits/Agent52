@@ -51,7 +51,12 @@ _FORECAST_TITLE = re.compile(
     r"triple|crash|plunge)|\bto (?:soar|surge|double|crash)\b|undervalued|overvalued|\b(?:buy|sell) (?:rating|now)\b|"
     r"reaffirms .*(?:buy|sell|hold)|upgrade[sd]?\b|downgrade[sd]?\b|should you buy|is it time to buy|"
     r"stock to buy|best stocks?|millionaire|you'?d now need|shares of .* you'?d|bull case|bear case|forecast|prediction|"
-    r"worth buying|buy the dip|time to (?:buy|sell)|\bbuy or sell\b|\b(?:a )?(?:buy|sell|hold)\?",
+    r"worth buying|buy the dip|time to (?:buy|sell)|\bbuy or sell\b|\b(?:a )?(?:buy|sell|hold)\?|"
+    r"\b(?:turn|turns|turning|is|looks|stays?|go(?:es)?) (?:bullish|bearish)\b|\bbull(?:ish)? signal\b|"
+    r"if history repeats|poised (?:to|for)|rally ahead|set to (?:soar|surge|rally|rebound|climb|jump)|"
+    r"next leg (?:up|down)|(?:could|may|might|will) (?:hit|reach|rally|rebound|top|break) \$?[\d,.]+|"
+    r"where (?:is|are) .{0,40} headed|where .{0,40} (?:is|are) headed|what'?s next for .{0,40} (?:stock|price|shares)|"
+    r"\bbottom(?:ed)? out\?|\bhas .{0,20} bottomed\b",
     re.I)
 
 

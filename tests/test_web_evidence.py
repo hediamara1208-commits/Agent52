@@ -227,3 +227,18 @@ def test_same_headline_twice_is_one_card_and_stray_symbols_go():
     assert len(found) == 1
     s = "? : Second-biggest token Ether, which slumped 8% in the US session, fell to $1,731 on Sunday."
     assert clean_snippet(s).startswith("Second-biggest token Ether")
+
+
+def test_more_forecast_wordings_are_dropped():
+    for t in ["Bitcoin's four-year cycle is about to turn bullish — if history repeats",
+              "Tesla stock poised for a breakout after robotaxi event",
+              "Bitcoin could hit $150,000 by next summer, analyst says",
+              "Exxon shares set to rally as oil rebounds",
+              "Where Is Tesla Stock Headed After Q3 Earnings?",
+              "Has Bitcoin Bottomed Out?"]:
+        assert not is_informative(t), t
+    for t in ["Bitcoin Tumbles to Three-Month Low as Liquidations Accelerate",
+              "Bitcoin slides toward $60,000 as ETF outflows and liquidations intensify",
+              "ExxonMobil (XOM) Pauses Work On Its Texas Hydrogen Facility",
+              "Tesla bulls cheer delivery numbers as shares rise 4%"]:
+        assert is_informative(t), t
