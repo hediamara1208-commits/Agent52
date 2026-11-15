@@ -1,5 +1,6 @@
 import type { Focus, SessionView } from "../model/sessionView";
 import { CourtroomScene } from "./CourtroomScene";
+import { CourtroomTimeline } from "./CourtroomTimeline";
 import { FourAnswersCard, answersOf } from "./FourAnswersCard";
 import { NewsCards, newsOf } from "./NewsCards";
 import { VerdictPanel } from "./VerdictPanel";
@@ -25,6 +26,7 @@ export function FriendlyMode({
         </section>
       )}
       <VerdictPanel view={view} onSeeDetails={onSeeDetails} />
+      <CourtroomTimeline view={view} onOpen={(number) => onSeeDetails({ kind: "exhibit", number })} />
       <FourAnswersCard
         answers={answersOf(view)}
         onOpen={(number) => onSeeDetails({ kind: "exhibit", number })}
