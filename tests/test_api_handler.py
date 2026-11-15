@@ -57,6 +57,7 @@ def test_route_table_is_the_allowed_list():
     assert set(ROUTES) == {
         ("GET", "/personas"), ("GET", "/profiles"), ("PUT", "/profiles/{id}"),
         ("POST", "/sessions"), ("GET", "/sessions/{id}"), ("GET", "/sessions/{id}/trace"),
+        ("POST", "/speech"),
     }
 
 
@@ -106,3 +107,32 @@ def test_profiles_are_per_owner():
 def test_personas_listed():
     ids = {p["id"] for p in call(make(), "GET", "/personas")[1]["personas"]}
     assert {"amira", "mateo", "robert"} <= ids
+
+
+
+class FakePolly:
+    def __init__(self):
+        self.calls = []
+
+    def synthesize_speech(self, **kw):
+        import io
+        self.calls.append(kw)
+        return {"AudioStream": io.BytesIO(b"ID3-mp3")}
+
+
+def test_speech_voices_a_court_member_with_its_own_neural_voice():
+    import base64
+    deps = make()
+    deps.polly = FakePolly()
+    status, body, _ = call(deps, "POST", "/speech", body={"speaker": "judge", "text": "So ordered."})
+    assert status == 200 and body["voice"] == "Gregory" and base64.b64decode(body["audio"]) == b"ID3-mp3"
+    assert deps.polly.calls[0]["Engine"] == "neural" and deps.polly.calls[0]["Text"] == "So ordered."
+
+
+def test_speech_rejects_unknown_speakers_long_text_and_anonymous_callers():
+    deps = make()
+    deps.polly = FakePolly()
+    assert call(deps, "POST", "/speech", body={"speaker": "trader", "text": "Buy"})[0] == 422
+    assert call(deps, "POST", "/speech", body={"speaker": "judge", "text": "x" * 601})[0] == 422
+    assert call(deps, "POST", "/speech", body={"speaker": "judge", "text": "Hi"}, sub=None)[0] == 401
+    assert deps.polly.calls == []
