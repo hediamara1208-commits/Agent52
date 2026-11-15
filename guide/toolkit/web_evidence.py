@@ -88,7 +88,8 @@ def mentions_subject(title: str, ticker: str, name: str) -> bool:
 _SNIPPET_JUNK = re.compile(
     r"\badvertisement\b|\bquick read\b|\brates commodities currencies\b|\bu\.?s\.? markets? (?:closed|open)\b|"
     r"\btrending\b|\bsign in\b|\bsubscribe\b|\bread more\b|\bskip to\b|\bexplore stocks\b|"
-    r"\btrading disclosure\b|\bon coinbase\b",
+    r"\btrading disclosure\b|\bon coinbase\b|for questions about this article[^.]*\.|"
+    r"\b[\w.+-]+@[\w-]+\.[\w.]+\b|\b(?:click|tap) here\b[^.]*\.|\bthis article (?:was|is) (?:written|produced)[^.]*\.",
     re.I)
 _QUOTE_RUN = re.compile(r"(?:[\^]?[A-Z]{2,6}\s+)?[-+]?\d[\d,.]*%?(?:\s+[-+]?\d[\d,.]*%?){1,}")
 

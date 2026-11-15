@@ -210,3 +210,10 @@ def test_bylines_datelines_and_cut_tails():
     cut = ("(Bloomberg) -- Just months after SpaceX was denied a swift entry into the S&P 500 Index, Elon Musk "
            "may have found a backdoor: Merging with T")
     assert clean_snippet(cut).endswith("Merging with…")
+
+
+def test_contact_boilerplate_is_dropped():
+    s = ("For questions about this article or underlying research, email help@trefis.com. Over the past twelve "
+         "months, Exxon Mobil shares have tracked crude prices closely as refining margins narrowed.")
+    assert clean_snippet(s) == ("Over the past twelve months, Exxon Mobil shares have tracked crude prices closely "
+                                "as refining margins narrowed.")
