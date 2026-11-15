@@ -93,6 +93,8 @@ make seed       # writes the dataset snapshot to S3 and the Precedents to Dynamo
 
 Extra CDK options go in `CDK_ARGS`, for example `make deploy CDK_ARGS="-c budget_email=me@example.com"`. The flags are listed in `infra/cdk.json`. `make deploy` prints the UI URL at the end. Then create the jury login (next section).
 
+Changes made by hand in the event account (runtime image tags, guardrail, Lambda edit, Amplify uploads) are listed in [docs/deployment_log.md](docs/deployment_log.md).
+
 `make destroy` removes every stack. The data bucket is retained on purpose; delete it by hand if you want it gone.
 
 ### New AWS account (not the event account)
