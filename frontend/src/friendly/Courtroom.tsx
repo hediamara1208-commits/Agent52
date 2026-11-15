@@ -46,6 +46,7 @@ export function Courtroom({ view, onOpen, speak }: {
   const [typed, setTyped] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [voice, setVoice] = useState(false);
+  const [replaying, setReplaying] = useState(false);
   const seenCompleted = useRef(view.status === "completed");
 
   // Live: follow the latest speech. On completion: replay the whole hearing once.
@@ -54,7 +55,7 @@ export function Courtroom({ view, onOpen, speak }: {
   }, [running, speeches.length]);
   useEffect(() => {
     if (view.status === "completed" && !seenCompleted.current) {
-      seenCompleted.current = true; setIndex(0); setTyped(0); setPlaying(true);
+      seenCompleted.current = true; setIndex(0); setTyped(0); setPlaying(true); setReplaying(true);
     }
   }, [view.status]);
 
@@ -156,11 +157,11 @@ export function Courtroom({ view, onOpen, speak }: {
       </div>
       <div className="court-controls">
         <span className="court-caption"><span className="dot" style={{ color: running ? "#e7b75f" : "#34d399" }} />
-          {!running && !finished && playing ? "The hearing is replayed from the court record…" : caption}</span>
+          {replaying && !finished && playing ? "The hearing is replayed from the court record…" : caption}</span>
         <span className="court-buttons">
           <button type="button" disabled={running || index === 0} onClick={() => { setIndex((i) => Math.max(0, i - 1)); setTyped(0); }} aria-label="Previous speech">◀</button>
           <button type="button" disabled={running || !speeches.length} data-testid="replay"
-            onClick={() => { if (finished) { setIndex(0); setTyped(0); setPlaying(true); } else setPlaying((p) => !p); }}>
+            onClick={() => { if (finished) { setIndex(0); setTyped(0); setPlaying(true); setReplaying(true); } else setPlaying((p) => !p); }}>
             {finished ? "↻ Replay the hearing" : playing ? "❚❚ Pause" : "▶ Play"}
           </button>
           <button type="button" disabled={running || index >= speeches.length - 1} onClick={() => { setIndex((i) => i + 1); setTyped(0); }} aria-label="Next speech">▶</button>
