@@ -68,6 +68,11 @@ describe("live progress (what the tribunal is doing while you wait)", () => {
     expect(screen.getByTestId("live-clock")).toHaveTextContent("1:35 · taking longer than usual");
   });
 
+  it("opens with 'in session', not an options check, before the first update arrives", () => {
+    render(<FriendlyMode view={{ ...base, stage: "advocate", stages_done: [], snapshot: null } as SessionView} onSeeDetails={() => {}} />);
+    expect(screen.getByText("The tribunal is in session…")).toBeInTheDocument();
+  });
+
   it("disappears once the session completes", () => {
     render(<FriendlyMode view={{ ...base, status: "completed" } as SessionView} onSeeDetails={() => {}} />);
     expect(screen.queryByTestId("live-progress")).toBeNull();
