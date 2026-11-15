@@ -22,7 +22,7 @@ export function valuesFromPersona(p: PersonaEntry): ContractValues {
   };
 }
 
-const RISKS = ["low", "low_to_moderate", "moderate", "high"];
+const RISKS = ["low", "low_to_moderate", "moderate", "high", "very_high"];
 const toNum = (s: string) => (s.trim() === "" || Number.isNaN(Number(s)) ? null : Number(s));
 
 export function ProfileForm({ values, onChange }: { values: ContractValues; onChange: (v: ContractValues) => void }) {

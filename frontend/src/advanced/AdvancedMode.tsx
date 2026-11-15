@@ -4,17 +4,64 @@ import { RuleTable } from "./RuleTable";
 import { SensitivityPanel } from "./SensitivityPanel";
 import { TracePanel } from "./TracePanel";
 
-/** Advanced_Mode: Exhibits, rules, sensitivity, trace over the shared SessionView (Req. 7.6, 7.7, 7.17). */
+const VERDICT_COLOR: Record<string, string> = { accept: "var(--pass)", accept_with_conditions: "var(--warn)", reject: "var(--fail)" };
+
+function Kpis({ view }: { view: SessionView }) {
+  const failing = view.rule_results.filter((r) => r.status === "fail").length;
+  const v = view.verdict;
+  const agentCalls = view.trace.filter((e) => e.kind === "agent_call").length;
+  return (
+    <div className="kpis" data-testid="kpis">
+      <div className="kpi">
+        <div className="kpi-label">Verdict</div>
+        <div className="kpi-value" style={{ color: v ? VERDICT_COLOR[v.verdict] : undefined, fontSize: "1.2rem", paddingTop: ".35rem" }}>
+          {v ? v.verdict.replace(/_/g, " ") : "pending"}
+        </div>
+        <div className="kpi-sub">decided by code</div>
+      </div>
+      <div className="kpi">
+        <div className="kpi-label">Max weight</div>
+        <div className="kpi-value">{v?.max_weight != null ? `${(v.max_weight * 100).toFixed(1)}%` : "—"}</div>
+        <div className="kpi-sub">within every Hard_Rule</div>
+      </div>
+      <div className="kpi">
+        <div className="kpi-label">Hard rules</div>
+        <div className="kpi-value" style={{ color: failing ? "var(--fail)" : "var(--pass)" }}>
+          {view.rule_results.length - failing}/{view.rule_results.length}
+        </div>
+        <div className="kpi-sub">{failing} failing</div>
+      </div>
+      <div className="kpi">
+        <div className="kpi-label">Evidence</div>
+        <div className="kpi-value">{view.exhibits.length}</div>
+        <div className="kpi-sub">Exhibits · {agentCalls} agent calls</div>
+      </div>
+    </div>
+  );
+}
+
+/** Advanced_Mode: analyst dashboard over the shared SessionView (Req. 7.6, 7.7, 7.17). */
 export function AdvancedMode({ view, focus, onFocus }: {
   view: SessionView; focus: Focus | null; onFocus: (focus: Focus) => void;
 }) {
   const openExhibit = (number: number) => onFocus({ kind: "exhibit", number });
   return (
     <div data-testid="advanced-mode">
-      <ExhibitList exhibits={view.exhibits} focusedNumber={focus?.kind === "exhibit" ? focus.number : null} onFocus={openExhibit} />
-      <RuleTable rules={view.rule_results} focusedRule={focus?.kind === "rule" ? focus.rule : null} onExhibit={openExhibit} />
-      <SensitivityPanel results={view.sensitivity} onExhibit={openExhibit} />
-      <TracePanel trace={view.trace} focusedSeq={focus?.kind === "trace" ? focus.seq : null} onExhibit={openExhibit} />
+      <Kpis view={view} />
+      <div className="dash-grid">
+        <div className="card span-2">
+          <RuleTable rules={view.rule_results} focusedRule={focus?.kind === "rule" ? focus.rule : null} onExhibit={openExhibit} />
+        </div>
+        <div className="card">
+          <ExhibitList exhibits={view.exhibits} focusedNumber={focus?.kind === "exhibit" ? focus.number : null} onFocus={openExhibit} />
+        </div>
+        <div className="card">
+          <SensitivityPanel results={view.sensitivity} onExhibit={openExhibit} />
+        </div>
+        <div className="card span-2">
+          <TracePanel trace={view.trace} focusedSeq={focus?.kind === "trace" ? focus.seq : null} onExhibit={openExhibit} />
+        </div>
+      </div>
     </div>
   );
 }

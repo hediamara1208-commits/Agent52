@@ -112,14 +112,18 @@ def default_deps() -> Deps:
                 personas=lambda: dict(load_personas().personas))
 
 
-_RISK_ORDER = ("low", "low_to_moderate", "moderate", "high")
+_RISK_ORDER = ("low", "low_to_moderate", "moderate", "high", "very_high")
+# The fallback base comes from the case-study personas only, so a custom profile gets a
+# Base_Portfolio grounded in the official case (the extra personas are team-written).
+CASE_PERSONAS = ("amira", "mateo", "robert")
 
 
 def closest_persona_base(risk_level: Any, personas: dict[str, Any]) -> dict[str, float] | None:
     """Base_Portfolio for a profile without a persona: the persona with the closest risk level."""
     target = _RISK_ORDER.index(risk_level) if risk_level in _RISK_ORDER else _RISK_ORDER.index("moderate")
     best = None
-    for pid in sorted(personas):
+    case = [pid for pid in sorted(personas) if pid in CASE_PERSONAS]
+    for pid in case or sorted(personas):
         persona = personas[pid]
         values = persona.contract_values
         if "base_portfolio" not in values:
