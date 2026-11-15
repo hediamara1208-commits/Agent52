@@ -28,3 +28,15 @@ def test_empty_form_horizon_keeps_the_persona_horizon():
     contract = build_contract_from_form({**FORM, "horizon_min": None, "horizon_max": None}, base)
     assert validate_contract(contract) == []
     assert contract["horizon_range"] == {"min": 8, "max": 12}
+
+
+def test_blank_form_fields_keep_persona_or_default_values():
+    robert = load_personas(SHIPPED_PATH).personas["robert"]
+    blank = {"risk_level": "low_to_moderate", "horizon_min": None, "horizon_max": None, "max_volatility": None,
+             "max_drawdown": None, "per_asset_cap": None, "crypto_cap": None, "esg_exclusions": []}
+    with_persona = build_contract_from_form(blank, robert)
+    assert validate_contract(with_persona) == []
+    assert with_persona["max_volatility"] == 0.12 and with_persona["crypto_cap"] == 0.02
+    no_persona = build_contract_from_form({**blank, "risk_level": "moderate"}, None)
+    assert validate_contract(no_persona) == []
+    assert no_persona["max_volatility"] == 0.20
