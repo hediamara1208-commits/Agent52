@@ -68,10 +68,18 @@ def parse_advocate_output(
     """Validate the Advocate JSON; raise StageFailure on any violation."""
     if scope not in ADVOCATE_SCOPES:
         raise ValueError(f"advocate_scope must be one of {', '.join(ADVOCATE_SCOPES)}")
+    body = _FENCE.sub("", (text or "").strip())
     try:
-        data = json.loads(_FENCE.sub("", text.strip()))
-    except (ValueError, AttributeError) as error:
-        raise _fail("output is not valid JSON") from error
+        data = json.loads(body)
+    except ValueError:
+        # Tolerate a short preamble or trailing remark around the JSON object.
+        start, end = body.find("{"), body.rfind("}")
+        try:
+            data = json.loads(body[start:end + 1]) if 0 <= start < end else None
+        except ValueError:
+            data = None
+    if data is None:
+        raise _fail("output is not valid JSON")
     if not isinstance(data, Mapping) or set(data) - {"goal", "options"}:
         raise _fail("output must be an object with goal and options only")
 
@@ -155,8 +163,9 @@ def run_advocate(
         replace(config, model_id=model_id),
         client=client,
         tool_runner=tool_runner,
-        max_tokens=2048,
+        max_tokens=4096,
         max_tool_rounds=MAX_TOOL_CALLS,
+        guard_text=request_text,
     )
     output: AgentOutput = agent.run(
         prompt,

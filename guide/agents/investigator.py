@@ -106,8 +106,15 @@ def parse_output(text: str) -> dict[str, Any]:
         body = fenced.group(1)
     try:
         data = json.loads(body)
-    except json.JSONDecodeError as error:
-        raise StageFailure(AGENT, "output is not valid JSON") from error
+    except json.JSONDecodeError:
+        # Tolerate a short preamble or trailing remark around the JSON object.
+        start, end = body.find("{"), body.rfind("}")
+        try:
+            data = json.loads(body[start:end + 1]) if 0 <= start < end else None
+        except json.JSONDecodeError:
+            data = None
+    if data is None:
+        raise StageFailure(AGENT, "output is not valid JSON")
     if next(iter(_VALIDATOR.iter_errors(data)), None) is not None:
         raise StageFailure(AGENT, "output does not match the Investigator schema")
     return data
@@ -177,6 +184,7 @@ def run_investigator(
         client=client,
         tool_runner=tool_runner,
         stage=AGENT,
+        max_tokens=6000,
         max_tool_rounds=6,
     )
     output: AgentOutput = agent.run(prompt, build_messages(options, contract), tools, trace)

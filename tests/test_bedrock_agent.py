@@ -79,7 +79,7 @@ def test_tool_use_loop_guards_every_call_and_drops_reasoning_content():
         assert call["guardrailConfig"] == {
             "guardrailIdentifier": "guardrail-id",
             "guardrailVersion": "1",
-            "trace": "disabled",
+            "trace": "enabled",
         }
     second_call_messages = client.calls[1]["messages"]
     assert all("reasoningContent" not in block for block in second_call_messages[1]["content"])
@@ -150,3 +150,29 @@ def test_model_calls_cannot_be_created_without_guardrail_configuration():
 
     with pytest.raises(ValueError, match="guardrail_id is required"):
         BedrockAgent("judge", unsafe_config, client=FakeBedrockClient([]))
+
+
+def test_guard_content_tags_only_the_user_text_and_block_reason_is_named():
+    from guide.agents.base import BedrockAgent
+    from guide.config import Config
+    cfg = Config(s3_bucket="b", model_id="m", guardrail_id="g", guardrail_version="1")
+    seen = {}
+
+    class Client:
+        def converse(self, **kw):
+            seen.update(kw)
+            return {"stopReason": "guardrail_intervened",
+                    "output": {"message": {"role": "assistant", "content": [{"text": "x"}]}},
+                    "trace": {"guardrail": {"outputAssessments": {"0": [{"topicPolicy": {"topics": [
+                        {"name": "ReturnPredictions", "type": "DENY", "action": "BLOCKED"}]}}]}}}}
+
+    from guide.trace.recorder import TraceRecorder
+    trace = TraceRecorder(emit_spans=False)
+    agent = BedrockAgent("judge", cfg, client=Client(), guard_text="30% in TSLA")
+    out = agent.run("sys", [{"role": "user", "content": [{"text": "{\"a\": 1}"}]}], None, trace)
+    assert out.blocked
+    blocks = seen["messages"][0]["content"]
+    assert blocks[-1] == {"guardContent": {"text": {"text": "30% in TSLA"}}}
+    assert seen["guardrailConfig"]["trace"] == "enabled"
+    ev = [e for e in trace.to_list() if e["kind"] == "guardrail_block"][0]
+    assert ev["summary"]["rule"] == "output:topic:ReturnPredictions"

@@ -96,8 +96,15 @@ def parse_output(text: str) -> dict[str, Any]:
         body = fenced.group(1)
     try:
         data = json.loads(body)
-    except json.JSONDecodeError as error:
-        raise StageFailure(AGENT, "output is not valid JSON") from error
+    except json.JSONDecodeError:
+        # Tolerate a short preamble or trailing remark around the JSON object.
+        start, end = body.find("{"), body.rfind("}")
+        try:
+            data = json.loads(body[start:end + 1]) if 0 <= start < end else None
+        except json.JSONDecodeError:
+            data = None
+    if data is None:
+        raise StageFailure(AGENT, "output is not valid JSON")
     if next(iter(_VALIDATOR.iter_errors(data)), None) is not None:
         raise StageFailure(AGENT, "output does not match the Judge schema")
     return data
@@ -297,7 +304,7 @@ def run_judge(
     """Call the Judge once (no tools); raise StageFailure on invalid output (Req. 36 fallback)."""
     prompt = system_prompt or load_system_prompt(AGENT, Path(config.instruction_dir))
     model_id = config.model_ids.get(AGENT) or config.model_id
-    agent = BedrockAgent(AGENT, replace(config, model_id=model_id), client=client, stage=AGENT, max_tokens=4096)
+    agent = BedrockAgent(AGENT, replace(config, model_id=model_id), client=client, stage=AGENT, max_tokens=6000)
     messages = build_messages(
         hard_rule_results=hard_rule_results,
         options=options,
