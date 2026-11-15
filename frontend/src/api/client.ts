@@ -97,7 +97,15 @@ export function createApiClient(
       return Array.isArray(r) ? r : r.profiles;
     },
     saveProfile: (p) => call("PUT", `/profiles/${encodeURIComponent(p.profile_id)}`, p),
-    startSession: (r) => call("POST", "/sessions", r),
+    // Session_API body (api/handler.py): {profile: {base_persona_id, values, profile_id?}, request_text}.
+    startSession: (r) => call("POST", "/sessions", {
+      profile: {
+        base_persona_id: r.persona_id,
+        values: r.values,
+        ...(r.profile_id ? { profile_id: r.profile_id } : {}),
+      },
+      request_text: r.request_text,
+    }),
     startAppeal: (appeal_of, change) => call("POST", "/sessions", { appeal_of, change }),
     getSession: (id) => call("GET", `/sessions/${encodeURIComponent(id)}`),
     getTrace: (id) => call("GET", `/sessions/${encodeURIComponent(id)}/trace`),
