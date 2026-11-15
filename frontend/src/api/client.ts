@@ -77,7 +77,8 @@ export function createApiClient(
     const res = await fetchImpl(`${base}${path}`, {
       method,
       headers: {
-        Authorization: `Bearer ${token}`,
+        // Raw ID token: the API Gateway Cognito authorizer does not strip a "Bearer " prefix.
+        Authorization: token,
         ...(body === undefined ? {} : { "Content-Type": "application/json" }),
       },
       body: body === undefined ? undefined : JSON.stringify(body),

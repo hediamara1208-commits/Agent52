@@ -7,7 +7,9 @@ export interface AuthService {
   currentUser(): Promise<string | null>;
   signIn(username: string, password: string): Promise<void>;
   signOut(): Promise<void>;
-  accessToken(): Promise<string | null>;
+  /** Cognito ID token for the Session_API. The REST API Cognito authorizer has no OAuth scopes,
+   *  so it validates ID tokens only; an access token gets 401. */
+  apiToken(): Promise<string | null>;
 }
 
 export function createAmplifyAuth(config: RuntimeConfig): AuthService {
@@ -23,9 +25,9 @@ export function createAmplifyAuth(config: RuntimeConfig): AuthService {
       if (!r.isSignedIn) throw new Error(`Additional sign-in step required: ${r.nextStep.signInStep}`);
     },
     signOut: () => signOut(),
-    async accessToken() {
+    async apiToken() {
       const s = await fetchAuthSession();
-      return s.tokens?.accessToken?.toString() ?? null;
+      return s.tokens?.idToken?.toString() ?? null;
     },
   };
 }

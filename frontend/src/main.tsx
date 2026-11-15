@@ -12,7 +12,7 @@ if (isReplay(window.location.search, import.meta.env.MODE)) {
   loadConfig()
     .then((config) => {
       const auth = createAmplifyAuth(config);
-      root.render(<App auth={auth} makeApi={() => createApiClient(config, () => auth.accessToken())} />);
+      root.render(<App auth={auth} makeApi={() => createApiClient(config, () => auth.apiToken())} />);
     })
     .catch((e) => root.render(<p role="alert">{e instanceof Error ? e.message : "Configuration error"}</p>));
 }
