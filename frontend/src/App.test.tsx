@@ -91,3 +91,18 @@ describe("api client", () => {
     await expect(loadConfig(f as unknown as typeof fetch)).rejects.toThrow("missing");
   });
 });
+
+describe("Session_API request body", () => {
+  it("wraps the persona and form values in a profile object", async () => {
+    const { createApiClient } = await import("./api/client");
+    const f = vi.fn(async () => new Response(JSON.stringify({ session_id: "s1" }), { status: 202 }));
+    const api = createApiClient({ apiUrl: "https://api.example" }, async () => "tok", f as unknown as typeof fetch);
+    const values = { risk_level: "low", horizon_min: null, horizon_max: null, max_volatility: 0.12, max_drawdown: 0.15,
+      per_asset_cap: 0.1, crypto_cap: 0.02, esg_exclusions: [] };
+    await api.startSession({ persona_id: "robert", profile_id: null, values, request_text: "30% in TSLA" });
+    const init = (f.mock.calls[0] as unknown as [string, RequestInit])[1];
+    expect(JSON.parse(String(init.body))).toEqual({
+      profile: { base_persona_id: "robert", values }, request_text: "30% in TSLA",
+    });
+  });
+});

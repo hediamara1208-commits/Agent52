@@ -104,10 +104,11 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
     setMessage(null);
     setBusy(true);
     try {
-      const isProfile = profiles.some((p) => p.profile_id === selected);
+      const savedProfile = profiles.find((p) => p.profile_id === selected);
+      const isProfile = savedProfile !== undefined;
       setAppealBase(null);
       const { session_id } = await api.startSession({
-        persona_id: isProfile ? null : selected || null,
+        persona_id: isProfile ? savedProfile.base_persona_id : selected || null,
         profile_id: isProfile ? selected : null,
         values, request_text: requestText,
       });

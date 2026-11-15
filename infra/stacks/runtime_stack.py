@@ -146,6 +146,8 @@ class RuntimeStack(Stack):
                 "GUIDE_SESSION_TABLE": session_table,
                 "GUIDE_S3_BUCKET": bucket_name + suffix,
                 "GUIDE_S3_PREFIX": prefix,
+                # The container runs as appuser; /workshop (config default) is not writable.
+                "GUIDE_CACHE_DIR": "/tmp/guide-cache",
                 "GUIDE_MODEL_ID": model_id,
                 "GUIDE_GUARDRAIL_ID": guardrail_id,
                 "GUIDE_GUARDRAIL_VERSION": guardrail_version,

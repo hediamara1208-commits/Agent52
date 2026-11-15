@@ -142,6 +142,8 @@ class ApiStack(Stack):
                 "GUIDE_S3_PREFIX": prefix,
                 "GUIDE_AGENT_RUNTIME_ARN": agent_runtime_arn,
                 "GUIDE_CORS_ORIGIN": cors_origin,
+                # Only /tmp is writable on Lambda; the config default is the cloud-IDE path.
+                "GUIDE_CACHE_DIR": "/tmp/guide-cache",
             },
         )
 
