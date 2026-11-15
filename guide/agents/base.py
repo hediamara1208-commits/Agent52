@@ -119,6 +119,7 @@ class BedrockAgent:
         guard_text: str | None = None,
         max_tool_rounds: int = 8,
         max_throttling_retries: int = 3,
+        cache_conversation: bool = False,
         base_backoff_seconds: float = 0.25,
         sleep: Callable[[float], None] = time.sleep,
         random_source: Callable[[], float] = random.random,
@@ -145,6 +146,9 @@ class BedrockAgent:
         # (prompt attack). Code-built JSON, Exhibits and tool results are not user input.
         self.guard_text = (guard_text or "").strip() or "Simulated investment tribunal session."
         self.max_tool_rounds = max_tool_rounds
+        # Caching the conversation pays only when the agent makes several calls (a write costs
+        # 25% more; later rounds read it at a tenth). Measured live: only the Advocate loops.
+        self.cache_conversation = cache_conversation
         self.max_throttling_retries = max_throttling_retries
         self.base_backoff_seconds = base_backoff_seconds
         self._sleep = sleep
@@ -236,8 +240,8 @@ class BedrockAgent:
         request: dict[str, Any] = {
             "modelId": self.config.model_id,
             "system": [{"text": system_prompt}] + ([_CACHE_POINT] if cache else []),
-            "messages": self._with_cache_point(self._with_guard_content(messages)) if cache else
-                        self._with_guard_content(messages),
+            "messages": self._with_cache_point(self._with_guard_content(messages))
+                        if cache and self.cache_conversation else self._with_guard_content(messages),
             "inferenceConfig": {"maxTokens": self.max_tokens},
             "guardrailConfig": {
                 "guardrailIdentifier": self.config.guardrail_id,

@@ -179,6 +179,7 @@ def run_advocate(
         tool_runner=tool_runner,
         max_tokens=4096,
         max_tool_rounds=MAX_TOOL_CALLS,
+        cache_conversation=True,
         guard_text=request_text,
     )
     output: AgentOutput = agent.run(
