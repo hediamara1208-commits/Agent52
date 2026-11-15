@@ -5,7 +5,7 @@ import { ApiError, type ContractValues, type CustomProfile, type PersonaEntry, t
 import type { AuthService } from "./api/auth";
 import { sessionStore, useSessionStore, type SessionStore, type SessionView } from "./model/sessionView";
 import { AppealControl, AppealView, type AppealChange } from "./appeal";
-import { EMPTY_VALUES, ProfileForm, valuesFromPersona } from "./ProfileForm";
+import { EMPTY_VALUES, HoldingsField, ProfileForm, parseHoldings, valuesFromPersona } from "./ProfileForm";
 import { SignInGate } from "./SignInGate";
 
 export const POLL_MS = 2000;
@@ -58,6 +58,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
   const [requestText, setRequestText] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [holdings, setHoldings] = useState("");
   const [appealBase, setAppealBase] = useState<{ original: SessionView; change: AppealChange } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -102,6 +103,8 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
+    const parsedHoldings = parseHoldings(holdings);
+    if (!parsedHoldings.ok) { setMessage(parsedHoldings.error); return; }
     setBusy(true);
     try {
       const savedProfile = profiles.find((p) => p.profile_id === selected);
@@ -111,6 +114,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
         persona_id: isProfile ? savedProfile.base_persona_id : selected || null,
         profile_id: isProfile ? selected : null,
         values, request_text: requestText,
+        ...(parsedHoldings.value ? { base_portfolio: parsedHoldings.value } : {}),
       });
       store.setView({
         session_id, status: "running", contract: null, stage: STAGES[0], stages_done: [], active_agent: null,
@@ -187,6 +191,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
             </label>
             {personaError && <p role="alert" data-testid="persona-error" className="alert">Persona file: {personaError}</p>}
             <ProfileForm values={values} onChange={setValues} />
+            <HoldingsField text={holdings} onChange={setHoldings} />
             <button type="button" onClick={save} style={{ width: "100%" }}>Save as custom profile</button>
           </div>
           <div className="card">

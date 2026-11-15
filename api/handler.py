@@ -15,6 +15,7 @@ import uuid
 from dataclasses import asdict, dataclass
 from typing import Any, Callable
 
+from guide.contract.base_portfolio import BasePortfolioError, split_profile, validate_base_portfolio
 from guide.contract.personas import load_personas
 from guide.contract.profiler import CONTRACT_FIELDS, build_contract_from_form, build_contract_from_persona
 from guide.contract.validate import validate_contract
@@ -134,7 +135,7 @@ def _contract_for(profile: dict[str, Any], personas: dict[str, Any]) -> dict[str
         base = personas.get(persona_id)
         if base is None:
             raise _HttpError(422, "invalid profile", fields=["base_persona_id"])
-    values = profile.get("values") or {}
+    values, _ = split_profile(profile)  # base_portfolio is portfolio state, not a contract field
     if not isinstance(values, dict):
         raise _HttpError(422, "invalid profile", fields=["values"])
     contract = build_contract_from_form(values, base) if (values or base is None) else build_contract_from_persona(base)
@@ -142,6 +143,22 @@ def _contract_for(profile: dict[str, Any], personas: dict[str, Any]) -> dict[str
     if errors:
         raise _HttpError(422, "invalid profile", fields=[e.field for e in errors])
     return contract
+
+
+def _with_base(profile: dict[str, Any], deps: Deps) -> dict[str, Any]:
+    """Validate a custom Base_Portfolio against the assets universe and store it, normalised,
+    at ``profile["base_portfolio"]`` (never inside the contract values); 422 when unusable."""
+    values, raw = split_profile(profile)
+    out = {k: v for k, v in profile.items() if k != "base_portfolio"}
+    if isinstance(values, dict) and "values" in profile:
+        out["values"] = values
+    if raw is None:
+        return out
+    try:
+        out["base_portfolio"] = validate_base_portfolio(raw, deps.universe())
+    except BasePortfolioError as error:
+        raise _HttpError(422, f"invalid base_portfolio: {error}", fields=["base_portfolio"]) from None
+    return out
 
 
 # ---- handlers -------------------------------------------------------------------------------
@@ -166,6 +183,7 @@ def _put_profile(deps: Deps, owner: str, event: dict[str, Any], params: dict[str
     profile.pop("owner", None)
     profile["profile_id"] = profile_id
     _contract_for(profile, deps.personas())
+    profile = _with_base(profile, deps)
     deps.store.put_profile(owner, profile)
     return 200, profile
 
@@ -232,6 +250,7 @@ def _create_session(deps: Deps, owner: str, event: dict[str, Any], params: dict[
                          fields=[n for n, ok in (("profile", isinstance(profile, dict)),
                                                  ("request_text", isinstance(text, str) and bool(text.strip()))) if not ok])
     contract = _contract_for(profile, deps.personas())
+    profile = _with_base(profile, deps)
     parsed = parse_request(text, deps.universe())
     if isinstance(parsed, MissingFields):
         raise _HttpError(422, "request is missing fields", missing=parsed.as_dict())

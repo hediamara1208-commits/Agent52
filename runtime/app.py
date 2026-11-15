@@ -139,6 +139,7 @@ def closest_persona_base(risk_level: Any, personas: dict[str, Any]) -> dict[str,
 
 def build_request(payload: dict[str, Any], deps: Deps, source: Any):
     """Build the SessionRequest like ``guide/run_session.py`` (ValueError on bad input)."""
+    from guide.contract.base_portfolio import split_profile, validate_base_portfolio
     from guide.contract.profiler import build_contract_from_form, build_contract_from_persona
     from guide.toolkit import metrics
     from guide.tribunal.entrypoint import SessionRequest
@@ -151,16 +152,18 @@ def build_request(payload: dict[str, Any], deps: Deps, source: Any):
         persona = personas.get(profile["base_persona_id"])
         if persona is None:
             raise ValueError("unknown base_persona_id")
-    values = profile.get("values") or {}
+    values, custom_base = split_profile(profile)
+    values = values or {}
     contract = (build_contract_from_form(values, persona) if (values or persona is None)
                 else build_contract_from_persona(persona))
-    base = contract.get("base_portfolio") or values.get("base_portfolio")
+    universe = set(source.read_table(metrics.UNIVERSE_TABLE)["ticker"])
+    # Base_Portfolio: the investor's own holdings first, then the persona's, then the closest case persona's.
+    base = validate_base_portfolio(custom_base, universe) if custom_base is not None else None
     if not base and persona is not None and "base_portfolio" in persona.contract_values:
         base = persona.contract_values["base_portfolio"].value
     if not base:
         base = closest_persona_base(contract.get("risk_level"), personas)
 
-    universe = set(source.read_table(metrics.UNIVERSE_TABLE)["ticker"])
     parsed = parse_request(payload["request_text"], universe)
     if isinstance(parsed, MissingFields):
         raise ValueError(f"request is missing: {parsed.as_dict()}")
