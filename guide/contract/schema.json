@@ -20,7 +20,7 @@
   "properties": {
     "risk_level": {
       "type": "string",
-      "enum": ["low", "low_to_moderate", "moderate", "high"]
+      "enum": ["low", "low_to_moderate", "moderate", "high", "very_high"]
     },
     "horizon_years": {
       "type": "integer",

@@ -489,7 +489,7 @@ personas:
   - id: kai
     display_name: Kai
     risk_level: very_high
-    horizon: {min: 20, max: null}
+    horizon: {min: 20}
     facts:
       age:
         value: 29
