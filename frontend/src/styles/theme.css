@@ -304,3 +304,22 @@ h3.news-title { margin: 0; font-size: .95rem; color: var(--text); text-transform
 }
 .news-card .exhibit-link { align-self: flex-start; margin-top: auto; }
 .news-note { margin: .8rem 0 0; font-size: .75rem; color: var(--muted); }
+
+/* ---------- how the court decided (timeline) ---------- */
+.timeline { margin-top: 1rem; }
+.timeline-steps { list-style: none; margin: 0; padding: 0; position: relative; }
+.timeline-steps::before { content: ""; position: absolute; left: 17px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
+.timeline-step { display: grid; grid-template-columns: 36px 1fr; gap: .8rem; padding: .55rem 0; position: relative; animation: rise .5s ease both; }
+.timeline-dot {
+  width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 1rem;
+  background: var(--panel); border: 2px solid var(--border); position: relative; z-index: 1;
+}
+.step-advocate .timeline-dot { border-color: #4fd1e8; }
+.step-investigator .timeline-dot { border-color: #8b7bff; }
+.step-code .timeline-dot { border-color: #34d399; }
+.step-judge .timeline-dot { border-color: #e7b75f; }
+.timeline-step h3 { margin: .35rem 0 .25rem; font-size: .95rem; color: var(--text); text-transform: none; letter-spacing: 0; }
+.timeline-step p { margin: .15rem 0; font-size: .85rem; color: var(--muted); }
+.timeline-step p.timeline-lead { color: var(--text); }
+.timeline-note { font-style: italic; }
+.timeline-exhibits { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .35rem !important; }
