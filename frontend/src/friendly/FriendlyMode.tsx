@@ -1,6 +1,7 @@
 import type { Focus, SessionView } from "../model/sessionView";
 import { CourtroomScene } from "./CourtroomScene";
 import { CourtroomTimeline } from "./CourtroomTimeline";
+import { LiveProgress } from "./LiveProgress";
 import { FourAnswersCard, answersOf } from "./FourAnswersCard";
 import { NewsCards, newsOf } from "./NewsCards";
 import { VerdictPanel } from "./VerdictPanel";
@@ -15,7 +16,8 @@ export function FriendlyMode({
   const entries = Object.entries(view.summaries);
   return (
     <div data-testid="friendly-mode">
-      <CourtroomScene activeAgent={view.active_agent} />
+      <CourtroomScene activeAgent={view.active_agent} running={view.status === "running"} stage={view.stage} />
+      <LiveProgress key={view.session_id} view={view} />
       {entries.length > 0 && (
         <section aria-label="Summaries" className="statements">
           {entries.map(([key, text]) => (

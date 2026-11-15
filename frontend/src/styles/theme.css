@@ -323,3 +323,15 @@ h3.news-title { margin: 0; font-size: .95rem; color: var(--text); text-transform
 .timeline-step p.timeline-lead { color: var(--text); }
 .timeline-note { font-style: italic; }
 .timeline-exhibits { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .35rem !important; }
+
+/* ---------- live progress while a session runs ---------- */
+.live-progress { margin-top: 1rem; }
+.live-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; font-size: .9rem; }
+.live-head span { color: var(--muted); font-variant-numeric: tabular-nums; }
+.live-steps { list-style: none; display: grid; grid-template-columns: repeat(5, 1fr); gap: .35rem; margin: .7rem 0; padding: 0; }
+.live-steps li { font-size: .75rem; text-align: center; padding-top: .45rem; border-top: 3px solid var(--border); color: var(--muted); }
+.live-steps li[data-state="done"] { border-color: #34d399; color: var(--text); }
+.live-steps li[data-state="active"] { border-color: #e7b75f; color: #e7b75f; animation: pulse 1.6s ease-in-out infinite; }
+.live-current { margin: .3rem 0; color: var(--text); font-size: .9rem; }
+.live-done { margin: .3rem 0 0; padding-left: 1.1rem; font-size: .82rem; color: var(--muted); }
+.live-done li::marker { content: "✓  "; color: #34d399; }
