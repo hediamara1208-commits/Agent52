@@ -175,3 +175,38 @@ def test_at_most_two_articles_per_source():
     found = Newsroom(FakeSearch(results), now=lambda: NOW).collect(ExhibitRegistry(), "TSLA", "Tesla", ROBERT)
     sources = [e.value["source"] for e in found]
     assert sources.count("finance.yahoo.com") == MAX_PER_SOURCE and "reuters.com" in sources
+
+
+# --- second live run (runtime v16) ----------------------------------------------------------------
+from guide.toolkit.web_evidence import _domain  # noqa: E402
+
+
+def test_buy_questions_and_page_title_prefixes():
+    assert not is_informative("Is Tesla Stock Worth Buying Now on Robotaxi & FSD Progress?")
+    assert not is_informative("Tesla: Buy, Sell or Hold?")
+    found = Newsroom(FakeSearch([{"title": "Tesla : Tesla and SpaceX Stock Selloff and Merger Exploration",
+                                  "url": "https://www.morningstar.com/news/x",
+                                  "text": "Shares in Tesla have risen 2% in premarket trading on Friday after a fall."}]),
+                     now=lambda: NOW).collect(ExhibitRegistry(), "TSLA", "Tesla", ROBERT)
+    assert found[0].value["title"] == "Tesla and SpaceX Stock Selloff and Merger Exploration"
+
+
+def test_sources_are_sites_not_servers():
+    assert _domain("https://ca.finance.yahoo.com/x") == "finance.yahoo.com"
+    assert _domain("https://kessler-prod.reta52d8.eas.morningstar.com/x") == "morningstar.com"
+    assert _domain("https://news.bbc.co.uk/a") == "bbc.co.uk"
+    results = [{"title": f"Tesla recall widens again in report {i}", "url": f"https://{h}/r{i}",
+                "text": "Tesla said it would expand the recall to more vehicles in Canada this week."}
+               for i, h in enumerate(["finance.yahoo.com", "ca.finance.yahoo.com", "uk.finance.yahoo.com"])]
+    found = Newsroom(FakeSearch(results), now=lambda: NOW).collect(ExhibitRegistry(), "TSLA", "Tesla", ROBERT)
+    assert len(found) == MAX_PER_SOURCE
+
+
+def test_bylines_datelines_and_cut_tails():
+    s = ("Tesla reports Q3 earnings beat, positive free cash flow, and better-than-expected capex Pras Subramanian "
+         "· Senior Reporter Wed, October at 6:01 PM. Tesla beat Wall Street estimates for third-quarter profit "
+         "as cost cuts offset lower prices.")
+    assert clean_snippet(s) == "Tesla beat Wall Street estimates for third-quarter profit as cost cuts offset lower prices."
+    cut = ("(Bloomberg) -- Just months after SpaceX was denied a swift entry into the S&P 500 Index, Elon Musk "
+           "may have found a backdoor: Merging with T")
+    assert clean_snippet(cut).endswith("Merging with…")
