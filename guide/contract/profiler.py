@@ -132,6 +132,8 @@ def build_contract_from_form(values: dict[str, Any], base: Persona | None = None
                 contract[key] = deepcopy(items)
         elif key not in CONTRACT_FIELDS:
             contract[key] = value  # surfaces as "unexpected field" in schema validation
+        elif value is None:
+            continue  # blank form field: keep the persona value, or the default without one
         elif changed(key, value):
             contract[key] = deepcopy(value)
             contract["provenance"][key] = supplied_prov
