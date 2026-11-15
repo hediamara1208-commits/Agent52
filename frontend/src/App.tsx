@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AdvancedMode } from "./advanced";
 import { FriendlyMode } from "./friendly";
+import { createVoice } from "./friendly/voices";
 import { ApiError, type ContractValues, type CustomProfile, type PersonaEntry, type SessionApi } from "./api/client";
 import type { AuthService } from "./api/auth";
 import { sessionStore, useSessionStore, type SessionStore, type SessionView } from "./model/sessionView";
@@ -61,6 +62,8 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
   const [holdings, setHoldings] = useState("");
   const [appealBase, setAppealBase] = useState<{ original: SessionView; change: AppealChange } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Court voices (Amazon Polly through POST /speech), when the API offers them.
+  const speak = useMemo(() => (api.speech ? createVoice(api.speech) : undefined), [api]);
 
   useEffect(() => {
     let live = true;
@@ -231,7 +234,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
               {view.data_notices.map((n, i) => <p key={i} className="pill pill-warn">{n}</p>)}
               {mode === "advanced"
                 ? <AdvancedMode view={view} focus={focus} onFocus={store.setFocus} />
-                : <FriendlyMode view={view} onSeeDetails={store.openDetails} />}
+                : <FriendlyMode view={view} onSeeDetails={store.openDetails} speak={speak} />}
               {view.status === "completed" && appealBase && appealBase.original.session_id !== view.session_id && (
                 <div className="card"><AppealView original={appealBase.original} appeal={view} change={appealBase.change} /></div>
               )}

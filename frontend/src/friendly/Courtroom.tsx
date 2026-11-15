@@ -47,6 +47,7 @@ export function Courtroom({ view, onOpen, speak }: {
   const [playing, setPlaying] = useState(true);
   const [voice, setVoice] = useState(false);
   const [replaying, setReplaying] = useState(false);
+  const [voiceDone, setVoiceDone] = useState(true);
   const seenCompleted = useRef(view.status === "completed");
 
   // Live: follow the latest speech. On completion: replay the whole hearing once.
@@ -69,14 +70,18 @@ export function Courtroom({ view, onOpen, speak }: {
       const id = setTimeout(() => setTyped((t) => Math.min(full, t + 2)), 2000 / CPS);
       return () => clearTimeout(id);
     }
-    if (!playing || index >= speeches.length - 1) return;
+    if (!playing || index >= speeches.length - 1 || !voiceDone) return;
     const id = setTimeout(() => { setIndex((i) => i + 1); setTyped(0); }, PAUSE_MS);
     return () => clearTimeout(id);
-  }, [typed, full, playing, index, speeches.length, current]);
+  }, [typed, full, playing, index, speeches.length, current, voiceDone]);
 
   // Voice: start the speech's audio when it takes the floor (optional).
   useEffect(() => {
-    if (voice && speak && current && playing) void speak(current).catch(() => undefined);
+    if (!(voice && speak && current && playing)) { setVoiceDone(true); return; }
+    let live = true;
+    setVoiceDone(false);
+    speak(current).catch(() => undefined).finally(() => { if (live) setVoiceDone(true); });
+    return () => { live = false; };
   }, [voice, speak, current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const speaker = current?.speaker;

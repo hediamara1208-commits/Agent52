@@ -7,7 +7,7 @@ policy rules be tested without CDK installed.
 Rules enforced here and by ``tests/test_iam_policies.py``:
 - no ``s3:DeleteObject`` / ``s3:DeleteObjectVersion``;
 - no ``*`` action and no ``*`` service wildcard;
-- no bare ``*`` resource, except the three actions listed in ``RESOURCE_STAR_EXCEPTIONS``,
+- no bare ``*`` resource, except the four actions listed in ``RESOURCE_STAR_EXCEPTIONS``,
   which AWS does not allow to be scoped to a resource;
 - no brokerage or bank permissions (the system only gives guidance).
 """
@@ -19,9 +19,10 @@ from typing import Any
 Statement = dict[str, Any]
 
 # AWS offers no resource-level scoping for these actions. CloudWatch is limited by a
-# namespace condition; the X-Ray actions cannot be conditioned at all.
+# namespace condition; the X-Ray actions cannot be conditioned at all. Polly's only resource
+# type is a pronunciation lexicon, which the court's voices do not use.
 RESOURCE_STAR_EXCEPTIONS = frozenset(
-    {"cloudwatch:PutMetricData", "xray:PutTraceSegments", "xray:PutTelemetryRecords"}
+    {"cloudwatch:PutMetricData", "xray:PutTraceSegments", "xray:PutTelemetryRecords", "polly:SynthesizeSpeech"}
 )
 
 METRIC_NAMESPACE = "AlphaForgeGuide"
@@ -166,6 +167,8 @@ def session_api_lambda_statements(t: IamTargets, runtime_arn: str) -> list[State
             [f"arn:aws:logs:{t.region}:{t.account}:log-group:/aws/lambda/*:log-stream:*"],
         ),
         _stmt("XRayWrite", ["xray:PutTraceSegments", "xray:PutTelemetryRecords"], ["*"]),
+        # Court voices (POST /speech); Polly has no resource-level permissions.
+        _stmt("PollyVoices", ["polly:SynthesizeSpeech"], ["*"]),
     ]
 
 

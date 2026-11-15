@@ -2,7 +2,7 @@
 
 The Agent_Runtime ARN and the user pool ARN are plain strings (stack outputs or context values), so this
 stack has no dependency cycle with RuntimeStack or AuthStack. The Session_Store name is a config value
-shared with the runtime's IAM policy. Exactly the six routes of ``api.handler.ROUTES`` exist; the only
+shared with the runtime's IAM policy. Exactly the seven routes of ``api.handler.ROUTES`` exist; the only
 other methods are the unauthenticated CORS preflight ``OPTIONS`` answers (mock integration, no data).
 Nothing is deployed by the tests; no credentials are stored.
 """

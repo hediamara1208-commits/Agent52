@@ -82,3 +82,22 @@ describe("the hearing (speeches built from the session's outputs, no model call)
     expect(onOpen).toHaveBeenCalledWith(10);
   });
 });
+
+describe("court voices", () => {
+  it("synthesises each speech once and plays it", async () => {
+    const { createVoice } = await import("./voices");
+    const synth = vi.fn(async () => ({ audio: "SUQz", content_type: "audio/mpeg" }));
+    const played: string[] = [];
+    const fakeAudio = (src: string) => {
+      const a = { onended: null as null | (() => void), onerror: null, pause: () => undefined,
+        play: () => { played.push(src); setTimeout(() => a.onended?.(), 0); return Promise.resolve(); } };
+      return a as unknown as HTMLAudioElement;
+    };
+    const speak = createVoice(synth, fakeAudio);
+    const s = { id: "j", speaker: "judge" as const, text: "So ordered.", exhibits: [] };
+    await speak(s); await speak(s);
+    expect(synth).toHaveBeenCalledTimes(1);
+    expect(synth).toHaveBeenCalledWith("judge", "So ordered.");
+    expect(played).toEqual(["data:audio/mpeg;base64,SUQz", "data:audio/mpeg;base64,SUQz"]);
+  });
+});
