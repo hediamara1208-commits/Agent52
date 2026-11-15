@@ -6,3 +6,6 @@ export { ExhibitLink, StatementText } from "./ExhibitLinks";
 export { NewsCards, newsOf, safeUrl, newsDate } from "./NewsCards";
 export { CourtroomTimeline, timelineOf } from "./CourtroomTimeline";
 export { LiveProgress, progressOf } from "./LiveProgress";
+export { Courtroom } from "./Courtroom";
+export { hearingOf, trimSpeech, exhibitsIn } from "./hearing";
+export type { Speech, Speaker } from "./hearing";
