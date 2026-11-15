@@ -92,3 +92,25 @@ def test_advocate_message_carries_exhibit_values_and_rule_results():
     payload = _json.loads(msg[0]["content"][0]["text"])
     assert payload["risk_panel"]["volatility"] == {"exhibit": 7, "value": 0.2}
     assert payload["request_hard_rule_results"][0]["status"] == "fail"
+
+
+def test_compliant_request_may_be_proposed_as_is():
+    """Robert asks for 2% SPY and it passes every Hard_Rule: the request itself is a fair Option."""
+    spy = lambda w: _opt(asset="SPY", weight=w, rationale="2% SPY keeps volatility within the limit.")
+    text = json.dumps({"goal": "Add US diversification within the contract.", "options": [spy(0.02)]})
+    out = parse_advocate_output(text, request_ticker="SPY", request_weight=0.02, scope="size_only",
+                                request_complies=True)
+    assert [(o.asset, o.weight) for o in out.options] == [("SPY", 0.02)]
+    with pytest.raises(StageFailure):  # not compliant: a smaller size is still required
+        parse_advocate_output(text, request_ticker="SPY", request_weight=0.02, scope="size_only")
+    with pytest.raises(StageFailure):  # never above the request, never another asset under size_only
+        parse_advocate_output(json.dumps({"goal": "g", "options": [spy(0.03)]}), request_ticker="SPY",
+                              request_weight=0.02, scope="size_only", request_complies=True)
+
+
+def test_request_complies_reads_hard_rule_results():
+    from guide.agents.advocate import request_complies
+    assert request_complies([{"rule": "max_volatility", "status": "pass"}, {"rule": "per_asset_cap", "status": "pass"}])
+    assert not request_complies([{"rule": "max_volatility", "status": "pass"}, {"rule": "x", "status": "unverified"}])
+    assert not request_complies([{"rule": "per_asset_cap", "status": "fail"}])
+    assert not request_complies([]) and not request_complies(None)
