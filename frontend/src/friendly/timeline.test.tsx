@@ -67,6 +67,18 @@ describe("courtroom timeline (who contributed what)", () => {
     expect(steps[3].title).toBe("The code ruled (Judge unavailable)");
   });
 
+  it("leaves out 0% options and names the ESG rule (live Mateo / XOM shape)", () => {
+    const ruling = { ...(view.ruling as object), options: [
+      { option_id: "request", source: "request", ticker: "XOM", weight: 0.1, rejected: true, failing_rules: ["esg_exclusion"] },
+      { option_id: "option_1", source: "advocate", ticker: "XOM", weight: 0.05, rejected: true, failing_rules: ["esg_exclusion"] },
+      { option_id: "option_2", source: "advocate", ticker: "XOM", weight: 0, rejected: false, failing_rules: [] },
+    ] };
+    const steps = timelineOf({ ...view, ruling, verdict: { verdict: "reject", max_weight: null, failing_rules: [], exhibits: [] } } as unknown as SessionView);
+    expect(steps[0].lines[0]).toBe("Proposed 1 option: XOM 5.0%.");
+    expect(steps[2].lines).toEqual(["your request (XOM 10.0%): breaks the ESG exclusion.", "XOM 5.0%: breaks the ESG exclusion.", "2 agent statements screened for buy or sell wording."]);
+    expect(steps[3].lines[0]).toBe("Rejected the request: no option fits your limits.");
+  });
+
   it("is hidden before the Ruling exists", () => {
     render(<FriendlyMode view={{ ...view, ruling: null, verdict: null } as SessionView} onSeeDetails={() => {}} />);
     expect(screen.queryByTestId("court-timeline")).toBeNull();
