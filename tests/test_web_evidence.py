@@ -21,14 +21,15 @@ class FakeSearch:
             raise self.error
         q = kw["searchQuery"]
         return {"results": self.results if self.results is not None else [
-            {"title": f"{q} headline", "url": f"https://www.reuters.com/{abs(hash(q))}",
+            {"title": f"{q} headline about the company today", "url": f"https://www.reuters.com/{abs(hash(q))}",
              "text": "Tesla said on Thursday ...", "publishedAt": "2026-11-13T10:00:00Z"}]}
 
 
 def test_queries_add_controversy_search_only_when_esg_matters():
     assert len(build_queries("TSLA", "Tesla", ROBERT)) == 2
     q = build_queries("XOM", "Exxon Mobil", MATEO)
-    assert len(q) == 3 and "controversy" in q[2]
+    assert len(q) == 3 and "controversy" in q[2][0]
+    assert "investor.exxonmobil.com" not in q[2][1] and "reuters.com" in q[2][1]
 
 
 def test_collect_records_context_exhibits_with_link_and_filters():
@@ -58,10 +59,13 @@ def test_guardrail_screen_drops_flagged_snippets():
 
 
 def test_duplicates_and_bad_results_dropped():
-    dup = [{"title": "A", "url": "https://reuters.com/a", "text": "x"},
-           {"title": "A", "url": "https://reuters.com/a", "text": "x"},
+    t = "Tesla expands recall of Model Y vehicles"
+    dup = [{"title": t, "url": "https://reuters.com/a", "text": "x"},
+           {"title": t, "url": "https://reuters.com/a", "text": "x"},
            {"title": "", "url": "https://reuters.com/b"},
-           {"title": "C", "url": "javascript:alert(1)"}]
+           {"title": "Tesla Investor Relations", "url": "https://ir.tesla.com/"},
+           {"title": "ExxonMobil Holdings Corporation (XOM)", "url": "https://investor.exxonmobil.com/x"},
+           {"title": t + " again", "url": "javascript:alert(1)"}]
     found = Newsroom(FakeSearch(dup), now=lambda: NOW).collect(ExhibitRegistry(), "TSLA", "Tesla", ROBERT)
     assert len(found) == 1
 

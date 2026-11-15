@@ -69,15 +69,30 @@ TABLE_SCHEMAS: dict[str, pa.Schema] = {
 }
 
 
+# Reference tables: hand-authored, documented files carried in a snapshot next to the market
+# data (docs/data_sources.md). They are not part of the seed's required market tables.
+REFERENCE_SCHEMAS: dict[str, pa.Schema] = {
+    "esg_exclusions": pa.schema(
+        [
+            pa.field("ticker", pa.string()),
+            pa.field("excluded", pa.string()),
+            pa.field("reason", pa.string()),
+            pa.field("source_url", pa.string()),
+            pa.field("retrieved", pa.string()),
+        ]
+    ),
+}
+
+
 class TableSchemaError(ValueError):
     """Raised when Dataset table columns differ from their declared schema."""
 
 
 def _schema_for(table: str) -> pa.Schema:
     try:
-        return TABLE_SCHEMAS[table]
+        return TABLE_SCHEMAS[table] if table in TABLE_SCHEMAS else REFERENCE_SCHEMAS[table]
     except KeyError as error:
-        known = ", ".join(sorted(TABLE_SCHEMAS))
+        known = ", ".join(sorted({**TABLE_SCHEMAS, **REFERENCE_SCHEMAS}))
         raise ValueError(f"Unknown Dataset table {table!r}; expected one of: {known}") from error
 
 

@@ -398,7 +398,7 @@ def test_newsroom_context_reaches_all_three_agents_and_the_ruling(source):
     from guide.toolkit.web_evidence import Newsroom
 
     def search(**kw):
-        return {"results": [{"title": "Tesla recall widens", "url": "https://www.reuters.com/tesla-recall",
+        return {"results": [{"title": "Tesla recall widens to more Model Y vehicles", "url": "https://www.reuters.com/tesla-recall",
                              "text": "Tesla expanded a recall.", "publishedAt": "2026-11-13T10:00:00Z"}]}
 
     seen = {}
@@ -422,7 +422,7 @@ def test_newsroom_context_reaches_all_three_agents_and_the_ruling(source):
     for agent in ("advocate", "investigator", "judge"):
         assert seen[agent] and seen[agent][0]["url"] == "https://www.reuters.com/tesla-recall"
     assert "web_search" in seen["tools"]
-    assert view.ruling["recent_context"][0]["title"] == "Tesla recall widens"
+    assert view.ruling["recent_context"][0]["title"] == "Tesla recall widens to more Model Y vehicles"
     web = [e for e in view.exhibits if (e["metric"] if isinstance(e, dict) else e.metric) == "web_news"]
     assert web
     # Context never changes the law: the verdict facts are the same rules as without news.
