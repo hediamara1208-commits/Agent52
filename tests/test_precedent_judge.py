@@ -7,7 +7,7 @@ from pathlib import Path
 
 from guide.agents.judge import JudgeResult, build_messages, check_precedent_fields, differing_fields
 from guide.tribunal.precedents import InMemoryPrecedentStore
-from tests.test_orchestrator import Fakes, _request, _run, source  # noqa: F401
+from tests.test_orchestrator import Fakes, _request, _run, lawful_ruling, source  # noqa: F401
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTRACT = {"per_asset_cap": 0.05, "speculative_limit": 0.05, "soft_preferences": []}
@@ -18,7 +18,7 @@ def test_differing_fields_and_message_payload():
     assert differing_fields(CONTRACT, other) == ["per_asset_cap"]
     assert differing_fields(CONTRACT, None) == []
     msg = build_messages(hard_rule_results=[], options=[], investigator_findings=[], contract=CONTRACT,
-                         verdict={}, precedent=other)[0]["content"][0]["text"]
+                         rule_facts={}, precedent=other)[0]["content"][0]["text"]
     assert '"precedent_differing_contract_fields": ["per_asset_cap"]' in msg
 
 
@@ -32,8 +32,8 @@ def test_orchestrator_records_existing_fields_and_traces_unknown(source):  # noq
     _run(Fakes(), replace(_request(), profile_id="robert", session_id="s1"), source=source, precedents=store)
 
     def judge(**kw):
-        return JudgeResult(narrative="Options weighed against stated preferences.",
-                           precedent_fields=["per_asset_cap"], unknown_precedent_fields=["bogus"])
+        return lawful_ruling(kw["options"], precedent_fields=["per_asset_cap"],
+                             unknown_precedent_fields=["bogus"])
 
     view, _ = _run(Fakes(judge=judge), replace(_request("amira"), profile_id="amira", session_id="s2"),
                    source=source, precedents=store)

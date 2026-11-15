@@ -48,7 +48,7 @@ Gates (local time, America/Montreal):
 - **Profiler_Agent**: The deterministic code component (named "agent" for history; it makes no model call) that converts a Persona_Template, an edited template, or a custom-profile form into an Investor_Contract. It reads templates and form values only and does not invent persona facts.
 - **Investigator_Agent**: The agent that reads every option with its Risk_Panel and the Investor_Contract and states, with Exhibits, which risks are material for this investor and why. It computes nothing itself.
 - **Advocate_Agent**: The agent that identifies the goal behind an Investment_Request and proposes up to three Options that serve it, citing Exhibits. It never decides whether an Option passes the Hard_Rules.
-- **Judge_Agent**: The agent that weighs the Soft_Preferences, compares the verified Options using the Investigator_Agent findings, and writes the narrative of the Verdict decided by code.
+- **Judge_Agent**: The agent that decides the Verdict: it weighs the Soft_Preferences, compares the verified Options using the Investigator_Agent findings, adopts one Option or rejects, and writes the narrative. Its ruling must respect the Hard_Rules, checked by code.
 - **Clerk**: The deterministic code template that writes the Ruling, the four answers of Requirement 33, and the sensitivity-based answer. It is not a language-model agent.
 - **Option**: The original Investment_Request or a variant proposed by the Advocate_Agent (a position size, or another asset of the universe, as allowed by configuration), each with its Risk_Panel and Hard_Rule results computed by code.
 - **Risk_Panel**: The fixed set of Exhibits that code computes for every Option: volatility, maximum drawdown, worst rolling 252-day return, 2022 return, share of variance per asset, currency exposure, sector weights, correlation of the added asset with the Base_Portfolio, and maximum weight within the contract.
@@ -648,7 +648,7 @@ Gates (local time, America/Montreal):
 1. THE Investor_Contract SHALL hold a list of Soft_Preferences, each with an identifier, a text, and a provenance, and THE shipped Persona_Templates SHALL each define at least two Soft_Preferences taken from section 3 of the Context_Document with their verbatim excerpts.
 2. THE Judge_Agent SHALL assess each Soft_Preference as `satisfied`, `tension`, or `not_satisfied` for each Option that passes the Hard_Rules, and SHALL record the Exhibits and Investigator_Agent findings it relied on.
 3. IF a Soft_Preference is assessed `not_satisfied` for the Option retained in the Verdict, THEN THE Guide_System SHALL change a Verdict of accept into accept with conditions and SHALL state the condition in plain language.
-4. THE Guide_System SHALL enforce in code that no Judge_Agent output turns a failed Hard_Rule into a pass or a reject into an accept.
+4. THE Judge_Agent SHALL decide the Verdict (accept, accept with conditions, or reject) and the adopted Option; THE Guide_System SHALL enforce in code that the adopted Option passes every Hard_Rule, that accept is used only for the request itself, and SHALL send an unlawful ruling back to the Judge_Agent once with the objection.
 5. THE Ruling SHALL show, for each Soft_Preference, the assessment and the findings that decided it, each linked to its Exhibits.
 
 ### Requirement 30: Appeal
@@ -728,11 +728,11 @@ Gates (local time, America/Montreal):
 
 #### Acceptance Criteria
 
-1. THE Tribunal_Orchestrator SHALL run, in this order and once each: the Profiler (code), the Risk_Panel and Hard_Rules of the request (code), the Advocate_Agent, the Risk_Panel and Hard_Rules of each Option (code), the Investigator_Agent, the Judge_Agent, and the Clerk template with the citation, guidance-only, and Guardrail checks (code).
+1. THE Tribunal_Orchestrator SHALL run, in this order: the Profiler (code), the Risk_Panel and Hard_Rules of the request (code, evidence only, no Verdict published), the Advocate_Agent, the Risk_Panel and Hard_Rules of each Option (code, including the largest size meeting every Hard_Rule as an Option), the Investigator_Agent, the Judge_Agent (which decides the Verdict), and the Clerk template with the citation, guidance-only, and Guardrail checks (code). No Verdict SHALL be shown before the Judge_Agent rules.
 2. THE agents SHALL never call one another; THE Tribunal_Orchestrator SHALL be the only component that passes data between stages.
-3. THE Guide_System SHALL make at most 3 agent invocations per Tribunal_Session, not counting citation revisions bounded by Requirement 4.6, and SHALL stop each invocation after `agent_timeout_seconds` from configuration.
+3. THE Guide_System SHALL make at most 4 agent invocations per Tribunal_Session (one per agent plus at most one send-back to the Judge_Agent), not counting citation revisions bounded by Requirement 4.6, and SHALL stop each invocation after `agent_timeout_seconds` from configuration.
 4. THE Guide_System SHALL validate every agent output against a JSON schema and SHALL treat an invalid output as a failed stage.
 5. IF the Advocate_Agent fails, THEN THE Ruling SHALL offer only the request and the maximum weight within the contract computed by code.
 6. IF the Investigator_Agent fails, THEN THE Ruling SHALL show the Risk_Panels without the material-risk explanation.
-7. IF the Judge_Agent fails, THEN THE Verdict SHALL be the code result of the Hard_Rules with a template sentence in place of the narrative.
-8. THE Ruling SHALL list which agents ran and which failed, and THE Verdict SHALL never depend on an agent succeeding.
+7. IF the Judge_Agent fails or rules unlawfully after the send-back, THEN THE Verdict SHALL be the code result of the Hard_Rules, labeled as the code fallback (`decided_by: code`), with a template sentence in place of the narrative.
+8. THE Ruling SHALL list which agents ran and which failed and SHALL state who decided the Verdict (`decided_by`: judge or code); a session SHALL always end with a valid Ruling.

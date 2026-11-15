@@ -1,9 +1,10 @@
-"""Judge agent: Soft_Preference assessments, comparison, narrative (Req. 5.5, 5.6, 29.2 to 29.5, 36).
+"""Judge agent: decides the Verdict, assesses Soft_Preferences, writes the narrative (Req. 29, 36).
 
-One Bedrock call, no Toolkit, no calls to other agents, no evidence requests. Code validates the
-JSON against a schema, checks that every Option, Soft_Preference and Exhibit named exists, and
-keeps assessments only for Options that pass the Hard_Rules. The Verdict itself comes from
-``rules.decide``; ``apply_soft_preferences`` can only make it more cautious (Req. 29.3, 29.4).
+Like a court: code supplies the evidence (Risk_Panels, Hard_Rule results, the largest size meeting
+every rule) and the law (the Hard_Rules); the Advocate pleads Options and the Investigator names
+their risks; the Judge alone decides which Option to adopt and the Verdict. Code then checks the
+decision against the law (``check_decision``): adopting an Option that breaks a Hard_Rule is
+not allowed. No verdict exists before the Judge rules.
 """
 from __future__ import annotations
 
@@ -28,7 +29,7 @@ ASSESSMENTS = ("satisfied", "tension", "not_satisfied")
 
 OUTPUT_SCHEMA: Mapping[str, Any] = {
     "type": "object",
-    "required": ["assessments", "narrative"],
+    "required": ["assessments", "narrative", "decision"],
     "additionalProperties": False,
     "properties": {
         "assessments": {
@@ -47,6 +48,18 @@ OUTPUT_SCHEMA: Mapping[str, Any] = {
             },
         },
         "narrative": {"type": "string", "minLength": 1},
+        "decision": {
+            "type": "object",
+            "required": ["verdict", "option_id", "conditions", "reason", "exhibits"],
+            "additionalProperties": False,
+            "properties": {
+                "verdict": {"enum": [ACCEPT, ACCEPT_WITH_CONDITIONS, REJECT]},
+                "option_id": {"type": ["string", "null"]},
+                "conditions": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                "reason": {"type": "string", "minLength": 1},
+                "exhibits": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": 1}},
+            },
+        },
         # Req. 31.2: contract fields that explain a Verdict different from the Precedent's.
         "precedent_fields": {"type": "array", "items": {"type": "string", "minLength": 1}},
     },
@@ -72,6 +85,7 @@ class JudgeResult:
     blocked: bool = False
     precedent_fields: list[str] = field(default_factory=list)  # named fields that exist (Req. 31.2)
     unknown_precedent_fields: list[str] = field(default_factory=list)
+    decision: dict[str, Any] | None = None  # the Judge's ruling, before the code check
 
 
 def parse_output(text: str) -> dict[str, Any]:
@@ -140,6 +154,63 @@ def check_precedent_fields(
     return kept, unknown
 
 
+def check_decision(
+    decision: Mapping[str, Any] | None,
+    options: Sequence[Mapping[str, Any]],
+    registry: ExhibitRegistry,
+    request_option_id: str,
+) -> list[str]:
+    """Check the Judge's ruling against the law (the Hard_Rules); return the objections.
+
+    An empty list means the ruling stands. Code never picks the Verdict itself here.
+    """
+    if not decision:
+        return ["the Judge returned no decision"]
+    objections: list[str] = []
+    by_id = {str(o["option_id"]): o for o in options}
+    verdict = decision.get("verdict")
+    option_id = decision.get("option_id")
+    missing = [n for n in decision.get("exhibits") or [] if registry.get(n) is None]
+    if missing:
+        objections.append(f"cited Exhibits do not exist: {missing}")
+    if verdict in (ACCEPT, ACCEPT_WITH_CONDITIONS):
+        option = by_id.get(str(option_id)) if option_id is not None else None
+        if option is None:
+            objections.append(f"option {option_id!r} does not exist; adopt one of {sorted(by_id)} or reject")
+        elif option.get("rejected"):
+            objections.append(
+                f"option {option_id} breaks the Hard_Rules {option.get('failing_rules')}; "
+                "a Hard_Rule cannot be overruled, adopt an option that passes every rule or reject")
+        elif verdict == ACCEPT and str(option_id) != request_option_id:
+            objections.append("accept means the request as stated; adopting a different option is "
+                              "accept_with_conditions with the new size as a condition")
+    return objections
+
+
+def verdict_from_decision(
+    decision: Mapping[str, Any],
+    options: Sequence[Mapping[str, Any]],
+    rule_facts: Verdict,
+) -> Verdict:
+    """The Verdict the Judge ruled (call only after ``check_decision`` returned no objection)."""
+    by_id = {str(o["option_id"]): o for o in options}
+    verdict = decision["verdict"]
+    option = by_id.get(str(decision.get("option_id"))) if verdict != REJECT else None
+    conditions = [str(c) for c in decision.get("conditions") or []]
+    if option is not None and verdict == ACCEPT_WITH_CONDITIONS and not conditions:
+        conditions = [f"Keep the position in {option['ticker']} at or below {option['weight']:.1%} of the portfolio."]
+    return Verdict(
+        verdict=verdict,
+        max_weight=float(option["weight"]) if option is not None else None,
+        failing_rules=list(rule_facts.failing_rules),
+        unverified_rules=list(rule_facts.unverified_rules),
+        conditions=conditions,
+        tension=rule_facts.tension,
+        exhibits=sorted(set(rule_facts.exhibits) | {int(n) for n in decision.get("exhibits") or []}),
+        reason=str(decision["reason"]),
+    )
+
+
 def apply_soft_preferences(
     verdict: Verdict,
     assessments: Sequence[Mapping[str, Any]],
@@ -187,20 +258,23 @@ def build_messages(
     options: Sequence[Mapping[str, Any]],
     investigator_findings: Sequence[Mapping[str, Any]],
     contract: Mapping[str, Any],
-    verdict: Mapping[str, Any],
+    rule_facts: Mapping[str, Any],
     precedent: Mapping[str, Any] | None = None,
+    objection: Sequence[str] | None = None,
 ) -> list[dict[str, Any]]:
-    """The single user message. Only Options passing the Hard_Rules are to be assessed."""
+    """The single user message: the evidence and the pleadings. No verdict is given to the Judge."""
     payload = {
         "hard_rule_results": list(hard_rule_results),
         "options": list(options),
         "investigator_findings": list(investigator_findings),
         "soft_preferences": list(contract.get("soft_preferences") or []),
         "investor_contract": dict(contract),
-        "verdict_decided_by_code": dict(verdict),
+        "rule_facts": dict(rule_facts),
         "closest_precedent": dict(precedent) if precedent else None,
         "precedent_differing_contract_fields": differing_fields(contract, precedent),
     }
+    if objection:
+        payload["objection_to_previous_ruling"] = list(objection)
     return [{"role": "user", "content": [{"text": json.dumps(payload, default=str, sort_keys=True)}]}]
 
 
@@ -211,31 +285,34 @@ def run_judge(
     options: Sequence[Mapping[str, Any]],
     investigator_findings: Sequence[Mapping[str, Any]],
     contract: Mapping[str, Any],
-    verdict: Mapping[str, Any],
+    rule_facts: Mapping[str, Any],
     passing_option_ids: Sequence[str],
     registry: ExhibitRegistry,
     trace: TraceRecorder,
     precedent: Mapping[str, Any] | None = None,
+    objection: Sequence[str] | None = None,
     system_prompt: SystemPrompt | None = None,
     client: Any | None = None,
 ) -> JudgeResult:
     """Call the Judge once (no tools); raise StageFailure on invalid output (Req. 36 fallback)."""
     prompt = system_prompt or load_system_prompt(AGENT, Path(config.instruction_dir))
     model_id = config.model_ids.get(AGENT) or config.model_id
-    agent = BedrockAgent(AGENT, replace(config, model_id=model_id), client=client, stage=AGENT, max_tokens=2048)
+    agent = BedrockAgent(AGENT, replace(config, model_id=model_id), client=client, stage=AGENT, max_tokens=4096)
     messages = build_messages(
         hard_rule_results=hard_rule_results,
         options=options,
         investigator_findings=investigator_findings,
         contract=contract,
-        verdict=verdict,
+        rule_facts=rule_facts,
         precedent=precedent,
+        objection=objection,
     )
     output: AgentOutput = agent.run(prompt, messages, None, trace)
     if output.blocked:
         return JudgeResult(blocked=True)
     data = parse_output(output.text)
     result = check_assessments(data, contract, registry, passing_option_ids)
+    result.decision = dict(data["decision"])
     if precedent:
         result.precedent_fields, result.unknown_precedent_fields = check_precedent_fields(
             data.get("precedent_fields", []), contract)

@@ -1725,12 +1725,12 @@ CODE  Clerk template + citation validator + guidance-only check + Guardrail -> R
 
 | Component | Purpose (what disappears without it) | Can it change the Verdict? |
 | --- | --- | --- |
-| Code (Profiler, Toolkit, Risk_Panel, rules, Clerk) | Every number, every Hard_Rule, the Ruling structure | Yes: it decides it |
-| Advocate | A verified way forward instead of a plain refusal | No: code verifies every Option |
-| Investigator | The explanation of which risks matter for this investor | No: it informs the Judge |
-| Judge | Weighing preferences that are not numbers; comparing Options | Only toward more caution (enforced in code) |
+| Code (Profiler, Toolkit, Risk_Panel, rules, Clerk) | Every number and rule result (the evidence), the law check, the Ruling structure | No: it supplies evidence, checks the ruling against the Hard_Rules, and is only a labeled fallback |
+| Advocate | A verified way forward instead of a plain refusal | Indirectly: its Options are what the Judge can adopt |
+| Investigator | The explanation of which risks matter for this investor | Indirectly: its risks can lead the Judge to a smaller size or a reject |
+| Judge | Deciding the Verdict and the adopted Option; weighing preferences that are not numbers | Yes: it decides, within the Hard_Rules (code check, one send-back) |
 
-Bounds: 3 agent calls per session, 1 call per agent, at most 6 Toolkit calls per agent, at most 3 Options, at most 2 citation revisions per claim, a timeout per call. Agents return JSON to the orchestrator and never call each other. Fallbacks follow Req. 36.5 to 36.7.
+Bounds: at most 4 agent calls per session (one per agent plus one send-back to the Judge), at most 6 Toolkit calls per agent, at most 3 Options, at most 2 citation revisions per claim, a timeout per call. Agents return JSON to the orchestrator and never call each other. Fallbacks follow Req. 36.5 to 36.7.
 
 Example (Robert, "30% in TSLA", starter data, CAD, contract values of the design table): the Risk_Panel of the request shows USD exposure rising from 23 % to 46.1 %, TSLA carrying 86.7 % of the variance, and four failing Hard_Rules; `max_weight_within_contract` gives 5.0 % (speculative limit binds). With `advocate_scope: size_only`, the Advocate proposes for example TSLA 5 % and TSLA 2.5 %; with `universe`, it may add XIU.TO 10 % (USD exposure 20.7 %). The Investigator flags currency exposure as material for the TSLA Options (expenses in CAD at retirement, horizon 3 to 5 years). The Judge assesses « stabilité et qualité » per Option and writes the narrative.
 

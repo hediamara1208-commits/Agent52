@@ -1,14 +1,17 @@
 """Tribunal_Orchestrator: the fixed flow of Req. 36, behind ``run_session``.
 
-Order, once each: Profiler gate (code) -> Risk_Panel and Hard_Rules of the request (code) ->
-Advocate (1 call) -> Risk_Panel and Hard_Rules of every Option (code; failing Options are kept
-and marked rejected) -> Investigator (1 call) -> Judge (1 call) -> Clerk template, citation
-validator, guidance-only check (code). At most 3 agent calls. Agents never call each other: this
-module is the only place that passes data between stages.
+Order: Profiler gate (code) -> Risk_Panel and Hard_Rules of the request (code: evidence only, no
+verdict) -> Advocate (1 call) -> Risk_Panel and Hard_Rules of every Option (code; failing Options
+are kept and marked rejected) -> Investigator (1 call) -> Judge (1 call, plus at most one
+send-back) -> Clerk template, citation validator, guidance-only check (code). At most 4 agent
+calls. Agents never call each other: this module is the only place that passes data between stages.
 
-The Verdict comes from ``rules.decide``. The Judge can only make it more cautious through
-``apply_soft_preferences``. Any agent failure (error, timeout, invalid output, Guardrail block)
-still ends in a valid Ruling (Req. 36.5 to 36.7). Nothing here reads an agent's self-report.
+Like a court: code provides the evidence and the law (Hard_Rules), the Advocate and the
+Investigator plead, and the Judge alone decides the Verdict. Nothing is decided or shown before
+the Judge rules. Code checks the ruling against the Hard_Rules: a ruling that adopts an Option
+breaking a Hard_Rule is sent back once with the objection. If the Judge cannot give a lawful
+ruling (failure, timeout, invalid output, Guardrail block, second unlawful ruling), the Verdict
+computed by code is used and labeled as the code fallback (Req. 36.5 to 36.7).
 """
 from __future__ import annotations
 
@@ -24,7 +27,8 @@ from guide.agents.advocate import AdvocateOutput, run_advocate
 from guide.agents.base import StageFailure
 from guide.agents.instructions import SystemPrompt, load_all
 from guide.agents.investigator import InvestigatorResult, contract_field_names, run_investigator
-from guide.agents.judge import JudgeResult, apply_soft_preferences, run_judge
+from guide.agents.judge import (JudgeResult, apply_soft_preferences, check_decision, run_judge,
+                                verdict_from_decision)
 from guide.config import AGENT_NAMES, Config, load_config
 from guide.contract.validate import validate_contract
 from guide.data import quality
@@ -45,10 +49,10 @@ from guide.tribunal.rules import ACCEPT_WITH_CONDITIONS, RuleRequest, RuleResult
 from guide.tribunal.sensitivity import run_sensitivity
 from guide.tribunal.summaries import build_summary
 
-MAX_AGENT_CALLS = 3
+MAX_AGENT_CALLS = 4  # Advocate, Investigator, Judge, and at most one send-back to the Judge
 TEMPLATE_NARRATIVE = (
-    "The verdict below is the result of the Hard_Rules computed by code; no narrative was "
-    "written by the Judge for this session."
+    "The Judge could not give a lawful ruling for this session; the verdict below is the code "
+    "fallback computed from the Hard_Rules."
 )
 SAFE_GOAL = "The goal could not be stated."
 
@@ -230,9 +234,10 @@ def run_session(
         "hard_rule_results": _rule_dicts(results),
         "risk_panel": _panel_summary(request_panel),
     }]
+    # Evidence only: the rule results are published, no verdict (the Judge has not ruled yet).
     view = publish(sv.stage_finished(
         view, "request_rules", next_agent="advocate", exhibits=registry.all(),
-        verdict=asdict(verdict), rule_results=_rule_dicts(results)))
+        rule_results=_rule_dicts(results)))
 
     # ---- stage: Advocate (1 call) ----
     advocate_options: list[tuple[str, float, str, str]] = []  # ticker, weight, rationale, source
@@ -251,12 +256,14 @@ def run_session(
             raise StageFailure("advocate", "no option passed the guidance-only check")
     except Exception as error:
         agents_failed.append({"agent": "advocate", "reason": _failure_reason(error)})
-        # Req. 36.5: the request and the maximum weight within the contract, computed by code.
-        if verdict.verdict == ACCEPT_WITH_CONDITIONS and verdict.max_weight:
-            advocate_options = [(request.ticker, verdict.max_weight,
-                                 "Largest position size meeting every Hard_Rule, computed by code.", "code")]
-        else:
-            advocate_options = []
+        # Req. 36.5: the request and the maximum weight within the contract (added below).
+        advocate_options = []
+    # The largest size meeting every Hard_Rule is always on the table, as a code-computed Option.
+    if (verdict.max_weight and verdict.max_weight != request.weight
+            and not any(t == request.ticker and abs(w - verdict.max_weight) < 1e-9
+                        for t, w, _, _ in advocate_options)):
+        advocate_options.append((request.ticker, verdict.max_weight,
+                                 "Largest position size meeting every Hard_Rule, computed by code.", "code"))
     summary = None
     if "advocate" not in {f["agent"] for f in agents_failed}:
         summary = build_summary("advocate", {"goal": advocate_goal, "options": [{"rejected": False}] * len(advocate_options)}, registry)
@@ -327,22 +334,45 @@ def run_session(
                 judge_extra["precedent"] = found
         except Exception as error:
             trace.judge_check("precedent_lookup", {"asset": request.ticker}, f"failed: {type(error).__name__}")
+    rule_facts = {
+        "request_failing_rules": list(verdict.failing_rules),
+        "request_unverified_rules": list(verdict.unverified_rules),
+        "max_weight_within_hard_rules": verdict.max_weight,
+        "exhibits": list(verdict.exhibits),
+        "note": "Facts computed by code. You decide the verdict.",
+    }
+    decided_by = "code"
     try:
-        agents_run.append("judge")
-        res = _call_with_timeout(lambda: runners.judge(
-            hard_rule_results=_rule_dicts(results), options=options, investigator_findings=risks,
-            contract=contract, verdict=asdict(verdict), passing_option_ids=passing,
-            registry=registry, trace=trace, **judge_extra), timeout, "judge")
-        if res.blocked:
-            raise StageFailure("judge", "guardrail intervened")
+        objection: list[str] | None = None
+        res = None
+        for attempt in (1, 2):  # the ruling, and at most one send-back with the objection
+            agents_run.append("judge")
+            res = _call_with_timeout(lambda: runners.judge(
+                hard_rule_results=_rule_dicts(results), options=options, investigator_findings=risks,
+                contract=contract, rule_facts=rule_facts, passing_option_ids=passing,
+                registry=registry, trace=trace, objection=objection, **judge_extra), timeout, "judge")
+            if res.blocked:
+                raise StageFailure("judge", "guardrail intervened")
+            objection = check_decision(res.decision, options, registry, REQUEST_OPTION_ID)
+            trace.judge_check("judge_ruling", {"attempt": attempt, "decision": res.decision},
+                              "passed" if not objection else "failed: " + "; ".join(objection))
+            if not objection:
+                break
+        if objection:
+            raise StageFailure("judge", "ruling breaks the Hard_Rules after one send-back")
         claims = [Claim(a["findings"], list(a["exhibits"])) for a in res.assessments]
         kept, _ = enforce("judge", claims, registry, recorder=trace)
         kept_ids = {id(c) for c in kept}
         assessments = [a for a, c in zip(res.assessments, claims) if id(c) in kept_ids]
         bad = _drop_failing("judge", [res.narrative] + [a["findings"] for a in assessments], trace)
         assessments = [a for a in assessments if a["findings"] not in bad]
+        reason_bad = _drop_failing("judge", [res.decision["reason"]] + list(res.decision["conditions"]), trace)
+        if reason_bad:
+            raise StageFailure("judge", "ruling failed the guidance-only check")
         narrative = TEMPLATE_NARRATIVE if res.narrative in bad else res.narrative
-        final = apply_soft_preferences(verdict, assessments, REQUEST_OPTION_ID, contract)
+        ruled = verdict_from_decision(res.decision, options, verdict)
+        final = apply_soft_preferences(ruled, assessments, res.decision.get("option_id"), contract)
+        decided_by = "judge"
         if "precedent" in judge_extra:  # Req. 31.2: code checks that each named field exists
             cited = judge_extra["precedent"]
             named = list(getattr(res, "precedent_fields", []) or [])
@@ -356,6 +386,7 @@ def run_session(
                              "differing_fields": named}
     except Exception as error:
         agents_failed.append({"agent": "judge", "reason": _failure_reason(error)})
+        final, narrative, decided_by = verdict, TEMPLATE_NARRATIVE, "code"
     judge_failed = "judge" in {f["agent"] for f in agents_failed}
     judge_summary = None if judge_failed else build_summary("judge", asdict(final), registry)
     view = publish(sv.stage_finished(view, "judge", next_agent=None, summary=judge_summary,
@@ -367,7 +398,7 @@ def run_session(
         ruling = clerk.build_ruling(
             verdict=final, rule_results=results, sensitivity=sensitivity, contract=contract,
             request=req, registry=registry, snapshot=snapshot, rationales=request.rationales,
-            requested_text=request.text)
+            requested_text=request.text, decided_by=decided_by, rule_max_weight=verdict.max_weight)
         facts = [Claim(s.text, list(s.citations)) for s in ruling.facts]
         kept, _ = enforce("clerk", facts, registry, recorder=trace)
         removed = {c.text for c in facts} - {c.text for c in kept}
@@ -385,6 +416,7 @@ def run_session(
         if precedent_doc is not None:
             ruling_doc["precedent"] = precedent_doc
         ruling_doc["agents"] = {"ran": list(agents_run), "failed": list(agents_failed)}
+        ruling_doc["decided_by"] = decided_by
     except Exception as error:
         raise abort("clerk", f"{type(error).__name__}: {error}", error)
 

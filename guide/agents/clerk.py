@@ -134,13 +134,19 @@ def _fact_text(r: RuleResult) -> str:
     return f"Rule {r.rule}{where}: {r.status}; observed {_pct(r.observed)} against a limit of {_pct(r.limit)}."
 
 
-def _facts(verdict: Verdict, results: Sequence[RuleResult]) -> list[Statement]:
+def _decision_label(decided_by: str) -> str:
+    return "Verdict ruled by the Judge" if decided_by == "judge" else "Verdict computed by code (fallback)"
+
+
+def _facts(verdict: Verdict, results: Sequence[RuleResult], decided_by: str = "code",
+           rule_max_weight: float | None = None) -> list[Statement]:
     facts: list[Statement] = []
     cited = sorted({n for r in results for n in r.exhibits} | set(verdict.exhibits))
+    rule_max = verdict.max_weight if rule_max_weight is None and decided_by != "judge" else rule_max_weight
     if verdict.exhibits or cited:
-        text = f"Verdict computed by code: {verdict.verdict}"
-        if verdict.max_weight is not None:
-            text += f"; largest position size meeting every rule: {_pct(verdict.max_weight)}"
+        text = f"{_decision_label(decided_by)}: {verdict.verdict}"
+        if rule_max is not None:
+            text += f"; largest position size meeting every rule (computed by code): {_pct(rule_max)}"
         facts.append(Statement(text + ".", tuple(verdict.exhibits or cited)))
     for r in results:
         if r.exhibits:  # a Fact without an Exhibit does not exist (Req. 6.2)
@@ -176,16 +182,15 @@ def _assumptions(contract: Mapping[str, Any], results: Sequence[RuleResult], req
     return out
 
 
-def _scenarios(request: RuleRequest, verdict: Verdict) -> list[str]:
+def _scenarios(request: RuleRequest, verdict: Verdict, decided_by: str = "code") -> list[str]:
     out = [
         f"Simulation: {_pct(request.weight)} of the portfolio in {request.ticker} from "
         f"{request.start.isoformat()} to {request.end.isoformat()}."
     ]
     if verdict.max_weight is not None and abs(verdict.max_weight - request.weight) > 1e-9:
-        out.append(
-            f"Simulation: {_pct(verdict.max_weight)} of the portfolio in {request.ticker} "
-            "is the largest size on the 0.5-point grid that meets every rule."
-        )
+        what = ("is the size the Judge adopted" if decided_by == "judge"
+                else "is the largest size on the 0.5-point grid that meets every rule")
+        out.append(f"Simulation: {_pct(verdict.max_weight)} of the portfolio in {request.ticker} {what}.")
     return out
 
 
@@ -244,8 +249,10 @@ def _which_data(request: RuleRequest, snapshot: SnapshotInfo | None, registry: E
 
 
 def _why_this_choice(verdict: Verdict, results: Sequence[RuleResult],
-                     contract: Mapping[str, Any]) -> list[Statement]:
-    out = [Statement(f"Verdict computed by code: {verdict.verdict}.", tuple(verdict.exhibits))]
+                     contract: Mapping[str, Any], decided_by: str = "code") -> list[Statement]:
+    out = [Statement(f"{_decision_label(decided_by)}: {verdict.verdict}.", tuple(verdict.exhibits))]
+    if decided_by == "judge" and verdict.reason:
+        out.append(Statement(f"Judge's reason: {verdict.reason}", tuple(verdict.exhibits)))
     deciding = [r for r in results if r.status != "pass" and r.rule in set(verdict.failing_rules) | set(verdict.unverified_rules)]
     for r in deciding:
         out.append(Statement(_fact_text(r), tuple(r.exhibits)))
@@ -269,11 +276,11 @@ def _appeal_hints(verdict: Verdict, results: Sequence[RuleResult]) -> list[State
 def _questions(verdict: Verdict, results: Sequence[RuleResult], contract: Mapping[str, Any],
                request: RuleRequest, registry: ExhibitRegistry, snapshot: SnapshotInfo | None,
                limits: Sequence[str], changes: Sequence[Statement],
-               facts: Sequence[Statement]) -> list[Answer]:
+               facts: Sequence[Statement], decided_by: str = "code") -> list[Answer]:
     numbers = sorted({n for f in facts for n in f.citations})
     body = {
         "which_data": _which_data(request, snapshot, registry, numbers),
-        "why_this_choice": _why_this_choice(verdict, results, contract),
+        "why_this_choice": _why_this_choice(verdict, results, contract, decided_by),
         "which_limits": [Statement(t, ()) for t in limits],
         "what_would_change": list(changes) + _appeal_hints(verdict, results),
     }
@@ -291,18 +298,24 @@ def build_ruling(
     snapshot: SnapshotInfo | None = None,
     rationales: Mapping[str, str] | None = None,
     requested_text: str = "",
+    decided_by: str = "code",
+    rule_max_weight: float | None = None,
 ) -> Ruling:
-    """Assemble the Ruling. No model is called; the Verdict is never altered."""
-    facts = _facts(verdict, rule_results)
+    """Assemble the Ruling. No model is called; the Verdict is never altered.
+
+    ``decided_by`` is "judge" when the Judge ruled, "code" for the code fallback.
+    ``rule_max_weight`` is the largest size meeting every Hard_Rule (a code fact).
+    """
+    facts = _facts(verdict, rule_results, decided_by, rule_max_weight)
     limits = _limits(contract, rule_results, verdict, registry, snapshot, requested_text, sensitivity)
     changes = _changes(sensitivity, verdict)
     return Ruling(
         verdict=verdict.verdict,
         facts=facts,
         assumptions=_assumptions(contract, rule_results, request, snapshot, rationales or {}),
-        fictional_scenarios=_scenarios(request, verdict),
+        fictional_scenarios=_scenarios(request, verdict, decided_by),
         limits=limits,
         what_would_change=changes,
         questions=_questions(verdict, rule_results, contract, request, registry, snapshot,
-                             limits, changes, facts),
+                             limits, changes, facts, decided_by),
     )
