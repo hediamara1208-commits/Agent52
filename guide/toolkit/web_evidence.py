@@ -7,6 +7,7 @@ every surfaced result to show its source citation and link.
 """
 from __future__ import annotations
 
+import re
 import threading
 from collections.abc import Callable, Mapping, Sequence
 from datetime import date, datetime, timedelta, timezone
@@ -20,19 +21,33 @@ WEB_METRIC = "web_news"
 CONFIDENCE = "Context"
 SNIPPET_MAX_CHARS = 600
 
-# Primary and reputable sources. Aggregators that mostly relay ratings and price
-# targets (opinions about future prices) are left out on purpose.
-TRUSTED_DOMAINS: tuple[str, ...] = (
-    "reuters.com", "apnews.com", "cbc.ca", "theglobeandmail.com", "bnnbloomberg.ca",
-    "cnbc.com", "ft.com", "wsj.com", "bloomberg.com", "marketwatch.com", "barrons.com",
-    "sec.gov", "sedarplus.ca", "bankofcanada.ca", "federalreserve.gov", "bls.gov", "statcan.gc.ca",
-    "nasdaq.com", "tsx.com", "businesswire.com", "newswire.ca", "prnewswire.com", "globenewswire.com",
-    # investor-relations sites of the starter universe
-    "ir.tesla.com", "tesla.com", "nvidia.com", "investor.apple.com", "microsoft.com", "abc.xyz",
-    "aboutamazon.com", "ir.aboutamazon.com", "jpmorganchase.com", "jnj.com", "pginvestor.com",
-    "corporate.exxonmobil.com", "exxonmobil.com", "rbc.com", "td.com", "manulife.com", "enbridge.com",
-    "cnrl.com", "cn.ca", "fortisinc.com", "corpo.couche-tard.com", "shopify.com", "csisoftware.com",
+# News and controversies: wire services, business media, general press and regulators.
+NEWS_DOMAINS: tuple[str, ...] = (
+    "reuters.com", "apnews.com", "bloomberg.com", "ft.com", "wsj.com", "cnbc.com", "marketwatch.com",
+    "barrons.com", "morningstar.com", "finance.yahoo.com", "businessinsider.com", "theverge.com",
+    "techcrunch.com", "bbc.com", "theguardian.com", "nytimes.com", "washingtonpost.com", "cnn.com",
+    "cbc.ca", "theglobeandmail.com", "bnnbloomberg.ca", "financialpost.com", "lapresse.ca",
+    "sec.gov", "sedarplus.ca", "bankofcanada.ca", "federalreserve.gov", "epa.gov", "justice.gov",
 )
+# Results and guidance: issuers' own releases and newswires, plus the press above.
+ISSUER_DOMAINS: tuple[str, ...] = (
+    "businesswire.com", "newswire.ca", "prnewswire.com", "globenewswire.com",
+    "ir.tesla.com", "nvidianews.nvidia.com", "investor.nvidia.com", "investor.apple.com",
+    "microsoft.com", "abc.xyz", "ir.aboutamazon.com", "jpmorganchase.com", "jnj.com", "pginvestor.com",
+    "investor.exxonmobil.com", "corporate.exxonmobil.com", "rbc.com", "td.com", "manulife.com",
+    "enbridge.com", "cnrl.com", "cn.ca", "fortisinc.com", "corpo.couche-tard.com", "shopify.com",
+    "csisoftware.com",
+)
+TRUSTED_DOMAINS: tuple[str, ...] = NEWS_DOMAINS + ISSUER_DOMAINS
+# Rating and price-target aggregators (opinions about future prices) are left out on purpose.
+
+_GENERIC_TITLE = re.compile(r"investor relations|^home\b|stock (?:price|quote)|\(\w{1,5}\)\s*$", re.I)
+
+
+def is_informative(title: str) -> bool:
+    """Drop landing pages (e.g. 'Tesla Investor Relations', 'ExxonMobil Holdings Corporation (XOM)')."""
+    return len(title.split()) >= 5 and not _GENERIC_TITLE.search(title)
+
 
 ESG_KEYWORDS = "controversy lawsuit environmental spill fine"
 
@@ -55,16 +70,17 @@ def _published(raw: Any, fallback: date) -> date:
     return fallback
 
 
-def build_queries(ticker: str, name: str, contract: Mapping[str, Any]) -> list[str]:
-    """2 or 3 searches: news, results/guidance, and controversies when ESG matters to the investor."""
+def build_queries(ticker: str, name: str, contract: Mapping[str, Any]) -> list[tuple[str, tuple[str, ...]]]:
+    """2 or 3 searches, each with its source list: news (press), results/guidance (issuer and
+    press), and controversies (press, regulators) when ESG matters to the investor."""
     label = f"{name} {ticker.split('.')[0]}".strip()
-    queries = [f"{label} news", f"{label} earnings results guidance"]
+    queries = [(f"{label} news", NEWS_DOMAINS), (f"{label} quarterly results guidance", TRUSTED_DOMAINS)]
     esg = bool(contract.get("esg_exclusions")) or any(
         "esg" in str(p.get("id", "")).lower() or "esg" in str(p.get("text", "")).lower()
         for p in (contract.get("soft_preferences") or []) if isinstance(p, Mapping))
     if esg:
-        queries.append(f"{label} {ESG_KEYWORDS}")
-    return [q[:200] for q in queries]
+        queries.append((f"{label} {ESG_KEYWORDS}", NEWS_DOMAINS))
+    return [(q[:200], d) for q, d in queries]
 
 
 class Newsroom:
@@ -110,7 +126,7 @@ class Newsroom:
                    screen=guardrail_screen(config))
 
     # ---- search ----
-    def _call(self, query: str) -> list[dict[str, Any]]:
+    def _call(self, query: str, domains: Sequence[str] | None = None) -> list[dict[str, Any]]:
         now = self._now()
         after = (now - timedelta(days=self.days)).strftime("%Y-%m-%dT00:00:00Z")
         before = now.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -118,7 +134,7 @@ class Newsroom:
             webSearchId=WEB_SEARCH_ID,
             searchQuery=query[:200],
             maxResults=self.max_results,
-            filters={"domainFilter": {"include": self.domains[:100]},
+            filters={"domainFilter": {"include": list(domains or self.domains)[:100]},
                      "publishedDateFilter": {"publishedAfter": after, "publishedBefore": before}},
         )
         return [dict(r) for r in (response.get("results") or []) if isinstance(r, Mapping)]
@@ -127,7 +143,7 @@ class Newsroom:
                 result: Mapping[str, Any], origin: str) -> Exhibit | None:
         url = str(result.get("url") or "").strip()
         title = str(result.get("title") or "").strip()
-        if not url.startswith(("http://", "https://")) or not title:
+        if not url.startswith(("http://", "https://")) or not title or not is_informative(title):
             return None
         with self._lock:
             if url in self._seen or len(self._seen) >= self.max_exhibits:
@@ -169,9 +185,9 @@ class Newsroom:
                 contract: Mapping[str, Any], trace: Any | None = None) -> list[Exhibit]:
         """Code-run searches for the requested asset. A failure is recorded, never fatal."""
         found: list[Exhibit] = []
-        for query in build_queries(ticker, name, contract):
+        for query, domains in build_queries(ticker, name, contract):
             try:
-                results = self._call(query)
+                results = self._call(query, domains)
             except Exception as error:  # network, permission, throttling: the session goes on
                 self.failures.append(f"{query}: {type(error).__name__}")
                 if trace is not None:
@@ -196,7 +212,7 @@ class Newsroom:
             return {"status": "error", "content": [{"json": {"code": "invalid_argument",
                                                              "message": "query is required"}}]}
         try:
-            results = self._call(query)
+            results = self._call(query, NEWS_DOMAINS)
         except Exception as error:
             self.failures.append(f"{query}: {type(error).__name__}")
             return {"status": "error", "content": [{"json": {"code": "web_search_failed",

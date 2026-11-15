@@ -14,7 +14,7 @@ guardrail_id: "3981l0ehd4uu"   # verdict-guardrail: prompt-attack filter on inpu
 guardrail_version: "DRAFT"
 # Newsroom (Amazon Bedrock AgentCore Web Search): recent news as Context Exhibits, never used by Hard_Rules.
 web_search_enabled: true
-web_search_max_results: 4
+web_search_max_results: 8
 web_search_days: 30
 web_search_timeout_seconds: 6
 
