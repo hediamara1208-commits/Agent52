@@ -217,3 +217,13 @@ def test_contact_boilerplate_is_dropped():
          "months, Exxon Mobil shares have tracked crude prices closely as refining margins narrowed.")
     assert clean_snippet(s) == ("Over the past twelve months, Exxon Mobil shares have tracked crude prices closely "
                                 "as refining margins narrowed.")
+
+
+def test_same_headline_twice_is_one_card_and_stray_symbols_go():
+    item = {"title": "Bitcoin slides toward $60,000 as ETF outflows and liquidations intensify",
+            "text": "Investing.com -- Bitcoin fell to a four-month low over the weekend, near a liquidation level."}
+    results = [dict(item, url="https://finance.yahoo.com/a"), dict(item, url="https://finance.yahoo.com/b?x=1")]
+    found = Newsroom(FakeSearch(results), now=lambda: NOW).collect(ExhibitRegistry(), "BTC-USD", "Bitcoin", ROBERT)
+    assert len(found) == 1
+    s = "? : Second-biggest token Ether, which slumped 8% in the US session, fell to $1,731 on Sunday."
+    assert clean_snippet(s).startswith("Second-biggest token Ether")
