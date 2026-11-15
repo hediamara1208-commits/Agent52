@@ -17,7 +17,7 @@ export function SignInGate({ auth, children }: {
     return () => { live = false; };
   }, [auth]);
 
-  if (!checked) return <p>Checking sign-in…</p>;
+  if (!checked) return <div className="signin-wrap"><p style={{ color: "var(--muted)" }}>Checking sign-in…</p></div>;
   if (user) {
     return <>{children(user, () => { void auth.signOut().then(() => setUser(null)); })}</>;
   }
@@ -33,12 +33,16 @@ export function SignInGate({ auth, children }: {
     }
   };
   return (
-    <form onSubmit={submit} aria-label="Sign in">
-      <h1>Decision Tribunal (simulation)</h1>
-      <label>User name <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="username" /></label>
+    <div className="signin-wrap">
+    <form onSubmit={submit} aria-label="Sign in" className="signin">
+      <div className="crest" aria-hidden="true">⚖</div>
+      <h1>Decision Tribunal</h1>
+      <p className="lede">Three AI agents argue your investment idea. Code decides every rule. Simulation only.</p>
+      <label>Email <input value={name} onChange={(e) => setName(e.target.value)} autoComplete="username" /></label>
       <label>Password <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" /></label>
       <button type="submit">Sign in</button>
-      {error && <p role="alert">{error}</p>}
+      {error && <p role="alert" className="alert" style={{ marginTop: "1rem" }}>{error}</p>}
     </form>
+    </div>
   );
 }

@@ -20,7 +20,7 @@ describe("Advanced_Mode", () => {
   it("shows rules, sensitivity, trace with Instruction_Hash and a JSON download", () => {
     render(<AdvancedMode view={view} focus={null} onFocus={() => {}} />);
     expect(screen.getByTestId("rule-speculative_limit")).toHaveTextContent("fail");
-    expect(screen.getByTestId("rule-speculative_limit")).toHaveTextContent("0.05");
+    expect(screen.getByTestId("rule-speculative_limit")).toHaveTextContent("5.0%");
     expect(screen.getByTestId("sensitivity-speculative_limit")).toHaveTextContent("accept");
     expect(screen.getByTestId("instruction-hash")).toHaveTextContent("deadbeef");
     expect(screen.getByTestId("trace-2")).toHaveAttribute("data-kind", "guardrail_block");

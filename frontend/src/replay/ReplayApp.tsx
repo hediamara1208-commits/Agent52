@@ -14,17 +14,23 @@ export function ReplayApp({ view = recorded as unknown as SessionView, store }: 
   const { mode, focus } = useSessionStore(own);
   const snap = view.snapshot;
   return (
-    <div>
-      <header>
-        <p role="note" data-testid="replay-label">
+    <div className="shell">
+      <nav className="topbar">
+        <div className="brand">
+          <span className="brand-mark" aria-hidden="true">⚖</span>
+          <span>Decision Tribunal<small>Recorded session replay</small></span>
+        </div>
+      </nav>
+      <header className="banners">
+        <p role="note" data-testid="replay-label" className="pill pill-gold"><span className="dot" />
           {REPLAY_LABEL} · session date {snap?.retrieved_at ?? "unknown"} · Snapshot_Id {snap?.snapshot_id ?? "unknown"}
         </p>
-        <p role="note" data-testid="simulation-banner">Simulation only. This is not financial advice.</p>
-        <p role="note" data-testid="guidance-statement">
+        <p role="note" data-testid="simulation-banner" className="pill">Simulation only. This is not financial advice.</p>
+        <p role="note" data-testid="guidance-statement" className="pill">
           This tool only provides guidance. You act personally, outside this tool.
         </p>
       </header>
-      <div role="group" aria-label="Mode">
+      <div role="group" aria-label="Mode" className="mode-switch" style={{ maxWidth: 320, marginBottom: "1rem" }}>
         <button type="button" aria-pressed={mode === "friendly"} onClick={() => own.setMode("friendly")}>Friendly</button>
         <button type="button" aria-pressed={mode === "advanced"} onClick={() => own.setMode("advanced")}>Advanced</button>
       </div>

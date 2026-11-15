@@ -3,7 +3,10 @@ import { CourtroomScene } from "./CourtroomScene";
 import { FourAnswersCard, answersOf } from "./FourAnswersCard";
 import { VerdictPanel } from "./VerdictPanel";
 
-/** Friendly_Mode: courtroom, short summaries, verdict (Req. 7.10 to 7.12, 7.17). */
+const AGENT_TITLE: Record<string, string> = { advocate: "Advocate", investigator: "Investigator", judge: "Judge" };
+const AGENT_ICON: Record<string, string> = { advocate: "⚖", investigator: "🔎", judge: "🏛" };
+
+/** Friendly_Mode: animated courtroom, short statements, verdict reveal (Req. 7.10 to 7.12, 7.17). */
 export function FriendlyMode({
   view, onSeeDetails,
 }: { view: SessionView; onSeeDetails: (focus: Focus) => void }) {
@@ -11,13 +14,15 @@ export function FriendlyMode({
   return (
     <div data-testid="friendly-mode">
       <CourtroomScene activeAgent={view.active_agent} />
-      <section aria-label="Summaries">
-        {entries.map(([key, text]) => (
-          <p key={key} data-testid={`summary-${key}`}>
-            <strong>{key}:</strong> {text}
-          </p>
-        ))}
-      </section>
+      {entries.length > 0 && (
+        <section aria-label="Summaries" className="statements">
+          {entries.map(([key, text]) => (
+            <p key={key} data-testid={`summary-${key}`} data-agent={key} className="bubble">
+              <strong><span aria-hidden="true">{AGENT_ICON[key] ?? "•"}</span>{AGENT_TITLE[key] ?? key}</strong> {text}
+            </p>
+          ))}
+        </section>
+      )}
       <VerdictPanel view={view} onSeeDetails={onSeeDetails} />
       <FourAnswersCard
         answers={answersOf(view)}

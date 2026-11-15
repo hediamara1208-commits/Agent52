@@ -47,10 +47,9 @@ export function TracePanel({ trace, focusedSeq, onExhibit }: {
 }) {
   return (
     <section aria-label="Trace">
-      <h2>Trace</h2>
-      <TraceDownload trace={trace} />
+      <div className="section-title"><h2>Audit trace</h2><TraceDownload trace={trace} /></div>
       {trace.length === 0 ? <p>No trace entries yet.</p> : (
-        <ol>{trace.map((ev) => <Entry key={ev.seq} ev={ev} focused={ev.seq === focusedSeq} onExhibit={onExhibit} />)}</ol>
+        <ol className="timeline">{trace.map((ev) => <Entry key={ev.seq} ev={ev} focused={ev.seq === focusedSeq} onExhibit={onExhibit} />)}</ol>
       )}
     </section>
   );
