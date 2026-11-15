@@ -56,7 +56,7 @@ def _default_deps() -> Deps:
         import boto3
 
         from guide.config import load_config
-        from guide.data.snapshot import SnapshotStore
+        from guide.data.loader import SnapshotStore
         from guide.session.store import DynamoSessionStore
         from guide.toolkit import metrics
 
