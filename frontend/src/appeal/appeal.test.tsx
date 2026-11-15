@@ -32,6 +32,26 @@ describe("appeal", () => {
     expect(screen.getByTestId("appeal-change").textContent).toContain("per_asset_cap");
     expect(screen.getByTestId("appeal-verdict-changed").textContent).toContain("changed");
   });
+  it("reads like a person would: percentages, limits, and what moved", () => {
+    const o = base({ contract: { speculative_limit: 0.05 } as never,
+      verdict: { verdict: "accept_with_conditions", max_weight: 0.025 } as never,
+      rule_results: [{ rule: "speculative_limit", status: "fail", observed: 0.3, limit: 0.05 }],
+      exhibits: [{ number: 3, metric: "currency_exposure", value: { base: { CAD: 0.77, USD: 0.22999999999999998 } },
+        currency: "", assets: ["TSLA"], snapshot_id: "x" }] });
+    const a = base({ session_id: "s3", verdict: { verdict: "accept_with_conditions", max_weight: 0.05 } as never,
+      rule_results: [{ rule: "speculative_limit", status: "fail", observed: 0.3, limit: 0.1 }],
+      exhibits: [{ number: 9, metric: "currency_exposure", value: { base: { CAD: 0.75, USD: 0.25 } },
+        currency: "", assets: ["TSLA"], snapshot_id: "x" }] });
+    render(<AppealView original={o} appeal={a} change={{ field: "speculative_limit", value: 0.1 }} />);
+    expect(screen.getByTestId("appeal-change").textContent).toContain("Speculative limit 5.0% → 10.0%");
+    expect(screen.getByTestId("appeal-original").textContent).toContain("accept with conditions, up to 2.5%");
+    expect(screen.getByTestId("appeal-verdict-changed").textContent)
+      .toBe("Same verdict; the largest lawful size changed from 2.5% to 5.0%.");
+    const view = screen.getByTestId("appeal-view").textContent ?? "";
+    expect(view).toContain("Speculative limit: fail (30.0% vs limit 5.0%) → fail (30.0% vs limit 10.0%)");
+    expect(view).toContain("base: CAD 77.0%, USD 23.0%");
+    expect(view).not.toContain("0.22999999999999998");
+  });
   it("control submits exactly one change", async () => {
     const onSubmit = vi.fn();
     render(<AppealControl busy={false} onSubmit={onSubmit} />);
