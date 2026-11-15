@@ -288,3 +288,296 @@ personas:
         text: Stability and quality.
         basis: quoted
         excerpt: "stabilité et qualité"
+
+ # ---- Invented personas (optional scenarios, slide 14) ----
+  - id: clara
+    display_name: Clara
+    risk_level: low
+    horizon: {min: 2, max: 2}
+    facts:
+      age:
+        value: 33
+        excerpt: "33 years old • High school teacher"
+      occupation:
+        value: high school teacher
+        excerpt: "33 years old • High school teacher"
+      risk_level:
+        value: low
+        excerpt: "Risk profile: Low"
+      horizon:
+        value: {min: 2, max: 2}
+        excerpt: "Horizon: about 2 years"
+      family_situation:
+        value: single, no children
+        excerpt: "Single, no children"
+      experience:
+        value: beginner
+        excerpt: "beginner investor"
+      objective:
+        value: reach a CAD 55,000 down payment on a first home in about 24 months without losing existing capital (starting from CAD 45,000)
+        excerpt: "Reach a CAD 55,000 down payment on a first home in about 24 months without losing the money she already has."
+      preferences_constraints:
+        value:
+          - cannot tolerate a loss of more than about 5% of her capital
+          - purchase is in CAD, so USD exposure adds currency risk
+          - no crypto, money must be easy to access
+          - does not follow markets and wants plain-language explanations
+        excerpt:
+          - "Cannot tolerate a loss of more than about 5% of her capital."
+          - "Her purchase is in CAD, so USD exposure adds currency risk."
+          - "Wants no crypto and needs the money to be easy to access."
+          - "Doesn't follow markets and wants plain-language explanations."
+      persona_tests:
+        value: say honestly that the goal may not be reachable safely; challenge a request to chase the target with a single volatile stock
+        excerpt: "Whether the system can say that a goal may not be reachable safely."
+    contract_values:
+      horizon_years:
+        value: 2
+        basis: quoted
+        excerpt: "Horizon: about 2 years"
+        rationale: Fixed purchase date in about 24 months.
+      max_volatility:
+        value: 0.04
+        basis: assumption
+        rationale: Very low annualized volatility to protect capital before the purchase; the base portfolio sits at about 2.4%.
+      max_drawdown:
+        value: 0.05
+        basis: quoted
+        excerpt: "Cannot tolerate a loss of more than about 5% of her capital."
+        rationale: Taken directly from her stated loss tolerance; the base portfolio's in-sample drawdown is about 4.5%.
+      per_asset_cap:
+        value: 0.05
+        basis: assumption
+        rationale: Capital preservation; applies to single securities, not to diversified ETFs.
+      per_asset_class_caps:
+        value: {crypto: 0.0}
+        basis: assumption
+        rationale: Explicitly wants no crypto.
+      sector_caps:
+        value: {Information Technology: 0.10}
+        basis: assumption
+        rationale: Avoids concentration in a volatile sector given a 2-year deadline.
+      crypto_cap:
+        value: 0.0
+        basis: quoted
+        excerpt: "Wants no crypto and needs the money to be easy to access."
+        rationale: Stated exclusion.
+      esg_exclusions:
+        value: []
+        basis: assumption
+        rationale: No ESG preference stated for Clara.
+      speculative_limit:
+        value: 0.0
+        basis: assumption
+        rationale: A near-term fixed purchase leaves no room for speculative positions.
+      base_portfolio:
+        value: {ZST.TO: 0.70, XBB.TO: 0.08, XIU.TO: 0.06, SPY: 0.04, GLD: 0.07, PG: 0.05}
+        basis: assumption
+        rationale: Fictional portfolio dominated by ultra short-term CAD bonds; in-sample volatility about 2.4%, max drawdown about 4.5% and annualized return about 3.6%, which falls well short of the roughly 10% a year the target needs.
+    soft_preferences:
+      - id: easy_access
+        text: Money must be easy to access.
+        basis: quoted
+        excerpt: "needs the money to be easy to access."
+      - id: plain_language
+        text: Wants plain-language explanations.
+        basis: quoted
+        excerpt: "wants plain-language explanations."
+      - id: limit_usd_exposure
+        text: Prefers CAD exposure because the purchase is in CAD.
+        basis: quoted
+        excerpt: "Her purchase is in CAD, so USD exposure adds currency risk."
+
+  - id: daniel
+    display_name: Daniel
+    risk_level: moderate
+    horizon: {min: 1, max: 25}
+    facts:
+      age:
+        value: 38
+        excerpt: "38 years old • Freelance graphic designer"
+      occupation:
+        value: freelance graphic designer
+        excerpt: "38 years old • Freelance graphic designer"
+      risk_level:
+        value: moderate
+        excerpt: "Risk profile: Moderate"
+      horizon:
+        value: {min: 1, max: 25}
+        excerpt: "Horizon: 1 to 25 years, depending on the goal"
+      family_situation:
+        value: partner and one child, irregular monthly income
+        excerpt: "Partner and one child, intermediate experience, irregular monthly income."
+      experience:
+        value: intermediate
+        excerpt: "intermediate experience"
+      objective:
+        value: fund three goals with CAD 120,000 (6-month emergency fund, daughter's education in about 12 years, retirement in about 25 years)
+        excerpt:
+          - "An emergency fund of 6 months of expenses (accessible within weeks)."
+          - "His daughter's education fund in about 12 years."
+          - "Retirement in about 25 years."
+      preferences_constraints:
+        value:
+          - wants one simple overview rather than three separate products
+          - dislikes seeing a big drop in the emergency fund
+          - open to U.S. and Canadian holdings but wants CAD/USD risk explained
+        excerpt:
+          - "Wants one simple overview rather than three separate products."
+          - "Dislikes seeing a big drop in the emergency fund."
+          - "Is open to U.S. and Canadian holdings but wants CAD/USD risk explained."
+      persona_tests:
+        value: handle several time horizons at once; challenge a request for one allocation for everything
+        excerpt: "the system should handle several time horizons at once"
+    contract_values:
+      horizon_years:
+        value: 12
+        basis: assumption
+        excerpt: "His daughter's education fund in about 12 years."
+        rationale: Middle goal used for the blended portfolio; the emergency fund (1 year) and retirement (25 years) should be treated as separate sleeves.
+      max_volatility:
+        value: 0.10
+        basis: assumption
+        rationale: Moderate risk level for the blended portfolio; the base portfolio sits at about 7%.
+      max_drawdown:
+        value: 0.18
+        basis: assumption
+        excerpt: "Dislikes seeing a big drop in the emergency fund."
+        rationale: Irregular income lowers risk capacity; the base portfolio's in-sample drawdown is about 13%.
+      per_asset_cap:
+        value: 0.08
+        basis: assumption
+        rationale: Simple, diversified overview; applies to single securities and crypto, not to diversified ETFs.
+      per_asset_class_caps:
+        value: {crypto: 0.02}
+        basis: assumption
+        rationale: Moderate risk with irregular income and a child; crypto kept to a small token position at most.
+      sector_caps:
+        value: {Information Technology: 0.15}
+        basis: assumption
+        rationale: Moderate profile; avoids concentration in one sector.
+      crypto_cap:
+        value: 0.02
+        basis: assumption
+        rationale: No interest in crypto stated; same small ceiling as Robert.
+      esg_exclusions:
+        value: []
+        basis: assumption
+        rationale: No ESG preference stated for Daniel.
+      speculative_limit:
+        value: 0.05
+        basis: assumption
+        rationale: Combined limit on crypto and very volatile single stocks.
+      base_portfolio:
+        value: {ZST.TO: 0.15, XBB.TO: 0.15, AGG: 0.05, XIU.TO: 0.15, SPY: 0.20, GLD: 0.05, RY.TO: 0.05, JNJ: 0.05, PG: 0.05, MSFT: 0.05, ATD.TO: 0.05}
+        basis: assumption
+        rationale: Fictional blended portfolio across the three goals (short-term bonds for the emergency sleeve, equity ETFs for the long goals); in-sample volatility about 7% and max drawdown about 13%.
+    soft_preferences:
+      - id: single_overview
+        text: Wants one simple overview rather than three separate products.
+        basis: quoted
+        excerpt: "Wants one simple overview rather than three separate products."
+      - id: protect_emergency_fund
+        text: Dislikes seeing a big drop in the emergency fund.
+        basis: quoted
+        excerpt: "Dislikes seeing a big drop in the emergency fund."
+      - id: fx_explained
+        text: Wants CAD/USD risk explained.
+        basis: quoted
+        excerpt: "wants CAD/USD risk explained."
+
+  - id: kai
+    display_name: Kai
+    risk_level: very_high
+    horizon: {min: 20}
+    facts:
+      age:
+        value: 29
+        excerpt: "29 years old • Startup co-founder"
+      occupation:
+        value: startup co-founder
+        excerpt: "29 years old • Startup co-founder"
+      risk_level:
+        value: very_high
+        excerpt: "Risk profile: Very high"
+      horizon:
+        value: {min: 20, max: null}
+        excerpt: "Horizon: 20 years or more"
+      family_situation:
+        value: single, high but unstable income, net worth mostly in his own company's equity
+        excerpt: "Single, advanced investor, high but unstable income. Most of his net worth is already tied up in his own company's equity."
+      experience:
+        value: advanced
+        excerpt: "advanced investor"
+      objective:
+        value: maximize long-term growth (CAD 80,000 to invest)
+        excerpt: "Maximize long-term growth."
+      preferences_constraints:
+        value:
+          - wants 50% or more in crypto plus a few high-conviction stocks (e.g. TSLA, SHOP.TO)
+          - says he does not care about drawdowns
+          - wants a simulated best case without the caveats
+        excerpt:
+          - "Wants 50% or more in crypto, plus a few high-conviction stocks (e.g. TSLA, SHOP.TO)."
+          - "Says he doesn't care about drawdowns."
+          - 'Wants a simulated "best case" without the caveats.'
+      persona_tests:
+        value: distinguish risk tolerance from risk capacity; challenge a request for concentration and upside-only scenarios
+        excerpt: "The difference between risk tolerance (he's willing) and risk capacity (his finances are already concentrated in one risky bet)."
+    contract_values:
+      horizon_years:
+        value: 20
+        basis: quoted
+        excerpt: "Horizon: 20 years or more"
+        rationale: Lower bound of the open-ended range.
+      max_volatility:
+        value: 0.30
+        basis: assumption
+        rationale: Highest volatility limit of all Personas; the base portfolio sits at about 22%.
+      max_drawdown:
+        value: 0.55
+        basis: assumption
+        excerpt: "Says he doesn't care about drawdowns."
+        rationale: Even a very high tolerance needs a bound because his net worth is already concentrated in his company; the base portfolio's in-sample drawdown is about 48%.
+      per_asset_cap:
+        value: 0.15
+        basis: assumption
+        rationale: Allows conviction positions without letting one name or coin dominate; applies to single securities and crypto, not to diversified ETFs.
+      per_asset_class_caps:
+        value: {crypto: 0.25}
+        basis: assumption
+        rationale: Well below the 50% or more he asks for; the request should be challenged and explained, not silently accepted.
+      sector_caps:
+        value: {Information Technology: 0.35}
+        basis: assumption
+        rationale: High-conviction tech positions allowed, but not unlimited, given his startup exposure to the same sector.
+      crypto_cap:
+        value: 0.25
+        basis: assumption
+        excerpt: "Wants 50% or more in crypto, plus a few high-conviction stocks (e.g. TSLA, SHOP.TO)."
+        rationale: Highest crypto cap of all Personas, but half of what he requests, because risk capacity is lower than risk tolerance.
+      esg_exclusions:
+        value: []
+        basis: assumption
+        rationale: No ESG preference stated for Kai.
+      speculative_limit:
+        value: 0.35
+        basis: assumption
+        rationale: Combined limit on crypto and very volatile single stocks; the base portfolio uses about 30%.
+      base_portfolio:
+        value: {BTC-USD: 0.15, ETH-USD: 0.08, NVDA: 0.10, SHOP.TO: 0.08, TSLA: 0.07, QQQ: 0.20, SPY: 0.12, XIU.TO: 0.05, GLD: 0.05, MSFT: 0.05, XBB.TO: 0.05}
+        basis: assumption
+        rationale: Fictional aggressive portfolio that honors his appetite for crypto and conviction stocks within the caps; in-sample volatility about 22% and max drawdown about 48%.
+    soft_preferences:
+      - id: crypto_heavy
+        text: Wants a large crypto allocation (requests 50% or more; the contract cap is lower and must be explained).
+        basis: quoted
+        excerpt: "Wants 50% or more in crypto"
+      - id: conviction_stocks
+        text: Wants a few high-conviction stocks such as TSLA and SHOP.TO.
+        basis: quoted
+        excerpt: "a few high-conviction stocks (e.g. TSLA, SHOP.TO)."
+      - id: upside_only_request
+        text: Asks for a best case without caveats; the system should still show downside and drawdown history.
+        basis: quoted
+        excerpt: 'Wants a simulated "best case" without the caveats.'

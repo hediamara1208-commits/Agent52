@@ -7,7 +7,7 @@
   "properties": {
     "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$" },
     "display_name": { "type": "string", "minLength": 1 },
-    "risk_level": { "enum": ["low", "low_to_moderate", "moderate", "high"] },
+    "risk_level": { "enum": ["low", "low_to_moderate", "moderate", "high", "very_high"] },
     "horizon": {
       "oneOf": [
         { "type": "number", "exclusiveMinimum": 0 },

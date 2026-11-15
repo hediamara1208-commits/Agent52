@@ -10,17 +10,20 @@ export function limitWords(texts: string[], max: number = MAX_WORDS): string {
   return words.slice(0, max - 1).join(" ") + "…";
 }
 
+const ICON: Record<string, string> = { which_data: "📊", why_this_choice: "🧭", which_limits: "⚠", what_would_change: "🔁" };
+
 /** The four headed answers of the Ruling, each short, with Exhibit links (Req. 33.1, 33.4). */
 export function FourAnswersCard({
   answers, onOpen,
 }: { answers: Answer[]; onOpen: (n: number) => void }) {
   if (answers.length === 0) return null;
   return (
-    <section aria-label="Four answers" data-testid="four-answers">
+    <section aria-label="Four answers" data-testid="four-answers" className="answers">
       {answers.map((a) => {
         const numbers = [...new Set(a.statements.flatMap((s) => s.citations))].sort((x, y) => x - y);
         return (
           <article key={a.id} data-testid={`answer-${a.id}`}>
+            <span aria-hidden="true" style={{ fontSize: "1.3rem" }}>{ICON[a.id] ?? "•"}</span>
             <h3>{a.heading}</h3>
             <p data-testid={`answer-text-${a.id}`}>{limitWords(a.statements.map((s) => s.text))}</p>
             {numbers.map((n) => (

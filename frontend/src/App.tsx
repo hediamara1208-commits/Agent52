@@ -14,18 +14,18 @@ export const STAGES = ["advocate", "investigator", "judge", "clerk"];
 export function Banners({ view }: { view: SessionView | null }) {
   const snap = view?.snapshot;
   return (
-    <header>
-      <p role="note" data-testid="simulation-banner">Simulation only. This is not financial advice.</p>
-      <p role="note" data-testid="guidance-statement">
+    <header className="banners">
+      <p role="note" data-testid="simulation-banner" className="pill pill-gold"><span className="dot" />Simulation only. This is not financial advice.</p>
+      <p role="note" data-testid="guidance-statement" className="pill">
         This tool only provides guidance. You act personally, outside this tool.
       </p>
       {snap && (
-        <p data-testid="data-badge">
+        <p data-testid="data-badge" className="pill">
           Data: {snap.snapshot_id} · source {snap.source} · retrieved {snap.retrieved_at}
         </p>
       )}
       {snap?.served_from === "cache_fallback" && (
-        <p role="alert" data-testid="fallback-notice">
+        <p role="alert" data-testid="fallback-notice" className="pill pill-warn">
           Served from the local cache because the primary store was unavailable
           {snap.fallback_cause ? ` (${snap.fallback_cause})` : ""}.
         </p>
@@ -36,7 +36,7 @@ export function Banners({ view }: { view: SessionView | null }) {
 
 function Progress({ view }: { view: SessionView }) {
   return (
-    <ol aria-label="Stage progress" data-testid="progress">
+    <ol aria-label="Stage progress" data-testid="progress" className="progress">
       {STAGES.map((s) => (
         <li key={s} data-state={view.stages_done.includes(s) ? "done" : view.stage === s && view.status === "running" ? "active" : "pending"}>
           {s}{view.stages_done.includes(s) ? " ✓" : view.stage === s && view.status === "running" ? " …" : ""}
@@ -173,45 +173,73 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
   return (
     <div>
       <Banners view={view} />
-      <aside aria-label="Inputs">
-        <label>Persona{" "}
-          <select aria-label="Persona" value={selected} disabled={!!personaError && personas.length === 0}
-            onChange={(e) => pick(e.target.value)}>
-            <option value="">Select…</option>
-            {personas.map((p) => <option key={p.id} value={p.id}>{p.display_name}</option>)}
-            {profiles.map((p) => <option key={p.profile_id} value={p.profile_id}>Custom: {p.profile_id}</option>)}
-          </select>
-        </label>
-        {personaError && <p role="alert" data-testid="persona-error">Persona file: {personaError}</p>}
-        <ProfileForm values={values} onChange={setValues} />
-        <button type="button" onClick={save}>Save as custom profile</button>
-        <form onSubmit={submit}>
-          <label>Request{" "}
-            <textarea aria-label="Request" value={requestText} onChange={(e) => setRequestText(e.target.value)}
-              placeholder="e.g. I want 30% in TSLA" />
-          </label>
-          <button type="submit" disabled={busy || !requestText.trim()}>Submit request</button>
-        </form>
-        <div role="group" aria-label="Mode">
-          <button type="button" aria-pressed={mode === "friendly"} onClick={() => store.setMode("friendly")}>Friendly</button>
-          <button type="button" aria-pressed={mode === "advanced"} onClick={() => store.setMode("advanced")}>Advanced</button>
-        </div>
-      </aside>
-      {message && <p role="alert" data-testid="error-message">{message}</p>}
-      {view && (
-        <main>
-          <Progress view={view} />
-          {view.data_notices.map((n, i) => <p key={i}>{n}</p>)}
-          {mode === "advanced"
-            ? <AdvancedMode view={view} focus={focus} onFocus={store.setFocus} />
-            : <FriendlyMode view={view} onSeeDetails={store.openDetails} />}
-          {view.status === "completed" && appealBase && appealBase.original.session_id !== view.session_id && (
-            <AppealView original={appealBase.original} appeal={view} change={appealBase.change} />
+      <div className="layout">
+        <aside aria-label="Inputs" className="sidebar">
+          <div className="card">
+            <div className="section-title"><h2>Investor</h2></div>
+            <label>Persona{" "}
+              <select aria-label="Persona" value={selected} disabled={!!personaError && personas.length === 0}
+                onChange={(e) => pick(e.target.value)}>
+                <option value="">Select…</option>
+                {personas.map((p) => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+                {profiles.map((p) => <option key={p.profile_id} value={p.profile_id}>Custom: {p.profile_id}</option>)}
+              </select>
+            </label>
+            {personaError && <p role="alert" data-testid="persona-error" className="alert">Persona file: {personaError}</p>}
+            <ProfileForm values={values} onChange={setValues} />
+            <button type="button" onClick={save} style={{ width: "100%" }}>Save as custom profile</button>
+          </div>
+          <div className="card">
+            <form onSubmit={submit}>
+              <div className="section-title"><h2>Your request</h2></div>
+              <label>Request{" "}
+                <textarea aria-label="Request" value={requestText} onChange={(e) => setRequestText(e.target.value)}
+                  placeholder="e.g. I want 30% in TSLA" />
+              </label>
+              <button type="submit" disabled={busy || !requestText.trim()} style={{ width: "100%", padding: ".7rem" }}>
+                {busy ? "The tribunal is in session…" : "Submit request"}
+              </button>
+            </form>
+          </div>
+          <div className="card">
+            <div role="group" aria-label="Mode" className="mode-switch">
+              <button type="button" aria-pressed={mode === "friendly"} onClick={() => store.setMode("friendly")}>Friendly</button>
+              <button type="button" aria-pressed={mode === "advanced"} onClick={() => store.setMode("advanced")}>Advanced</button>
+            </div>
+          </div>
+        </aside>
+        <div>
+          {message && <p role="alert" data-testid="error-message" className="alert">{message}</p>}
+          {!view && (
+            <div className="card" style={{ textAlign: "center", padding: "3rem 1.5rem" }}>
+              <div style={{ fontSize: "2.6rem" }} aria-hidden="true">⚖</div>
+              <h1>Bring your case to the tribunal</h1>
+              <p style={{ color: "var(--muted)", maxWidth: 520, margin: "0 auto" }}>
+                Pick an investor, state a request such as "30% in TSLA", and watch the Advocate, the Investigator
+                and the Judge argue it out. Every number comes from an Exhibit computed by code.
+              </p>
+            </div>
           )}
-          {view.status === "completed" && <AppealControl busy={busy} onSubmit={appeal} />}
-          {view.status === "completed" && <button type="button" onClick={download}>Download trace JSON</button>}
-        </main>
-      )}
+          {view && (
+            <main>
+              <Progress view={view} />
+              {view.data_notices.map((n, i) => <p key={i} className="pill pill-warn">{n}</p>)}
+              {mode === "advanced"
+                ? <AdvancedMode view={view} focus={focus} onFocus={store.setFocus} />
+                : <FriendlyMode view={view} onSeeDetails={store.openDetails} />}
+              {view.status === "completed" && appealBase && appealBase.original.session_id !== view.session_id && (
+                <div className="card"><AppealView original={appealBase.original} appeal={view} change={appealBase.change} /></div>
+              )}
+              {view.status === "completed" && <div className="card"><AppealControl busy={busy} onSubmit={appeal} /></div>}
+              {view.status === "completed" && (
+                <div className="row" style={{ marginTop: "1rem" }}>
+                  <button type="button" onClick={download}>Download trace JSON</button>
+                </div>
+              )}
+            </main>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -221,10 +249,19 @@ export function App({ auth, makeApi }: { auth: AuthService; makeApi: () => Sessi
   return (
     <SignInGate auth={auth}>
       {(user, signOut) => (
-        <>
-          <p>Signed in as {user} <button type="button" onClick={() => { sessionStore.setView(null); signOut(); }}>Sign out</button></p>
+        <div className="shell">
+          <nav className="topbar">
+            <div className="brand">
+              <span className="brand-mark" aria-hidden="true">⚖</span>
+              <span>Decision Tribunal<small>Agentic investment guide · simulation</small></span>
+            </div>
+            <p className="user-chip" style={{ margin: 0 }}>
+              Signed in as {user}{" "}
+              <button type="button" onClick={() => { sessionStore.setView(null); signOut(); }}>Sign out</button>
+            </p>
+          </nav>
           <Workspace api={api} />
-        </>
+        </div>
       )}
     </SignInGate>
   );

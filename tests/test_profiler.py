@@ -23,15 +23,27 @@ def personas():
     return result.personas
 
 
+CASE_PERSONAS = ["amira", "mateo", "robert"]
+
+
 def test_shipped_file_has_three_templates_and_quoted_excerpts_match_context(personas):
-    assert list(personas) == ["amira", "mateo", "robert"]
+    # The three case-study personas come first; extra personas are team-written.
+    assert list(personas)[:3] == CASE_PERSONAS
     context = CONTEXT.read_text(encoding="utf-8")
-    for p in personas.values():
+    for p in (personas[pid] for pid in CASE_PERSONAS):
         items = [*p.facts.values(), *p.contract_values.values()]
         for item in items:
             ex = item.excerpt
             for text in ([ex] if isinstance(ex, str) else ex or []):
                 assert text in context, (p.id, text)
+        for name, cv in p.contract_values.items():
+            assert cv.basis and cv.rationale, (p.id, name)
+            if cv.basis == "quoted":
+                assert cv.excerpt, (p.id, name)
+
+
+def test_extra_personas_justify_every_value(personas):
+    for p in (v for k, v in personas.items() if k not in CASE_PERSONAS):
         for name, cv in p.contract_values.items():
             assert cv.basis and cv.rationale, (p.id, name)
             if cv.basis == "quoted":

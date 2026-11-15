@@ -18,3 +18,7 @@ def test_exact_and_nearest_risk_levels():
 
 def test_unknown_level_uses_moderate():
     assert closest_persona_base(None, PERSONAS) == base_of("mateo")
+
+
+def test_extra_personas_never_replace_the_case_bases():
+    assert closest_persona_base("very_high", PERSONAS) == base_of("amira")
