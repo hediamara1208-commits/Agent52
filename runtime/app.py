@@ -95,7 +95,7 @@ class Deps:
 def default_deps() -> Deps:
     from guide.config import load_config
     from guide.contract.personas import load_personas
-    from guide.data.snapshot import SnapshotStore
+    from guide.data.loader import SnapshotStore
     from guide.memory import MemoryStore
     from guide.session.store import DynamoSessionStore
     from guide.tribunal.entrypoint import run_session
