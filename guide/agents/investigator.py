@@ -23,47 +23,44 @@ from guide.trace.recorder import TraceRecorder
 
 AGENT = "investigator"
 
+# One material risk. `exhibits` may be empty when the risk rests on a Hard_Rule result
+# (code-computed law, no Exhibit number); `contract_fields` must then name the rule's field.
+RISK_SCHEMA: Mapping[str, Any] = {
+    "type": "object",
+    "required": ["risk", "exhibits", "why_for_this_person", "contract_fields"],
+    "properties": {
+        "risk": {"type": "string", "minLength": 1},
+        "exhibits": {"type": "array", "items": {"type": "integer", "minimum": 1}},
+        "why_for_this_person": {"type": "string", "minLength": 1},
+        "contract_fields": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1},
+        },
+    },
+}
+
+# Envelope only: a malformed single risk is rejected on its own (check_findings),
+# it no longer throws away the Investigator's whole contribution.
 OUTPUT_SCHEMA: Mapping[str, Any] = {
     "type": "object",
     "required": ["per_option"],
-    "additionalProperties": False,
     "properties": {
         "per_option": {
             "type": "array",
             "items": {
                 "type": "object",
                 "required": ["option_id", "material_risks"],
-                "additionalProperties": False,
                 "properties": {
                     "option_id": {"type": "string", "minLength": 1},
-                    "material_risks": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "required": ["risk", "exhibits", "why_for_this_person", "contract_fields"],
-                            "additionalProperties": False,
-                            "properties": {
-                                "risk": {"type": "string", "minLength": 1},
-                                "exhibits": {
-                                    "type": "array",
-                                    "minItems": 1,
-                                    "items": {"type": "integer", "minimum": 1},
-                                },
-                                "why_for_this_person": {"type": "string", "minLength": 1},
-                                "contract_fields": {
-                                    "type": "array",
-                                    "minItems": 1,
-                                    "items": {"type": "string", "minLength": 1},
-                                },
-                            },
-                        },
-                    },
+                    "material_risks": {"type": "array"},
                 },
             },
         }
     },
 }
 _VALIDATOR = Draft202012Validator(OUTPUT_SCHEMA)
+_RISK_VALIDATOR = Draft202012Validator(RISK_SCHEMA)
 
 _SCHEMA_PATH = Path(__file__).resolve().parent.parent / "contract" / "schema.json"
 _CAP_MAPS = ("sector_caps", "per_asset_class_caps")
@@ -135,6 +132,10 @@ def check_findings(
         kept: list[dict[str, Any]] = []
         for risk in entry["material_risks"]:
             reasons: list[str] = []
+            if next(iter(_RISK_VALIDATOR.iter_errors(risk)), None) is not None:
+                label = risk.get("risk") if isinstance(risk, Mapping) else None
+                result.rejected.append(Rejection(option_id, str(label or "?"), ("malformed risk",)))
+                continue
             if option_id not in known_options:
                 reasons.append(f"unknown option {option_id}")
             reasons += [f"Exhibit {n} does not exist" for n in risk["exhibits"] if registry.get(n) is None]
@@ -146,7 +147,7 @@ def check_findings(
             if reasons:
                 result.rejected.append(Rejection(option_id, risk["risk"], tuple(reasons)))
             else:
-                kept.append(dict(risk))
+                kept.append({k: risk[k] for k in RISK_SCHEMA["required"]})
         result.per_option.append({"option_id": option_id, "material_risks": kept})
     return result
 
