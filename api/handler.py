@@ -1,8 +1,10 @@
 """Session_API Lambda handler (Req. 22, 23.6).
 
 Seven routes, nothing else. The owner is the Cognito ``sub`` claim that the API Gateway
-authorizer validated; a request without it gets 401. Reads take the owner from the caller, so a
-foreign session id is a 404. The handler places, routes, or triggers no order, transfer, or
+authorizer validated. When guest access is switched on (``GUIDE_GUEST_ACCESS=1``, for the public
+demonstration) a request without that claim may instead carry ``Authorization: Guest <id>``, a
+random 128-bit id made by the browser; the owner is then ``guest-<id>`` and guests are capped per
+day. Anything else gets 401. Reads take the owner from the caller, so a foreign session id is a 404. The handler places, routes, or triggers no order, transfer, or
 brokerage or bank action (Req. 22.10). Tokens and request bodies are never logged.
 """
 
@@ -10,7 +12,9 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
+import time
 import uuid
 from dataclasses import asdict, dataclass
 from typing import Any, Callable
@@ -93,13 +97,42 @@ def _response(deps: Deps, status: int, body: Any, headers: dict[str, str] | None
     return {"statusCode": status, "headers": h, "body": json.dumps(body, ensure_ascii=False)}
 
 
+_GUEST = re.compile(r"^Guest ([0-9a-f]{32})$")
+GUEST_PREFIX = "guest-"
+# Hearings a single guest id, and all guests together, may start per UTC day. A guest id is chosen
+# by the browser, so the per-guest cap only stops accidents; the global cap is what bounds spend.
+GUEST_DAILY_CAP = int(os.environ.get("GUIDE_GUEST_DAILY_CAP", "40"))
+GUESTS_DAILY_CAP = int(os.environ.get("GUIDE_GUESTS_DAILY_CAP", "500"))
+_USAGE_OWNER = "guest-usage"
+
+
+def _guest_access() -> bool:
+    return os.environ.get("GUIDE_GUEST_ACCESS") == "1"
+
+
 def _owner(event: dict[str, Any]) -> str:
     ctx = event.get("requestContext") or {}
     claims = (ctx.get("authorizer") or {}).get("claims") or {}
     sub = claims.get("sub")
-    if not sub or not isinstance(sub, str):
-        raise _HttpError(401, "unauthorized")
-    return sub
+    if sub and isinstance(sub, str):
+        return sub
+    if _guest_access():
+        headers = {str(k).lower(): v for k, v in (event.get("headers") or {}).items()}
+        match = _GUEST.match(str(headers.get("authorization") or ""))
+        if match:
+            return GUEST_PREFIX + match.group(1)
+    raise _HttpError(401, "unauthorized")
+
+
+def _count_guest_hearing(deps: Deps, owner: str) -> None:
+    """Refuse a guest's new hearing once today's caps are reached (429). Signed-in owners are not capped."""
+    if not owner.startswith(GUEST_PREFIX) or not hasattr(deps.store, "increment"):
+        return
+    day = time.strftime("%Y%m%d", time.gmtime())
+    if deps.store.increment(owner, f"usage#{day}") > GUEST_DAILY_CAP:
+        raise _HttpError(429, "This browser has reached today's limit of hearings. Please try again tomorrow.")
+    if deps.store.increment(_USAGE_OWNER, f"usage#{day}") > GUESTS_DAILY_CAP:
+        raise _HttpError(429, "The public demonstration has reached today's limit of hearings. Please try again tomorrow.")
 
 
 def _route(event: dict[str, Any]) -> tuple[str, dict[str, str]]:
@@ -258,6 +291,7 @@ def _create_session(deps: Deps, owner: str, event: dict[str, Any], params: dict[
     if isinstance(parsed, MissingFields):
         raise _HttpError(422, "request is missing fields", missing=parsed.as_dict())
 
+    _count_guest_hearing(deps, owner)  # after validation, so a rejected request costs nothing
     session_id = uuid.uuid4().hex
     view = sv.new_session_view(session_id, contract=contract)
     deps.store.put_view(owner, view)

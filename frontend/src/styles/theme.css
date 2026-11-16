@@ -34,9 +34,9 @@
 /* The courtroom is a stage: its own darker tokens, used nowhere else. */
 .court-full, .courtroom {
   --text: #f4f1ea; --muted: #b3ad9f; --border: rgba(255, 255, 255, 0.14);
-  --gold: #e7b75f; --gold-2: #f6d58e; --cyan: #4fd1e8; --violet: #8b7bff;
-  --surface-2: rgba(255, 255, 255, 0.07); --surface: #1b1622;
-  color: var(--text); background: #17121f; border-color: #17121f;
+  --gold: #e7b75f; --gold-2: #f6d58e; --cyan: #8fd0c0; --violet: #e8a184;
+  --surface-2: rgba(255, 255, 255, 0.07); --surface: #1b2a24;
+  color: var(--text); background: #14201b; border-color: #14201b;
 }
 
 * { box-sizing: border-box; }
@@ -391,8 +391,8 @@ h3.news-title { margin: 0; font-size: .95rem; color: var(--text); text-transform
 .speech-bubble strong { display: block; font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: #8a5a2b; margin-bottom: .2rem; }
 .speech-bubble p { margin: 0; }
 .speech-bubble .caret { color: #8a5a2b; }
-.speech-bubble.speaker-advocate { border-color: #4fd1e8; }
-.speech-bubble.speaker-investigator { border-color: #8b7bff; }
+.speech-bubble.speaker-advocate { border-color: #8fd0c0; }
+.speech-bubble.speaker-investigator { border-color: #e8a184; }
 .speech-bubble.speaker-clerk { border-color: #34d399; }
 .speech-bubble.speaker-objection { border-color: #f87171; background: #fff1f1; }
 .speech-bubble.speaker-objection strong { color: #b91c1c; }
@@ -421,7 +421,7 @@ h3.news-title { margin: 0; font-size: .95rem; color: var(--text); text-transform
 .phase-rail li { flex: 1; text-align: center; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: .35rem .2rem; border-radius: 999px; color: var(--muted); background: rgba(255,255,255,.04); }
 .phase-rail li[data-state="done"] { color: #34d399; }
 .phase-rail li[data-state="active"] { color: #1a1205; background: var(--gold); font-weight: 700; }
-.court-stage { background: #120e1c; }
+.court-stage { background: #121c18; }
 .court-camera { transition: transform .9s cubic-bezier(.2,.7,.2,1); will-change: transform; }
 .court-full .seat { opacity: 1 !important; transition: filter .5s ease; }
 .court-stage.hush .seat:not([data-testid="seat-judge"]) { filter: brightness(.45); }
@@ -446,15 +446,15 @@ h3.news-title { margin: 0; font-size: .95rem; color: var(--text); text-transform
 @keyframes scan { 50% { transform: translateY(7px); } }
 .court-stage .speech-bubble {
   position: static; width: auto; min-height: 6.2rem; margin: 0; box-shadow: none; animation: none;
-  background: #15101f; color: #f4f1ea; border: 0; border-left: 5px solid var(--gold); border-radius: 0;
+  background: #14201b; color: #f4f1ea; border: 0; border-left: 5px solid var(--gold); border-radius: 0;
   font-size: 1.02rem; line-height: 1.45; padding: .8rem 1rem;
 }
 .court-stage { overflow: hidden; }
 .court-stage > svg { display: block; }
-.hush-caption { position: static !important; min-height: 6.2rem; display: grid; place-items: center; background: #15101f; }
+.hush-caption { position: static !important; min-height: 6.2rem; display: grid; place-items: center; background: #14201b; }
 .court-stage .speech-bubble strong { color: var(--gold-2); }
-.court-stage .speech-bubble.speaker-advocate { border-color: #4fd1e8; } .court-stage .speech-bubble.speaker-advocate strong { color: #4fd1e8; }
-.court-stage .speech-bubble.speaker-investigator { border-color: #a99bff; } .court-stage .speech-bubble.speaker-investigator strong { color: #a99bff; }
+.court-stage .speech-bubble.speaker-advocate { border-color: #8fd0c0; } .court-stage .speech-bubble.speaker-advocate strong { color: #8fd0c0; }
+.court-stage .speech-bubble.speaker-investigator { border-color: #e8a184; } .court-stage .speech-bubble.speaker-investigator strong { color: #e8a184; }
 .court-stage .speech-bubble.speaker-clerk { border-color: #34d399; } .court-stage .speech-bubble.speaker-clerk strong { color: #34d399; }
 .court-stage .speech-bubble.speaker-objection { border-color: #f87171; background: rgba(40, 12, 16, .95); } .court-stage .speech-bubble.speaker-objection strong { color: #f87171; }
 .court-stage .speech-bubble .struck { color: #f3a6a6; }

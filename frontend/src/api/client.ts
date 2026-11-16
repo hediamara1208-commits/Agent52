@@ -7,12 +7,15 @@ export interface RuntimeConfig {
   region?: string;
   userPoolId: string;
   userPoolClientId: string;
+  /** Public demonstration: no sign-in, each browser is an anonymous guest. */
+  guest?: boolean;
 }
 
 export async function loadConfig(fetchImpl: typeof fetch = fetch, url = "/config.json"): Promise<RuntimeConfig> {
   const res = await fetchImpl(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`config.json could not be loaded (${res.status})`);
   const cfg = (await res.json()) as Partial<RuntimeConfig>;
+  if (cfg.apiUrl && cfg.guest === true) return { userPoolId: "", userPoolClientId: "", ...cfg } as RuntimeConfig;
   if (!cfg.apiUrl || !cfg.userPoolId || !cfg.userPoolClientId) {
     throw new Error("config.json is missing apiUrl, userPoolId, or userPoolClientId");
   }

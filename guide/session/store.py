@@ -116,6 +116,13 @@ class InMemorySessionStore:
             "updated_at": _now_iso(),
         }
 
+    def increment(self, owner: str, sk: str) -> int:
+        """Add one to a counter and return its new value (used for guest usage caps)."""
+        _require_owner(owner)
+        item = self._items.setdefault((owner, sk), {"n": 0})
+        item["n"] += 1
+        return item["n"]
+
     def list_profiles(self, owner: str) -> list[dict[str, Any]]:
         _require_owner(owner)
         return [
@@ -186,6 +193,20 @@ class DynamoSessionStore:
         if ttl is not None and int(ttl) <= self._clock():
             return None
         return session_view_from_json(item["view"]["S"])
+
+    def increment(self, owner: str, sk: str) -> int:
+        """Atomically add one to a counter item and return its new value. The item expires
+        with the same TTL as a session, so daily counters clean themselves up."""
+        _require_owner(owner)
+        resp = self._client.update_item(
+            TableName=self._table,
+            Key={"owner": {"S": owner}, "sk": {"S": sk}},
+            UpdateExpression="ADD #n :one SET #ttl = if_not_exists(#ttl, :ttl)",
+            ExpressionAttributeNames={"#n": "n", "#ttl": "ttl"},
+            ExpressionAttributeValues={":one": {"N": "1"}, ":ttl": {"N": str(int(self._clock()) + SESSION_TTL_SECONDS)}},
+            ReturnValues="UPDATED_NEW",
+        )
+        return int(resp["Attributes"]["n"]["N"])
 
     def put_profile(self, owner: str, profile: dict[str, Any]) -> None:
         _require_owner(owner)

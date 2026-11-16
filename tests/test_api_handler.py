@@ -136,3 +136,55 @@ def test_speech_rejects_unknown_speakers_long_text_and_anonymous_callers():
     assert call(deps, "POST", "/speech", body={"speaker": "judge", "text": "x" * 601})[0] == 422
     assert call(deps, "POST", "/speech", body={"speaker": "judge", "text": "Hi"}, sub=None)[0] == 401
     assert deps.polly.calls == []
+
+
+GUEST_A = "Guest " + "a" * 32
+GUEST_B = "Guest " + "b" * 32
+
+
+def guest_call(deps, method, path, auth, body=None):
+    event = {"httpMethod": method, "path": path, "headers": {"Authorization": auth}}
+    if body is not None:
+        event["body"] = json.dumps(body)
+    res = handler(event, None, deps)
+    return res["statusCode"], json.loads(res["body"])
+
+
+def test_guest_header_is_refused_unless_guest_access_is_on(monkeypatch):
+    deps = make()
+    monkeypatch.delenv("GUIDE_GUEST_ACCESS", raising=False)
+    assert guest_call(deps, "GET", "/personas", GUEST_A)[0] == 401
+    monkeypatch.setenv("GUIDE_GUEST_ACCESS", "1")
+    assert guest_call(deps, "GET", "/personas", GUEST_A)[0] == 200
+    for bad in ("Guest abc", "Guest " + "A" * 32, "guest " + "a" * 32, "Bearer " + "a" * 32, ""):
+        assert guest_call(deps, "GET", "/personas", bad)[0] == 401
+
+
+def test_guests_are_isolated_from_each_other(monkeypatch):
+    monkeypatch.setenv("GUIDE_GUEST_ACCESS", "1")
+    deps = make()
+    status, body = guest_call(deps, "POST", "/sessions", GUEST_A, ROBERT)
+    assert status == 202
+    sid = body["session_id"]
+    assert json.loads(deps.runtime.calls[0]["payload"])["owner"] == "guest-" + "a" * 32
+    assert guest_call(deps, "GET", f"/sessions/{sid}", GUEST_A)[0] == 200
+    assert guest_call(deps, "GET", f"/sessions/{sid}", GUEST_B)[0] == 404
+    assert guest_call(deps, "GET", f"/sessions/{sid}/trace", GUEST_B)[0] == 404
+    guest_call(deps, "PUT", "/profiles/mine", GUEST_A, {"profile_id": "mine", "base_persona_id": "robert", "values": {}})
+    assert guest_call(deps, "GET", "/profiles", GUEST_B)[1] in ([], {"profiles": []})
+
+
+def test_guest_hearings_are_capped_per_guest_and_overall(monkeypatch):
+    import api.handler as h
+
+    monkeypatch.setenv("GUIDE_GUEST_ACCESS", "1")
+    monkeypatch.setattr(h, "GUEST_DAILY_CAP", 2)
+    monkeypatch.setattr(h, "GUESTS_DAILY_CAP", 3)
+    deps = make()
+    assert [guest_call(deps, "POST", "/sessions", GUEST_A, ROBERT)[0] for _ in range(3)] == [202, 202, 429]
+    assert guest_call(deps, "POST", "/sessions", GUEST_B, ROBERT)[0] == 202
+    assert guest_call(deps, "POST", "/sessions", GUEST_B, ROBERT)[0] == 429   # global cap of 3 reached
+    assert len(deps.runtime.calls) == 3
+    # An invalid request is refused before it is counted; signed-in owners are never capped.
+    assert guest_call(deps, "POST", "/sessions", GUEST_A, {"profile": {}, "request_text": ""})[0] == 422
+    assert call(deps, "POST", "/sessions", body=ROBERT)[0] == 202

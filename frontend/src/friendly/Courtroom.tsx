@@ -127,21 +127,21 @@ export function Courtroom({ view, onOpen, speak }: {
         <div className="court-view">
         <svg role="img" aria-label="Courtroom scene" viewBox="0 0 1200 560" width="100%" className="court-camera" style={camera}>
           <defs>
-            <linearGradient id="cWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a2a4a" /><stop offset="1" stopColor="#1e1830" /></linearGradient>
+            <linearGradient id="cWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2f4a3f" /><stop offset="1" stopColor="#1b2a24" /></linearGradient>
             <linearGradient id="cWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#8a5a34" /><stop offset="1" stopColor="#56341c" /></linearGradient>
-            <linearGradient id="cFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2a2238" /><stop offset="1" stopColor="#120e1c" /></linearGradient>
+            <linearGradient id="cFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#24382f" /><stop offset="1" stopColor="#121c18" /></linearGradient>
             <radialGradient id="cLight" cx=".5" cy="0" r=".9"><stop offset="0" stopColor="#ffe3a3" stopOpacity=".3" /><stop offset="1" stopColor="#ffe3a3" stopOpacity="0" /></radialGradient>
           </defs>
           <rect width="1200" height="340" fill="url(#cWall)" />
           {/* tall windows and columns */}
           {[150, 370, 830, 1050].map((x) => (
             <g key={x}>
-              <rect x={x - 46} y="40" width="92" height="210" rx="46" fill="#5b6aa8" opacity=".28" />
-              <path d={`M ${x} 40 L ${x} 250 M ${x - 46} 140 L ${x + 46} 140`} stroke="#1e1830" strokeWidth="4" opacity=".6" />
+              <rect x={x - 46} y="40" width="92" height="210" rx="46" fill="#6f8f80" opacity=".28" />
+              <path d={`M ${x} 40 L ${x} 250 M ${x - 46} 140 L ${x + 46} 140`} stroke="#1b2a24" strokeWidth="4" opacity=".6" />
             </g>
           ))}
-          {[40, 260, 480, 720, 940, 1160].map((x) => <rect key={x} x={x - 12} y="0" width="24" height="340" fill="#2a2038" />)}
-          <circle cx="600" cy="62" r="38" fill="#241b33" stroke="#e7b75f" strokeWidth="3" />
+          {[40, 260, 480, 720, 940, 1160].map((x) => <rect key={x} x={x - 12} y="0" width="24" height="340" fill="#22332b" />)}
+          <circle cx="600" cy="62" r="38" fill="#1d2c25" stroke="#e7b75f" strokeWidth="3" />
           <text x="600" y="72" textAnchor="middle" fontSize="30">⚖</text>
           <rect y="340" width="1200" height="220" fill="url(#cFloor)" />
           <polygon className="spot" points="460,0 740,0 940,560 260,560" fill="url(#cLight)" />
@@ -179,7 +179,7 @@ export function Courtroom({ view, onOpen, speak }: {
           })}
           {/* gallery */}
           {Array.from({ length: 13 }, (_, i) => (
-            <path key={i} d={`M ${40 + i * 92} 560 q 0 -42 30 -42 q 30 0 30 42 Z`} fill="#0b0812" opacity=".8" />
+            <path key={i} d={`M ${40 + i * 92} 560 q 0 -42 30 -42 q 30 0 30 42 Z`} fill="#0c1410" opacity=".8" />
           ))}
         </svg>
         {speaker === "objection" && !running && <div className="objection-stamp" aria-hidden="true">Objection sustained</div>}
@@ -207,7 +207,7 @@ export function Courtroom({ view, onOpen, speak }: {
           </button>
           <button type="button" disabled={running || index >= speeches.length - 1} onClick={() => go(index + 1)} aria-label="Next speech">▶</button>
           <button type="button" disabled={running} onClick={() => go(Math.max(0, speeches.findIndex((s) => s.speaker === "judge")))}>Skip to verdict</button>
-          {speak && <button type="button" aria-pressed={voice} onClick={() => setVoice((v) => !v)}>{voice ? "🔊 Voices on" : "🔈 Voices off"}</button>}
+          {speak && <button type="button" aria-pressed={voice} onClick={() => setVoice((v) => { if (v) (speak as { stop?: () => void }).stop?.(); return !v; })}>{voice ? "Sound on" : "Sound off"}</button>}
         </span>
       </div>
       {speeches.length > 0 && (

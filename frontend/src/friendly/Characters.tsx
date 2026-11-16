@@ -82,11 +82,11 @@ function Advocate({ mood }: { mood: Mood }) {
 function Investigator({ mood }: { mood: Mood }) {
   return (
     <g>
-      <path d="M -46 0 Q -50 -54 -20 -62 L 20 -62 Q 50 -54 46 0 Z" fill="#4b3f8f" stroke={INK} strokeWidth="2" />
-      <path d="M -20 -62 L -4 -30 L 0 -44 L 4 -30 L 20 -62" fill="#3a3070" stroke={INK} strokeWidth="2" />
+      <path d="M -46 0 Q -50 -54 -20 -62 L 20 -62 Q 50 -54 46 0 Z" fill="#7a3a28" stroke={INK} strokeWidth="2" />
+      <path d="M -20 -62 L -4 -30 L 0 -44 L 4 -30 L 20 -62" fill="#5a2a1e" stroke={INK} strokeWidth="2" />
       {/* magnifying glass */}
       <g className="arm">
-        <path d="M -40 -30 Q -60 -44 -58 -62" fill="none" stroke="#4b3f8f" strokeWidth="12" strokeLinecap="round" />
+        <path d="M -40 -30 Q -60 -44 -58 -62" fill="none" stroke="#7a3a28" strokeWidth="12" strokeLinecap="round" />
         <circle cx="-60" cy="-78" r="13" fill="#bfe9ff55" stroke="#e7b75f" strokeWidth="4" />
         <path d="M -52 -68 L -46 -58" stroke="#8a5a2b" strokeWidth="5" strokeLinecap="round" />
       </g>
