@@ -10,7 +10,8 @@ export const APPEAL_FIELDS = [
 ] as const;
 
 /** Appeal control: changes exactly one input (Req. 30.1). */
-export function AppealControl({ busy, onSubmit }: { busy: boolean; onSubmit: (c: AppealChange) => void }) {
+export function AppealControl({ busy, onSubmit, view }: { busy: boolean; onSubmit: (c: AppealChange) => void; view?: SessionView | null }) {
+  const whatIfs = whatIfsOf(view);
   const [field, setField] = useState<string>("position_size");
   const [text, setText] = useState("");
   const [start, setStart] = useState("");
@@ -33,29 +34,80 @@ export function AppealControl({ busy, onSubmit }: { busy: boolean; onSubmit: (c:
   };
 
   return (
-    <form aria-label="Appeal" onSubmit={submit}>
-      <h2>Appeal</h2>
-      <p>Change one input and re-run the tribunal. The original session stays as it is.</p>
-      <label>Input to change{" "}
-        <select aria-label="Appeal field" value={field} onChange={(e) => setField(e.target.value)}>
-          {APPEAL_FIELDS.map((f) => <option key={f} value={f}>{f}</option>)}
-        </select>
-      </label>{" "}
-      {field === "period" ? (
-        <>
-          <label>Start <input type="date" aria-label="Appeal start" value={start} onChange={(e) => setStart(e.target.value)} /></label>{" "}
-          <label>End <input type="date" aria-label="Appeal end" value={end} onChange={(e) => setEnd(e.target.value)} /></label>
-        </>
-      ) : (
-        <label>New value{" "}
-          <input aria-label="Appeal value" value={text} onChange={(e) => setText(e.target.value)}
-            placeholder={field === "position_size" ? "e.g. 0.15 or 15" : "e.g. 0.2"} />
-        </label>
-      )}{" "}
-      <button type="submit" disabled={busy}>Submit appeal</button>
+    <form aria-label="Appeal" onSubmit={submit} className="appeal">
+      <h2>Appeal: what if…?</h2>
+      <p>Change one thing and the court hears the case again. Your original ruling stays on record, and nothing changes on screen until the new ruling is in.</p>
+      {whatIfs.length > 0 && (
+        <div className="whatifs" data-testid="whatifs">
+          {whatIfs.map((w) => (
+            <button key={w.label} type="button" className="whatif" disabled={busy} onClick={() => onSubmit(w.change)}>
+              <b>{w.label}</b><small>{w.detail}</small>
+            </button>
+          ))}
+        </div>
+      )}
+      <details className="appeal-custom">
+        <summary>Change something else</summary>
+        <label>Input to change{" "}
+          <select aria-label="Appeal field" value={field} onChange={(e) => setField(e.target.value)}>
+            {APPEAL_FIELDS.map((f) => <option key={f} value={f}>{FIELD_LABEL[f] ?? f}</option>)}
+          </select>
+        </label>{" "}
+        {field === "period" ? (
+          <>
+            <label>Start <input type="date" aria-label="Appeal start" value={start} onChange={(e) => setStart(e.target.value)} /></label>{" "}
+            <label>End <input type="date" aria-label="Appeal end" value={end} onChange={(e) => setEnd(e.target.value)} /></label>
+          </>
+        ) : (
+          <label>New value{" "}
+            <input aria-label="Appeal value" value={text} onChange={(e) => setText(e.target.value)}
+              placeholder={field === "position_size" ? "e.g. 15 for 15%" : field === "horizon_years" ? "e.g. 10" : "e.g. 0.2 for 20%"} />
+          </label>
+        )}{" "}
+        <button type="submit" disabled={busy}>Submit appeal</button>
+      </details>
       {error && <p role="alert" data-testid="appeal-error">{error}</p>}
     </form>
   );
+}
+
+const FIELD_LABEL: Record<string, string> = {
+  position_size: "Size of the position", period: "Period of history used", risk_level: "Risk tolerance", horizon_years: "Horizon (years)",
+  max_volatility: "Max volatility", max_drawdown: "Max drawdown", per_asset_cap: "Cap per holding", per_asset_class_caps: "Asset-class caps",
+  crypto_cap: "Crypto cap", sector_caps: "Sector caps", esg_exclusions: "ESG exclusions", speculative_limit: "Speculative limit",
+};
+
+export interface WhatIf { label: string; detail: string; change: AppealChange }
+
+/** One-click appeals built from the session's own contract and sensitivity results. */
+export function whatIfsOf(view: SessionView | null | undefined): WhatIf[] {
+  if (!view) return [];
+  const c = (view.contract ?? {}) as Record<string, unknown>;
+  const out: WhatIf[] = [];
+  const p = (x: number) => `${Number((x * 100).toFixed(1))}%`;
+  const h = c.horizon_years;
+  const years = typeof h === "number" ? h : (h as { max?: number; min?: number } | undefined)?.max ?? (h as { min?: number } | undefined)?.min;
+  if (typeof years === "number") {
+    const longer = years < 10 ? 10 : years * 2;
+    out.push({ label: `What if my horizon were ${longer} years?`, detail: `Now: ${years} years`, change: { field: "horizon_years", value: longer } });
+  }
+  const size = (view.sensitivity as unknown as { variable?: string; changed?: boolean; threshold?: unknown }[]).find((x) => x.variable === "position_size" && x.changed);
+  if (size && typeof size.threshold === "number") {
+    out.push({ label: `What if I asked for ${p(size.threshold)}?`, detail: "The size where the answer changes", change: { field: "position_size", value: size.threshold } });
+  }
+  const bump = (field: string, name: string, cap = 1) => {
+    const v = c[field];
+    if (typeof v === "number" && v > 0) {
+      const next = Math.min(cap, Number((v * 2).toFixed(4)));
+      out.push({ label: `What if my ${name} were ${p(next)}?`, detail: `Now: ${p(v)}`, change: { field, value: next } });
+    }
+  };
+  bump("speculative_limit", "speculative limit");
+  bump("max_drawdown", "max drawdown");
+  if (Array.isArray(c.esg_exclusions) && c.esg_exclusions.includes("fossil_fuel_screen")) {
+    out.push({ label: "What if I allowed fossil fuels?", detail: "Now: fossil fuels excluded", change: { field: "esg_exclusions", value: [] } });
+  }
+  return out.slice(0, 4);
 }
 
 const show = (v: unknown) => v === null || v === undefined ? "none" : typeof v === "object" ? JSON.stringify(v) : String(v);

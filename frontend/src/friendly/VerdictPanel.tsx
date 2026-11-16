@@ -1,5 +1,6 @@
 import type { Focus, SessionView } from "../model/sessionView";
 import { StatementText } from "./ExhibitLinks";
+import { RULE_NAMES } from "./CourtroomTimeline";
 
 const VERDICT_TEXT: Record<string, string> = {
   accept: "Accepted",
@@ -55,6 +56,9 @@ export function VerdictPanel({
   if (!verdict) return null;
   const openExhibit = (number: number) => onSeeDetails({ kind: "exhibit", number });
   const requested = requestedWeight(view);
+  const failed = verdict.failing_rules ?? [];
+  // For a conditional accept the verdict lists no failing rule: show the limits the request itself broke.
+  const decisive = failed.length ? failed : verdict.verdict === "accept" ? [] : view.rule_results.filter((r) => r.status === "fail").map((r) => r.rule);
   return (
     <section aria-label="Verdict" className="card">
       <div className="verdict-card">
@@ -68,18 +72,30 @@ export function VerdictPanel({
             </span>
           </h2>
           {verdict.max_weight != null && (
-            <p style={{ marginTop: ".8rem" }}>Maximum weight allowed: <strong>{pct(verdict.max_weight)}</strong></p>
+            <p style={{ marginTop: ".8rem" }}>Maximum weight allowed: <strong>{pct(verdict.max_weight)}</strong>
+              {requested != null && requested > verdict.max_weight + 1e-9 ? <span style={{ color: "var(--muted)" }}> (you asked for {pct(requested)})</span> : null}</p>
           )}
           {verdict.reason && <p className="verdict-reason">{verdict.reason}</p>}
-          {(verdict.failing_rules ?? []).length > 0 && (
-            <ul aria-label="Failing rules" className="chips" style={{ listStyle: "none", padding: 0 }}>
-              {(verdict.failing_rules ?? []).map((r) => (
-                <li key={r} className="chip-fail">
-                  {r.replace(/_/g, " ")}{" "}
-                  <button type="button" onClick={() => onSeeDetails({ kind: "rule", rule: r })}>See details</button>
-                </li>
-              ))}
-            </ul>
+          {decisive.length > 0 && (
+            <>
+              <h3 className="verdict-sub">{verdict.verdict === "accept" ? "Limits checked" : "Your limits that decided it"}</h3>
+              <ul aria-label="Failing rules" className="chips" style={{ listStyle: "none", padding: 0 }}>
+                {decisive.map((r) => (
+                  <li key={r} className="chip-fail">
+                    {RULE_NAMES[r] ?? r.replace(/_/g, " ")}{" "}
+                    <button type="button" onClick={() => onSeeDetails({ kind: "rule", rule: r })}>See details</button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {(verdict.conditions ?? []).length > 0 && (
+            <>
+              <h3 className="verdict-sub">Conditions</h3>
+              <ul className="verdict-conditions" data-testid="verdict-conditions">
+                {(verdict.conditions ?? []).map((c, i) => <li key={i}>{c}</li>)}
+              </ul>
+            </>
           )}
           {(verdict.exhibits ?? []).length > 0 && (
             <p className="chips">

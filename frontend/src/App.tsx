@@ -10,6 +10,7 @@ import { EMPTY_VALUES, HoldingsField, ProfileForm, parseHoldings, valuesFromPers
 import { SignInGate } from "./SignInGate";
 
 export const POLL_MS = 2000;
+const EXAMPLES = ["Should I put 30% of my portfolio in Tesla?", "Should I put 10% in Exxon (XOM)?", "Would adding 10% SPY improve diversification?"];
 export const STAGES = ["advocate", "investigator", "judge", "clerk"];
 
 export function Banners({ view }: { view: SessionView | null }) {
@@ -183,29 +184,34 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
       <div className="layout">
         <aside aria-label="Inputs" className="sidebar">
           <div className="card">
-            <div className="section-title"><h2>Investor</h2></div>
-            <label>Persona{" "}
+            <div className="section-title"><h2>1. The investor</h2></div>
+            <label>Start from a profile{" "}
               <select aria-label="Persona" value={selected} disabled={!!personaError && personas.length === 0}
                 onChange={(e) => pick(e.target.value)}>
-                <option value="">Select…</option>
+                <option value="">Choose a profile…</option>
                 {personas.map((p) => <option key={p.id} value={p.id}>{p.display_name}</option>)}
                 {profiles.map((p) => <option key={p.profile_id} value={p.profile_id}>Custom: {p.profile_id}</option>)}
               </select>
             </label>
             {personaError && <p role="alert" data-testid="persona-error" className="alert">Persona file: {personaError}</p>}
-            <ProfileForm values={values} onChange={setValues} />
+            <ProfileForm values={values} onChange={setValues} fromProfile={selected !== ""} />
             <HoldingsField text={holdings} onChange={setHoldings} />
-            <button type="button" onClick={save} style={{ width: "100%" }}>Save as custom profile</button>
+            <button type="button" onClick={save} style={{ width: "100%" }}>Save this profile</button>
           </div>
           <div className="card">
             <form onSubmit={submit}>
-              <div className="section-title"><h2>Your request</h2></div>
-              <label>Request{" "}
+              <div className="section-title"><h2>2. The request</h2></div>
+              <label>What do you want to do?{" "}
                 <textarea aria-label="Request" value={requestText} onChange={(e) => setRequestText(e.target.value)}
-                  placeholder="e.g. I want 30% in TSLA" />
+                  placeholder="e.g. Should I put 30% of my portfolio in Tesla?" />
               </label>
+              <p className="chips examples" aria-label="Examples">
+                {EXAMPLES.map((ex) => (
+                  <button key={ex} type="button" className="chip-example" onClick={() => setRequestText(ex)}>{ex}</button>
+                ))}
+              </p>
               <button type="submit" disabled={busy || !requestText.trim()} style={{ width: "100%", padding: ".7rem" }}>
-                {busy ? "The tribunal is in session…" : "Submit request"}
+                {busy ? "The tribunal is in session…" : "Open the hearing"}
               </button>
             </form>
           </div>
@@ -230,15 +236,18 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
           )}
           {view && (
             <main>
-              <Progress view={view} />
+              {view.status === "running" && appealBase && appealBase.original.session_id !== view.session_id && (
+                <p className="pill pill-gold" data-testid="appeal-pending"><span className="dot" />
+                  The court is hearing your appeal. The original ruling stands until the new one is in.</p>
+              )}
               {view.data_notices.map((n, i) => <p key={i} className="pill pill-warn">{n}</p>)}
               {mode === "advanced"
                 ? <AdvancedMode view={view} focus={focus} onFocus={store.setFocus} />
-                : <FriendlyMode view={view} onSeeDetails={store.openDetails} speak={speak} />}
+                : <FriendlyMode view={view} onSeeDetails={store.openDetails} speak={speak} inlineExhibits />}
               {view.status === "completed" && appealBase && appealBase.original.session_id !== view.session_id && (
                 <div className="card"><AppealView original={appealBase.original} appeal={view} change={appealBase.change} /></div>
               )}
-              {view.status === "completed" && <div className="card"><AppealControl busy={busy} onSubmit={appeal} /></div>}
+              {view.status === "completed" && <div className="card"><AppealControl busy={busy} onSubmit={appeal} view={view} /></div>}
               {view.status === "completed" && (
                 <div className="row" style={{ marginTop: "1rem" }}>
                   <button type="button" onClick={download}>Download trace JSON</button>

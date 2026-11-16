@@ -47,9 +47,9 @@ describe("Workspace", () => {
     const user = userEvent.setup();
     await screen.findByRole("option", { name: "Robert" });
     await user.selectOptions(screen.getByLabelText("Persona"), "robert");
-    expect((screen.getByLabelText(/Max volatility/) as HTMLInputElement).value).toBe("0.12");
+    expect((screen.getByLabelText(/Max volatility/) as HTMLInputElement).value).toBe("12");
     await user.type(screen.getByLabelText("Request"), "30% in TSLA");
-    await user.click(screen.getByRole("button", { name: "Submit request" }));
+    await user.click(screen.getByRole("button", { name: "Open the hearing" }));
     await waitFor(() => expect(screen.getByTestId("data-badge").textContent).toContain("snap-1"));
     expect(screen.getByTestId("fallback-notice")).toBeTruthy();
     expect(screen.getByTestId("simulation-banner")).toBeTruthy();
@@ -71,7 +71,7 @@ describe("Workspace", () => {
     render(<Workspace api={api} store={createSessionStore()} />);
     const user = userEvent.setup();
     await user.type(screen.getByLabelText("Request"), "invest some");
-    await user.click(screen.getByRole("button", { name: "Submit request" }));
+    await user.click(screen.getByRole("button", { name: "Open the hearing" }));
     expect((await screen.findByTestId("error-message")).textContent).toContain("asset");
     expect((screen.getByLabelText("Request") as HTMLTextAreaElement).value).toBe("invest some");
   });
