@@ -32,7 +32,7 @@ export function ExhibitList({ exhibits, focusedNumber, onFocus }: {
 }) {
   return (
     <section aria-label="Exhibits">
-      <div className="section-title"><h2>Exhibits</h2><span className="pill">{counts(exhibits)}</span></div>
+      <div className="section-title"><h2>Evidence</h2><span className="pill">{counts(exhibits)}</span></div>
       {exhibits.length === 0 ? <p style={{ color: "var(--muted)" }}>No Exhibits yet.</p> : (
         <ul className="exhibit-grid">
           {exhibits.map((e) => (

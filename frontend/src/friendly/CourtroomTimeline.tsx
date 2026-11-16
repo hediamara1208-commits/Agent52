@@ -1,5 +1,6 @@
 import type { SessionView } from "../model/sessionView";
 import { ExhibitLink } from "./ExhibitLinks";
+import { plain } from "./VerdictPanel";
 
 /** Plain names for the Hard_Rules (the investor's limits). */
 export const RULE_NAMES: Record<string, string> = {
@@ -111,7 +112,7 @@ export function CourtroomTimeline({ view, onOpen }: { view: SessionView; onOpen:
             <div>
               <h3>{s.title}</h3>
               {s.note && <p className="timeline-note">{s.note}</p>}
-              {s.lines.map((l, j) => <p key={j} className={j === 0 ? "timeline-lead" : undefined}>{l}</p>)}
+              {s.lines.map((l, j) => <p key={j} className={j === 0 ? "timeline-lead" : undefined}>{plain(l)}</p>)}
               {s.exhibits.length > 0 && (
                 <p className="timeline-exhibits">{s.exhibits.map((n) => <ExhibitLink key={n} number={n} onOpen={onOpen} />)}</p>
               )}

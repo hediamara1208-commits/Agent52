@@ -66,8 +66,8 @@ export function NewsCards({ items, onOpen }: { items: NewsItem[]; onOpen: (n: nu
         })}
       </ul>
       <p className="news-note">
-        Retrieved with Amazon Bedrock AgentCore Web Search and screened by the Guardrail. Published after the data
-        snapshot ends, so it can inform risks and conditions but never changes a number, a Hard_Rule or a size.
+        Found by a web search and screened before use. News can inform the risks and conditions; it never changes a
+        number, a limit or a size.
       </p>
     </section>
   );

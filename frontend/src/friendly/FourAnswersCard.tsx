@@ -1,5 +1,5 @@
 import type { Answer, SessionView } from "../model/sessionView";
-import { courtWords } from "./hearing";
+import { plain } from "./VerdictPanel";
 import { ExhibitLink } from "./ExhibitLinks";
 
 export const MAX_WORDS = 60;
@@ -24,7 +24,7 @@ export function FourAnswersCard({
         return (
           <article key={a.id} data-testid={`answer-${a.id}`}>
             <h3>{a.heading}</h3>
-            <p data-testid={`answer-text-${a.id}`}>{courtWords(limitWords(a.statements.map((s) => s.text)))}</p>
+            <p data-testid={`answer-text-${a.id}`}>{plain(limitWords(a.statements.map((s) => plain(s.text))))}</p>
             {numbers.map((n) => (
               <ExhibitLink key={n} number={n} onOpen={(x) => onOpen(x)} />
             ))}
