@@ -11,7 +11,7 @@ The main form is: investor profile (remembered on the device) → **Stock or ETF
 | Type "tes", click Tesla, type 30, click Enter the Tribunal | **2** | headless Chrome (Playwright) on the built app; also `App.test.tsx` |
 | Type "royal", Enter, type 10, Enter (keyboard only) | **0** | headless Chrome, desktop 1280 px and phone 375 px |
 
-A first-time visitor adds one profile choice. Without a profile or a stated horizon the button stays disabled and the form says why; no limits are assumed.
+The public site needs no account: a first-time visitor lands on this form with Robert preselected, so the same 2 clicks (or 0) apply on a first visit (measured in headless Chrome with empty storage). If no profile can be loaded the button stays disabled and the form says why; no limits are assumed.
 
 ## 2. Security coverage
 

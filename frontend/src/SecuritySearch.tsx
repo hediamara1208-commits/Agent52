@@ -32,7 +32,9 @@ export function SecuritySearch({ value, onPick, autoFocus = false }: {
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") { e.preventDefault(); setOpen(true); setActive((a) => Math.min(a + 1, results.length - 1)); }
     else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
-    else if (e.key === "Enter" && open && results[active]) { e.preventDefault(); pick(results[active]); }
+    // Enter picks the best match even if the list was closed (after Escape, or the window lost focus).
+    else if (e.key === "Enter" && query.trim() && results[open ? active : 0]) { e.preventDefault(); pick(results[open ? active : 0]); }
+    else if (e.key === "Enter") e.preventDefault(); // never submit the form from an unresolved search
     else if (e.key === "Escape") setOpen(false);
   };
   return (

@@ -2,7 +2,7 @@
 
 **Simulation only. Not financial advice, no predictions.** The app never places an order, moves money or holds credentials.
 
-**Live demo:** https://main.d3nprpi8xxns73.amplifyapp.com (Cognito sign-in; jury credentials are sent separately). PolyFinances Datathon 2026, AlphaForge AI case (National Bank).
+**Live demo:** https://main.d3nprpi8xxns73.amplifyapp.com (open to guests for the datathon: no account, no sign-in; pick a stock or ETF, an allocation, and enter the tribunal). PolyFinances Datathon 2026, AlphaForge AI case (National Bank).
 
 ## The problem
 
@@ -43,7 +43,7 @@ flowchart LR
 | Service | Why it is here |
 | --- | --- |
 | Amplify Hosting | Serves the React app over HTTPS with no server to run. |
-| Cognito | Sign-in for the jury and users; tokens authorize every API call. |
+| Cognito | Sign-in for users. Switched off on the public demonstration, where each browser is an isolated guest with daily caps (see `docs/deployment_log.md`); the user pool and the sign-in screen remain for a signed-in deployment. |
 | API Gateway + Lambda (Session_API) | Validates the profile and request (incl. custom holdings), starts a session, serves its live state for polling. |
 | Bedrock AgentCore Runtime | Hosts the tribunal container (agents + code checks); a session runs about a minute, longer than an API call should. |
 | Amazon Bedrock (Claude Sonnet 5.5) | The Advocate, Investigator and Judge. |
@@ -201,7 +201,7 @@ The committed `config.yaml` points at resources in the event account. In a fresh
 
 ## Jury credentials
 
-The deployed UI requires Cognito sign-in. After `make deploy`, create the jury account:
+A fresh `make deploy` requires Cognito sign-in (the public demonstration was later opened to guests, see `docs/deployment_log.md`). To create a jury account on a signed-in deployment:
 
 ```bash
 export DEMO_USER_EMAIL="jury@example.com"
