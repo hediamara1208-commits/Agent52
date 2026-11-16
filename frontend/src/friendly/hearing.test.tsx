@@ -82,7 +82,7 @@ describe("the hearing (speeches built from the session's outputs, no model call)
     expect(screen.getByTestId("speech-bubble")).toHaveTextContent("So ordered.");
     expect(screen.getByTestId("replay")).toHaveTextContent("Replay the hearing");
     expect(screen.getByTestId("seat-clerk")).toHaveAttribute("data-active", "true");
-    fireEvent.click(screen.getAllByRole("button", { name: "[Exhibit 10]" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Evidence 10" })[0]);
     expect(onOpen).toHaveBeenCalledWith(10);
   });
 });

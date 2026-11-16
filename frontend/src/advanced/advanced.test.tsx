@@ -31,7 +31,7 @@ describe("Advanced_Mode", () => {
     const onFocus = vi.fn();
     const { rerender } = render(<AdvancedMode view={view} focus={null} onFocus={onFocus} />);
     expect(screen.queryByTestId("exhibit-details-2")).toBeNull();
-    fireEvent.click(screen.getAllByRole("button", { name: "[Exhibit 2]" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Evidence 2" })[0]);
     expect(onFocus).toHaveBeenCalledWith({ kind: "exhibit", number: 2 });
     rerender(<AdvancedMode view={view} focus={{ kind: "exhibit", number: 2 }} onFocus={onFocus} />);
     expect(screen.getByTestId("exhibit-details-2")).not.toHaveTextContent("snap-abc");

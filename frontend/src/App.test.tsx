@@ -105,7 +105,7 @@ describe("Workspace", () => {
     render(<App makeApi={() => fakeApi({ startSession })} />);
     const user = userEvent.setup();
     expect(screen.queryByRole("form", { name: "Sign in" })).toBeNull();
-    expect(screen.getByTestId("guest-chip")).toBeInTheDocument();
+    expect(screen.queryByText(/guest/i)).toBeNull();
     expect(await screen.findByTestId("profile-summary")).toBeInTheDocument();   // Robert, the first persona
     await user.keyboard("tesla{Enter}30{Enter}");
     expect(startSession).toHaveBeenCalledWith(expect.objectContaining({ persona_id: "robert", request_text: "Should I put 30% of my portfolio in TSLA?" }));

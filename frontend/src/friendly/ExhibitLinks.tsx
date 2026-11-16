@@ -5,7 +5,7 @@ import { plain } from "./plain";
 export function ExhibitLink({ number, onOpen }: { number: number; onOpen: (n: number) => void }) {
   return (
     <button type="button" className="exhibit-link" onClick={() => onOpen(number)}>
-      [Exhibit {number}]
+      Evidence {number}
     </button>
   );
 }
