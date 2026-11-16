@@ -64,10 +64,10 @@ describe("web Exhibit in Advanced_Mode", () => {
 
   it("shows the article as a link, not raw JSON, and counts news apart", () => {
     render(<ExhibitList exhibits={exhibits} focusedNumber={41} onFocus={() => {}} />);
-    expect(screen.getByText("1 computed by code · 1 news")).toBeInTheDocument();
+    expect(screen.getByText("1 calculations · 1 news")).toBeInTheDocument();
     const details = screen.getByTestId("exhibit-details-41");
     expect(within(details).getByRole("link", { name: /Tesla recalls/ })).toHaveAttribute("href", news[0].url);
     expect(details).not.toHaveTextContent("{\"title\"");
-    expect(details).toHaveTextContent("Tesla news");
+    expect(details).toHaveTextContent("reuters.com");
   });
 });

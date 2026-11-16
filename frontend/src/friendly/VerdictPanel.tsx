@@ -1,4 +1,5 @@
 import type { Focus, SessionView } from "../model/sessionView";
+import { PortfolioComparison, type Weights } from "../Portfolio";
 import { StatementText } from "./ExhibitLinks";
 import { RULE_NAMES } from "./CourtroomTimeline";
 
@@ -15,9 +16,22 @@ export function verdictLabel(v: string): string {
 
 /** Requested position size, read from the request Option the orchestrator puts in the Ruling. */
 export function requestedWeight(view: SessionView): number | null {
-  const options = (view.ruling as unknown as { options?: { option_id?: string; weight?: number }[] } | null)?.options;
-  const w = options?.find((o) => o.option_id === "request")?.weight;
-  return typeof w === "number" ? w : null;
+  return requestOf(view)?.weight ?? null;
+}
+
+/** The asset and size the investor asked about. */
+export function requestOf(view: SessionView): { ticker: string; weight: number } | null {
+  const options = (view.ruling as unknown as { options?: { option_id?: string; weight?: number; ticker?: string }[] } | null)?.options;
+  const o = options?.find((x) => x.option_id === "request");
+  return o && typeof o.weight === "number" && typeof o.ticker === "string" ? { ticker: o.ticker, weight: o.weight } : null;
+}
+
+/** Internal rule names never reach the investor: "per_asset_cap" reads "cap per holding". */
+export function plain(text: string): string {
+  let out = text.replace(/;?\s*failing rules?:[^.]*\.?/gi, ".").replace(/Hard_Rules?/g, (m) => (m.endsWith("s") ? "limits" : "limit"))
+    .replace(/Soft_Preferences?/g, "preference").replace(/Base_Portfolio/g, "current portfolio").replace(/\bVerdict\b/g, "verdict");
+  for (const [id, name] of Object.entries(RULE_NAMES)) out = out.split(id).join(name);
+  return out.replace(/\.\./g, ".").replace(/\bAdvocate\b/g, "Defense").replace(/\bInvestigator\b/g, "Prosecutor");
 }
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
@@ -43,77 +57,57 @@ export function SizeGauge({ allowed, requested }: { allowed: number; requested: 
 
 /** Verdict and "What would change the verdict" in plain language (Req. 7.12). */
 export function VerdictPanel({
-  view, onSeeDetails,
-}: { view: SessionView; onSeeDetails: (focus: Focus) => void }) {
+  view, onSeeDetails, portfolio,
+}: {
+  view: SessionView; onSeeDetails: (focus: Focus) => void;
+  /** The investor's current holdings, when known, for the before-and-after comparison. */
+  portfolio?: Weights | null;
+}) {
   const { verdict, ruling } = view;
   if (!verdict) return null;
   const openExhibit = (number: number) => onSeeDetails({ kind: "exhibit", number });
-  const requested = requestedWeight(view);
+  const request = requestOf(view);
+  const requested = request?.weight ?? null;
   const failed = verdict.failing_rules ?? [];
   // For a conditional accept the verdict lists no failing rule: show the limits the request itself broke.
   const decisive = failed.length ? failed : verdict.verdict === "accept" ? [] : view.rule_results.filter((r) => r.status === "fail").map((r) => r.rule);
+  const names = decisive.map((r) => RULE_NAMES[r] ?? r.replace(/_/g, " "));
+  const why = verdict.tension || verdict.reason;
+  const smaller = verdict.max_weight != null && requested != null && requested > verdict.max_weight + 1e-9;
   return (
-    <section aria-label="Verdict" className="card">
-      <div className="verdict-card">
-        <div>
-          <h3>The ruling</h3>
-          <h2 data-testid="verdict" style={{ margin: 0 }}>
-            <span className="sr-only" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Verdict: </span>
-            <span className="verdict-stamp" data-kind={verdict.verdict}>
-              <span aria-hidden="true">{VERDICT_ICON[verdict.verdict] ?? "•"}</span>
-              {verdictLabel(verdict.verdict)}
-            </span>
-          </h2>
-          {verdict.max_weight != null && (
-            <p style={{ marginTop: ".8rem" }}>Maximum weight allowed: <strong>{pct(verdict.max_weight)}</strong>
-              {requested != null && requested > verdict.max_weight + 1e-9 ? <span style={{ color: "var(--muted)" }}> (you asked for {pct(requested)})</span> : null}</p>
-          )}
-          {verdict.reason && <p className="verdict-reason">{verdict.reason}</p>}
-          {decisive.length > 0 && (
-            <>
-              <h3 className="verdict-sub">{verdict.verdict === "accept" ? "Limits checked" : "Your limits that decided it"}</h3>
-              <ul aria-label="Failing rules" className="chips" style={{ listStyle: "none", padding: 0 }}>
-                {decisive.map((r) => (
-                  <li key={r} className="chip-fail">
-                    {RULE_NAMES[r] ?? r.replace(/_/g, " ")}{" "}
-                    <button type="button" onClick={() => onSeeDetails({ kind: "rule", rule: r })}>See details</button>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-          {(verdict.conditions ?? []).length > 0 && (
-            <>
-              <h3 className="verdict-sub">Conditions</h3>
-              <ul className="verdict-conditions" data-testid="verdict-conditions">
-                {(verdict.conditions ?? []).map((c, i) => <li key={i}>{c}</li>)}
-              </ul>
-            </>
-          )}
-          {(verdict.exhibits ?? []).length > 0 && (
-            <p className="chips">
-              <span style={{ color: "var(--muted)", fontSize: ".8rem", marginRight: ".3rem" }}>Evidence</span>
-              {(verdict.exhibits ?? []).map((n) => (
-                <button key={n} type="button" className="exhibit-link" onClick={() => openExhibit(n)}>
-                  See details [Exhibit {n}]
-                </button>
-              ))}
-            </p>
-          )}
-        </div>
-        {verdict.max_weight != null && <SizeGauge allowed={verdict.max_weight} requested={requested} />}
-      </div>
+    <section aria-label="Verdict" className="card verdict">
+      <h3>Decision</h3>
+      <h2 data-testid="verdict" className="verdict-line">
+        <span className="sr-only" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Verdict: </span>
+        <span className="verdict-stamp" data-kind={verdict.verdict}>{verdictLabel(verdict.verdict)}</span>
+      </h2>
+      <dl className="verdict-facts">
+        {request && (<><dt>You asked for</dt><dd>{pct(request.weight)} in {request.ticker}</dd></>)}
+        {verdict.max_weight != null && (<><dt>{smaller ? "Largest size within your limits" : "Size accepted"}</dt><dd data-testid="verdict-max">{pct(verdict.max_weight)}</dd></>)}
+        {names.length > 0 && (<><dt>{verdict.verdict === "accept" ? "Limits checked" : "Limits exceeded at the size you asked for"}</dt>
+          <dd aria-label="Failing rules">{names.join(", ")}</dd></>)}
+      </dl>
+      {why && <p className="verdict-why" data-testid="verdict-why"><b>Why.</b> {plain(why)}</p>}
+      {portfolio && request && (
+        <details className="more" data-testid="verdict-portfolio">
+          <summary>View portfolio comparison</summary>
+          <PortfolioComparison base={portfolio} ticker={request.ticker} requested={request.weight} accepted={verdict.verdict === "reject" ? null : verdict.max_weight} />
+        </details>
+      )}
       {ruling && ruling.what_would_change.length > 0 && (
-        <>
-          <h3 style={{ marginTop: "1.2rem" }}>What would change the verdict</h3>
+        <details className="more">
+          <summary>What would change the decision</summary>
           <ul className="change-list">
             {ruling.what_would_change.map((s, i) => (
-              <li key={i}>
-                <StatementText statement={s} onOpen={openExhibit} />
-              </li>
+              <li key={i}><StatementText statement={{ ...s, text: plain(s.text) }} onOpen={openExhibit} /></li>
             ))}
           </ul>
-        </>
+        </details>
+      )}
+      {(verdict.conditions ?? []).length > 0 && (
+        <ul className="sr-only" data-testid="verdict-conditions" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>
+          {(verdict.conditions ?? []).map((c, i) => <li key={i}>{plain(c)}</li>)}
+        </ul>
       )}
     </section>
   );

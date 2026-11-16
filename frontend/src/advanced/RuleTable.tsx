@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import type { RuleResult } from "../model/sessionView";
 import { useFocusScroll } from "./useFocusScroll";
+import { RULE_NAMES } from "../friendly/CourtroomTimeline";
 
 const isFraction = (r: RuleResult) => r.rule !== "esg_exclusion";
 export function fmtValue(r: RuleResult, v: number | null | undefined): string {
@@ -26,7 +27,7 @@ function Row({ r, focused, onExhibit }: { r: RuleResult; focused: boolean; onExh
   useFocusScroll(ref, focused);
   return (
     <tr ref={ref} data-testid={`rule-${r.rule}`} data-focused={focused} data-status={r.status}>
-      <td><strong>{r.rule.replace(/_/g, " ")}</strong>{r.detail ? <div style={{ color: "var(--muted)", fontSize: ".75rem" }}>{r.detail}</div> : null}</td>
+      <td><strong>{RULE_NAMES[r.rule] ?? r.rule.replace(/_/g, " ")}</strong>{r.detail ? <div style={{ color: "var(--muted)", fontSize: ".75rem" }}>{r.detail}</div> : null}</td>
       <td><span className="status" data-status={r.status}>{r.status}</span></td>
       <td style={{ width: "30%" }}><Meter r={r} /></td>
       <td className="meter-label">{fmtValue(r, r.observed)}</td>
@@ -50,7 +51,7 @@ export function RuleTable({ rules, focusedRule, onExhibit }: {
       {rules.length === 0 ? <p style={{ color: "var(--muted)" }}>No rule results yet.</p> : (
         <table>
           <thead>
-            <tr><th>Rule</th><th>Result</th><th></th><th>Observed</th><th>Limit</th><th>Exhibits</th></tr>
+            <tr><th>Your limit</th><th>Result</th><th></th><th>Measured</th><th>Limit</th><th>Evidence</th></tr>
           </thead>
           <tbody>
             {rules.map((r) => <Row key={r.rule} r={r} focused={r.rule === focusedRule} onExhibit={onExhibit} />)}

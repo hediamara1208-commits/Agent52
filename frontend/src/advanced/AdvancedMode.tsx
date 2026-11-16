@@ -2,14 +2,12 @@ import type { Focus, SessionView } from "../model/sessionView";
 import { ExhibitList } from "./ExhibitList";
 import { RuleTable } from "./RuleTable";
 import { SensitivityPanel } from "./SensitivityPanel";
-import { TracePanel } from "./TracePanel";
 
 const VERDICT_COLOR: Record<string, string> = { accept: "var(--pass)", accept_with_conditions: "var(--warn)", reject: "var(--fail)" };
 
 function Kpis({ view }: { view: SessionView }) {
   const failing = view.rule_results.filter((r) => r.status === "fail").length;
   const v = view.verdict;
-  const agentCalls = view.trace.filter((e) => e.kind === "agent_call").length;
   return (
     <div className="kpis" data-testid="kpis">
       <div className="kpi">
@@ -17,15 +15,15 @@ function Kpis({ view }: { view: SessionView }) {
         <div className="kpi-value" style={{ color: v ? VERDICT_COLOR[v.verdict] : undefined, fontSize: "1.2rem", paddingTop: ".35rem" }}>
           {v ? v.verdict.replace(/_/g, " ") : "pending"}
         </div>
-        <div className="kpi-sub">decided by code</div>
+        <div className="kpi-sub">from your limits</div>
       </div>
       <div className="kpi">
-        <div className="kpi-label">Max weight</div>
+        <div className="kpi-label">Largest size</div>
         <div className="kpi-value">{v?.max_weight != null ? `${(v.max_weight * 100).toFixed(1)}%` : "—"}</div>
-        <div className="kpi-sub">within every Hard_Rule</div>
+        <div className="kpi-sub">within every limit</div>
       </div>
       <div className="kpi">
-        <div className="kpi-label">Hard rules</div>
+        <div className="kpi-label">Limits respected</div>
         <div className="kpi-value" style={{ color: failing ? "var(--fail)" : "var(--pass)" }}>
           {view.rule_results.length - failing}/{view.rule_results.length}
         </div>
@@ -34,7 +32,7 @@ function Kpis({ view }: { view: SessionView }) {
       <div className="kpi">
         <div className="kpi-label">Evidence</div>
         <div className="kpi-value">{view.exhibits.length}</div>
-        <div className="kpi-sub">Exhibits · {agentCalls} agent calls</div>
+        <div className="kpi-sub">calculations and sources</div>
       </div>
     </div>
   );
@@ -57,9 +55,6 @@ export function AdvancedMode({ view, focus, onFocus }: {
         </div>
         <div className="card">
           <SensitivityPanel results={view.sensitivity} onExhibit={openExhibit} />
-        </div>
-        <div className="card span-2">
-          <TracePanel trace={view.trace} focusedSeq={focus?.kind === "trace" ? focus.seq : null} onExhibit={openExhibit} />
         </div>
       </div>
     </div>

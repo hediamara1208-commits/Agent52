@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AdvancedMode } from "./advanced";
 import { FriendlyMode } from "./friendly";
-import { createVoice } from "./friendly/voices";
 import { ApiError, type ContractValues, type CustomProfile, type PersonaEntry, type SessionApi } from "./api/client";
 import type { AuthService } from "./api/auth";
 import { sessionStore, useSessionStore, type SessionStore, type SessionView } from "./model/sessionView";
@@ -9,6 +8,7 @@ import { AppealControl, AppealView, type AppealChange } from "./appeal";
 import { EMPTY_VALUES, FOSSIL, HoldingsField, ProfileForm, parseHoldings, valuesFromPersona } from "./ProfileForm";
 import { SignInGate } from "./SignInGate";
 import { SecuritySearch, parseAllocation } from "./SecuritySearch";
+import { PortfolioComparison, asFractions, personaPortfolio, type Weights } from "./Portfolio";
 import type { Security } from "./universe";
 
 export const POLL_MS = 2000;
@@ -35,23 +35,25 @@ export function profileSummary(v: ContractValues): string {
 }
 export const STAGES = ["advocate", "investigator", "judge", "clerk"];
 
+const asOf = (iso: string | undefined | null) => {
+  if (!iso) return null;
+  const d = new Date(iso.length === 10 ? `${iso}T12:00:00Z` : iso);
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+};
+
 export function Banners({ view }: { view: SessionView | null }) {
   const snap = view?.snapshot;
+  const until = asOf((snap as { coverage_end?: string } | null | undefined)?.coverage_end) ?? asOf(snap?.retrieved_at);
   return (
     <header className="banners">
-      <p role="note" data-testid="simulation-banner" className="pill pill-gold"><span className="dot" />Simulation only. This is not financial advice.</p>
-      <p role="note" data-testid="guidance-statement" className="pill">
-        This tool only provides guidance. You act personally, outside this tool.
+      <p role="note" className="disclosure">
+        <span data-testid="simulation-banner">Simulation only, not financial advice.</span>{" "}
+        <span data-testid="guidance-statement">You decide and act yourself, outside this tool.</span>
+        {snap && until && <span data-testid="data-badge"> Market data to {until}.</span>}
       </p>
-      {snap && (
-        <p data-testid="data-badge" className="pill">
-          Data: {snap.snapshot_id} · source {snap.source} · retrieved {snap.retrieved_at}
-        </p>
-      )}
       {snap?.served_from === "cache_fallback" && (
         <p role="alert" data-testid="fallback-notice" className="pill pill-warn">
-          Served from the local cache because the primary store was unavailable
-          {snap.fallback_cause ? ` (${snap.fallback_cause})` : ""}.
+          Market data came from the backup copy because the main store was unavailable.
         </p>
       )}
     </header>
@@ -87,9 +89,8 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
   const [busy, setBusy] = useState(false);
   const [holdings, setHoldings] = useState("");
   const [appealBase, setAppealBase] = useState<{ original: SessionView; change: AppealChange } | null>(null);
+  const [caseBase, setCaseBase] = useState<Weights | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Court voices (Amazon Polly through POST /speech), when the API offers them.
-  const speak = useMemo(() => (api.speech ? createVoice(api.speech) : undefined), [api]);
 
   useEffect(() => {
     let live = true;
@@ -123,6 +124,11 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
     else if (c) { setSelected(id); setValues(c.values); }
   }, [personas, profiles, selected]);
 
+  // Holdings shown and compared: the ones typed under "Profile and limits", else the profile's own.
+  const typed = parseHoldings(holdings);
+  const savedBase = profiles.find((p) => p.profile_id === selected)?.base_persona_id;
+  const basePortfolio: Weights | null = typed.ok && typed.value ? asFractions(typed.value)
+    : personaPortfolio(personas.find((p) => p.id === (savedBase ?? selected)));
   const alloc = parseAllocation(allocation);
   // The structured request is turned into the sentence the deterministic parser reads; no model call is involved.
   const structured = security && alloc.ok ? `Should I put ${alloc.value}% of my portfolio in ${security.ticker}?` : null;
@@ -181,6 +187,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
       const savedProfile = profiles.find((p) => p.profile_id === selected);
       const isProfile = savedProfile !== undefined;
       setAppealBase(null);
+      setCaseBase(basePortfolio);
       const { session_id } = await api.startSession({
         persona_id: isProfile ? savedProfile.base_persona_id : selected || null,
         profile_id: isProfile ? selected : null,
@@ -239,15 +246,6 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
     }
   };
 
-  const download = async () => {
-    if (!view) return;
-    const trace = await api.getTrace(view.session_id);
-    const url = URL.createObjectURL(new Blob([JSON.stringify(trace, null, 2)], { type: "application/json" }));
-    const a = document.createElement("a");
-    a.href = url; a.download = `trace-${view.session_id}.json`; a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div>
       <Banners view={view} />
@@ -299,6 +297,12 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
               </details>
             </form>
           </div>
+          {basePortfolio && (
+            <details className="card profile-card" open data-testid="my-portfolio">
+              <summary><h2>My portfolio</h2></summary>
+              <PortfolioComparison base={basePortfolio} ticker={security?.ticker ?? null} requested={alloc.ok ? alloc.value / 100 : null} />
+            </details>
+          )}
           <details className="card profile-card" open={!hasProfile || undefined}>
             <summary><h2>Profile and limits</h2></summary>
             <ProfileForm values={values} onChange={setValues} fromProfile={selected !== ""} />
@@ -307,8 +311,8 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
           </details>
           <div className="card">
             <div role="group" aria-label="Mode" className="mode-switch">
-              <button type="button" aria-pressed={mode === "friendly"} onClick={() => store.setMode("friendly")}>Friendly</button>
-              <button type="button" aria-pressed={mode === "advanced"} onClick={() => store.setMode("advanced")}>Advanced</button>
+              <button type="button" aria-pressed={mode === "friendly"} onClick={() => store.setMode("friendly")}>Summary</button>
+              <button type="button" aria-pressed={mode === "advanced"} onClick={() => store.setMode("advanced")}>Detailed analysis</button>
             </div>
           </div>
         </aside>
@@ -318,8 +322,8 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
             <div className="card intro" style={{ textAlign: "center", padding: "3rem 1.5rem" }}>
               <h1>Should this investment be in your portfolio?</h1>
               <p style={{ color: "var(--muted)", maxWidth: 560, margin: "0 auto" }}>
-                Pick a stock or ETF and the share of your portfolio you have in mind. A defense and a prosecution argue
-                the case against your own limits, and a judge rules. Every number comes from evidence you can open.
+                Choose a stock or ETF and a share of your portfolio. A defense and a prosecution argue it against your
+                own limits, and a judge rules.
               </p>
             </div>
           )}
@@ -327,21 +331,16 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
             <main>
               {view.status === "running" && appealBase && appealBase.original.session_id !== view.session_id && (
                 <p className="pill pill-gold" data-testid="appeal-pending"><span className="dot" />
-                  The court is hearing your appeal. The original ruling stands until the new one is in.</p>
+                  The tribunal is hearing the case again. The first decision stands until the new one is in.</p>
               )}
               {view.data_notices.map((n, i) => <p key={i} className="pill pill-warn">{n}</p>)}
               {mode === "advanced"
                 ? <AdvancedMode view={view} focus={focus} onFocus={store.setFocus} />
-                : <FriendlyMode view={view} onSeeDetails={store.openDetails} speak={speak} inlineExhibits />}
+                : <FriendlyMode view={view} onSeeDetails={store.openDetails} inlineExhibits portfolio={caseBase ?? basePortfolio} />}
               {view.status === "completed" && appealBase && appealBase.original.session_id !== view.session_id && (
                 <div className="card"><AppealView original={appealBase.original} appeal={view} change={appealBase.change} /></div>
               )}
               {view.status === "completed" && <div className="card"><AppealControl busy={busy} onSubmit={appeal} view={view} /></div>}
-              {view.status === "completed" && (
-                <div className="row" style={{ marginTop: "1rem" }}>
-                  <button type="button" onClick={download}>Download trace JSON</button>
-                </div>
-              )}
             </main>
           )}
         </div>

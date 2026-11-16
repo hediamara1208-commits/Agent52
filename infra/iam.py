@@ -19,10 +19,10 @@ from typing import Any
 Statement = dict[str, Any]
 
 # AWS offers no resource-level scoping for these actions. CloudWatch is limited by a
-# namespace condition; the X-Ray actions cannot be conditioned at all. Polly's only resource
-# type is a pronunciation lexicon, which the court's voices do not use.
+# namespace condition; the X-Ray actions cannot be conditioned at all.
+
 RESOURCE_STAR_EXCEPTIONS = frozenset(
-    {"cloudwatch:PutMetricData", "xray:PutTraceSegments", "xray:PutTelemetryRecords", "polly:SynthesizeSpeech"}
+    {"cloudwatch:PutMetricData", "xray:PutTraceSegments", "xray:PutTelemetryRecords"}
 )
 
 METRIC_NAMESPACE = "AlphaForgeGuide"
@@ -167,8 +167,6 @@ def session_api_lambda_statements(t: IamTargets, runtime_arn: str) -> list[State
             [f"arn:aws:logs:{t.region}:{t.account}:log-group:/aws/lambda/*:log-stream:*"],
         ),
         _stmt("XRayWrite", ["xray:PutTraceSegments", "xray:PutTelemetryRecords"], ["*"]),
-        # Court voices (POST /speech); Polly has no resource-level permissions.
-        _stmt("PollyVoices", ["polly:SynthesizeSpeech"], ["*"]),
     ]
 
 

@@ -68,8 +68,6 @@ export interface SessionApi {
   startAppeal(appealOf: string, change: { field: string; value: unknown }): Promise<{ session_id: string }>;
   getSession(id: string): Promise<SessionView>;
   getTrace(id: string): Promise<unknown>;
-  /** Voice one court speech (Amazon Polly); optional so test fakes need not implement it. */
-  speech?(speaker: string, text: string): Promise<{ audio: string; content_type: string }>;
 }
 
 export function createApiClient(
@@ -120,6 +118,5 @@ export function createApiClient(
     startAppeal: (appeal_of, change) => call("POST", "/sessions", { appeal_of, change }),
     getSession: (id) => call("GET", `/sessions/${encodeURIComponent(id)}`),
     getTrace: (id) => call("GET", `/sessions/${encodeURIComponent(id)}/trace`),
-    speech: (speaker, text) => call("POST", "/speech", { speaker, text }),
   };
 }

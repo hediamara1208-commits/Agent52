@@ -29,7 +29,8 @@ describe("appeal", () => {
     render(<AppealView original={original} appeal={appealed} change={{ field: "per_asset_cap", value: 0.3 }} />);
     expect(screen.getByTestId("appeal-original").textContent).toContain("accept");
     expect(screen.getByTestId("appeal-appeal").textContent).toContain("reject");
-    expect(screen.getByTestId("appeal-change").textContent).toContain("per_asset_cap");
+    expect(screen.getByTestId("appeal-change").textContent).toContain("Cap per holding");
+    expect(screen.getByTestId("appeal-change").textContent).not.toContain("per_asset_cap");
     expect(screen.getByTestId("appeal-verdict-changed").textContent).toContain("changed");
   });
   it("reads like a person would: percentages, limits, and what moved", () => {
@@ -49,7 +50,6 @@ describe("appeal", () => {
       .toBe("Same verdict; the largest lawful size changed from 2.5% to 5.0%.");
     const view = screen.getByTestId("appeal-view").textContent ?? "";
     expect(view).toContain("Speculative limit: fail (30.0% vs limit 5.0%) → fail (30.0% vs limit 10.0%)");
-    expect(view).toContain("base: CAD 77.0%, USD 23.0%");
     expect(view).not.toContain("0.22999999999999998");
   });
   it("control submits exactly one change", async () => {

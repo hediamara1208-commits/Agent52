@@ -35,8 +35,8 @@ export function AppealControl({ busy, onSubmit, view }: { busy: boolean; onSubmi
 
   return (
     <form aria-label="Appeal" onSubmit={submit} className="appeal">
-      <h2>Appeal: what if…?</h2>
-      <p>Change one thing and the court hears the case again. Your original ruling stays on record, and nothing changes on screen until the new ruling is in.</p>
+      <h2>Change an assumption</h2>
+      <p>The tribunal hears the case again with one thing changed. The first decision stands until the new one is in.</p>
       {whatIfs.length > 0 && (
         <div className="whatifs" data-testid="whatifs">
           {whatIfs.map((w) => (
@@ -177,40 +177,32 @@ export function AppealView({ original, appeal, change }: {
   const exhibits = d.exhibits.slice(0, MAX_EXHIBITS);
   return (
     <section aria-label="Appeal comparison" data-testid="appeal-view">
-      <h2>Appeal comparison</h2>
-      <p data-testid="appeal-change">Changed input: <strong>{label(change.field)}</strong>{" "}
+      <h2>Before and after your change</h2>
+      <p data-testid="appeal-change">You changed: <strong>{label(change.field)}</strong>{" "}
         {before !== undefined && change.field !== "position_size" ? `${fieldValue(change.field, before)} → ` : ""}
-        {fieldValue(change.field, change.value)} <small>({change.field})</small></p>
+        {fieldValue(change.field, change.value)}</p>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
         <div data-testid="appeal-original">
-          <h3>Original</h3>
-          <p>Verdict: {verdictText(d.verdict.original.verdict, d.verdict.original.max_weight)}</p>
+          <h3>First decision</h3>
+          <p>{verdictText(d.verdict.original.verdict, d.verdict.original.max_weight)}</p>
         </div>
         <div data-testid="appeal-appeal">
-          <h3>Appeal</h3>
-          <p>Verdict: {verdictText(d.verdict.appeal.verdict, d.verdict.appeal.max_weight)}</p>
+          <h3>New decision</h3>
+          <p>{verdictText(d.verdict.appeal.verdict, d.verdict.appeal.max_weight)}</p>
         </div>
       </div>
       <p data-testid="appeal-verdict-changed"><strong>{outcomeSentence(d.verdict.original, d.verdict.appeal)}</strong></p>
-      <h3>Hard rules that changed</h3>
+      <h3>Limits whose result changed</h3>
       {d.hard_rules.length === 0 ? <p>None.</p> : (
         <ul>{d.hard_rules.map((r) => (
           <li key={r.rule}>{label(r.rule)}: {ruleText(r.original)} → {ruleText(r.appeal)}</li>
         ))}</ul>
       )}
-      <h3>Soft preferences that changed</h3>
-      {d.soft_preferences.length === 0 ? <p>None.</p> : (
-        <ul>{d.soft_preferences.map((p) => <li key={p.preference}>{p.preference}: {show(p.original)} → {show(p.appeal)}</li>)}</ul>
-      )}
-      <h3>Exhibits whose value changed</h3>
-      {d.exhibits.length === 0 ? <p>None.</p> : (
-        <ul>{exhibits.map((e) => (
-          <li key={`${e.metric}|${e.assets.join(",")}`}>
-            {e.metric.replace(/_/g, " ")}: {exhibitValue(e.original.value)} [Exhibit {e.original.number}] → {exhibitValue(e.appeal.value)} [Exhibit {e.appeal.number}]
-          </li>
-        ))}
-        {d.exhibits.length > MAX_EXHIBITS && <li>and {d.exhibits.length - MAX_EXHIBITS} more (see Advanced mode).</li>}
-        </ul>
+      {d.soft_preferences.length > 0 && (
+        <>
+          <h3>Preferences whose reading changed</h3>
+          <ul>{d.soft_preferences.map((p) => <li key={p.preference}>{p.preference.replace(/_/g, " ")}: {show(p.original)} → {show(p.appeal)}</li>)}</ul>
+        </>
       )}
     </section>
   );

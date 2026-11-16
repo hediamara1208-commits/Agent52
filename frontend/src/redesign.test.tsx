@@ -24,19 +24,22 @@ group("Exhibit cards (plain reading first, trace one click away)", () => {
     expect(describe(risk).keyNote).toBe("of the risk comes from TSLA");
   });
 
-  it("keeps the full trace behind 'View technical details'", () => {
+  it("shows method and limits in plain words, with no file name or snapshot id", () => {
     render(<ExhibitCard exhibit={comparison} />);
     const card = screen.getByTestId("exhibit-details-1");
-    expect(within(card).getByText("View technical details")).toBeInTheDocument();
-    expect(screen.getByTestId("exhibit-snapshot-id")).toHaveTextContent("20261115T154221Z-esg");
-    expect(card).toHaveTextContent("prices_daily@20261115T154221Z-esg");
+    expect(within(card).getByText("Method and limits")).toBeInTheDocument();
+    expect(card).not.toHaveTextContent("20261115T154221Z");
+    expect(card).not.toHaveTextContent("prices_daily");
+    expect(card).not.toHaveTextContent("{");
+    expect(card).toHaveTextContent("converted at the Bank of Canada daily rate");
     expect(card).toHaveTextContent("Nov 13, 2021 to Nov 12, 2026");
   });
 
   it("opens an Exhibit beside the hearing instead of leaving it", () => {
     const view = { session_id: "s", status: "completed", contract: null, stage: "clerk", stages_done: [], active_agent: null,
       exhibits: [risk], rule_results: [], sensitivity: [], trace: [], summaries: {}, snapshot: null, data_notices: [], error: null,
-      verdict: { verdict: "reject", max_weight: null, failing_rules: [], exhibits: [2] }, ruling: null } as unknown as SessionView;
+      verdict: { verdict: "reject", max_weight: null, failing_rules: [], exhibits: [2] },
+      ruling: { what_would_change: [{ text: "A smaller size.", citations: [2] }] } } as unknown as SessionView;
     const onSee = vi.fn();
     render(<FriendlyMode view={view} onSeeDetails={onSee} inlineExhibits />);
     fireEvent.click(screen.getByRole("button", { name: /Exhibit 2/ }));

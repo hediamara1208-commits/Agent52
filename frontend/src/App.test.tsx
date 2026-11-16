@@ -50,10 +50,10 @@ describe("Workspace", () => {
     expect((screen.getByLabelText(/Max volatility/) as HTMLInputElement).value).toBe("12");
     await user.type(screen.getByLabelText("Request"), "30% in TSLA");
     await user.click(screen.getByRole("button", { name: "Enter the Tribunal" }));
-    await waitFor(() => expect(screen.getByTestId("data-badge").textContent).toContain("snap-1"));
+    await waitFor(() => expect(screen.getByTestId("data-badge").textContent).toContain("Jan 1, 2025"));
     expect(screen.getByTestId("fallback-notice")).toBeTruthy();
     expect(screen.getByTestId("simulation-banner")).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Advanced" }));
+    await user.click(screen.getByRole("button", { name: "Detailed analysis" }));
     expect(screen.getByTestId("advanced-mode")).toBeTruthy();
     expect(screen.getByTestId("guidance-statement")).toBeTruthy();
   });

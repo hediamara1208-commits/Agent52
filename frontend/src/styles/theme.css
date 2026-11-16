@@ -558,3 +558,56 @@ h3.news-title { margin: 0; font-size: .95rem; color: var(--text); text-transform
 }
 .sidebar { position: static; }
 .verdict-stamp { font-family: var(--serif); font-weight: 600; }
+
+/* ---------- disclosure line ---------- */
+.disclosure { margin: 0; font-size: .8rem; color: var(--muted); }
+
+/* ---------- portfolio ---------- */
+.pf table { font-size: .82rem; }
+.pf th, .pf td { padding: .35rem .3rem; border-bottom: 1px solid var(--border); text-transform: none; letter-spacing: 0; font-size: .82rem; color: var(--text); font-weight: 400; vertical-align: middle; }
+.pf thead th { color: var(--muted); font-weight: 500; font-size: .74rem; }
+.pf .num { text-align: right; white-space: nowrap; }
+.pf-name { font-weight: 500; } .pf-ticker { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+.pf-bar { display: block; height: 4px; background: var(--surface-2); border-radius: 2px; margin-bottom: 2px; min-width: 44px; }
+.pf-fill { display: block; height: 100%; border-radius: 2px; background: var(--neutral-bar); }
+.pf-fill.pf-1 { background: var(--warn-line); } .pf-fill.pf-2 { background: var(--accent); }
+.pf-new th .pf-name { color: var(--accent-ink); }
+.pf tfoot th, .pf tfoot td { border-bottom: 0; color: var(--muted); font-size: .76rem; }
+.pf-note { margin: .6rem 0 0; font-size: .76rem; color: var(--muted); }
+.verdict .pf table { font-size: .9rem; } .verdict .pf th, .verdict .pf td { font-size: .9rem; padding: .45rem .5rem; }
+
+/* ---------- decision ---------- */
+.verdict-line { margin: 0 0 1rem; }
+.verdict-stamp { animation: none; transform: none; font-size: 1.7rem; padding: 0; border: 0 !important; background: none !important; box-shadow: none; }
+.verdict-facts { display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1.2rem; margin: 0 0 1rem; font-size: .95rem; }
+.verdict-facts dt { color: var(--muted); } .verdict-facts dd { margin: 0; font-weight: 500; }
+.verdict-why { max-width: 62ch; margin-bottom: 1rem; }
+.more { border-top: 1px solid var(--border); padding: .7rem 0 0; margin-top: .7rem; }
+.more > summary { cursor: pointer; color: var(--link); font-weight: 500; margin-bottom: .7rem; }
+.more > summary h2 { display: inline; color: var(--text); }
+.card.more { border-top: 1px solid var(--border); padding: 1.1rem 1.2rem; margin-top: 1rem; }
+.reasoning[open] > summary { margin-bottom: 1rem; }
+.change-list li { background: none; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; padding: .5rem 0; }
+.follow-bar { margin: 1rem 0; }
+@media (max-width: 620px) { .verdict-facts { grid-template-columns: 1fr; gap: 0; } .verdict-facts dd { margin-bottom: .5rem; } }
+
+/* ---------- arguments while the hearing runs ---------- */
+.live-args { margin-top: 1rem; }
+.live-args ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+.live-args li { padding-left: .8rem; border-left: 3px solid var(--border-strong); max-width: 70ch; animation: rise .4s ease both; }
+.live-args li b { display: block; font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.live-args .arg-advocate { border-color: var(--defense); } .live-args .arg-investigator { border-color: var(--prosecutor); }
+.live-args .arg-judge { border-color: var(--judge); } .live-args .arg-objection { border-color: var(--fail); }
+
+/* ---------- a calmer courtroom: attention moves, nothing bounces ---------- */
+.character .head, .character.mood-speaking .head, .character .arm, .character.mood-speaking .arm,
+.court-full .seat.speaking .person, .court-stage.objection, .character-bailiff .antenna, .character-bailiff .scan { animation: none !important; }
+.character .mouth-talk { animation-duration: .5s; }
+.objection-stamp { animation: fade .3s ease both; font-size: 1.1rem; border-width: 2px; }
+.court-camera { transition: transform 1.2s ease; }
+.court-full .seat { transition: opacity .6s ease, filter .6s ease; }
+.pf { overflow-x: auto; }
+@media (max-width: 620px) {
+  .pf .pf-name { display: none; } .pf .pf-ticker { font-size: .82rem; color: var(--text); }
+  .pf-bar { min-width: 26px; } .pf th, .pf td, .verdict .pf th, .verdict .pf td { padding: .4rem .25rem; font-size: .8rem; }
+}

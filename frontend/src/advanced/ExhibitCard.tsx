@@ -132,10 +132,9 @@ export function ExhibitCard({ exhibit }: { exhibit: Exhibit }) {
   const wv = exhibit.value as WebValue;
   const href = web ? safeUrl(wv.url) : null;
   const d = web ? null : describe(exhibit);
-  const query = (exhibit.inputs as { query?: unknown } | undefined)?.query;
   return (
     <article className="ex-card" data-testid={`exhibit-details-${exhibit.number}`}>
-      <p className="ex-kicker">Exhibit {exhibit.number} · {web ? <span className="badge-context">News · context only</span> : "computed by code"}</p>
+      <p className="ex-kicker">Evidence {exhibit.number} · {web ? "News, context only" : "calculated from market data"}</p>
       {web ? (
         <>
           <h3 className="ex-title" data-testid="web-exhibit-title">
@@ -143,7 +142,7 @@ export function ExhibitCard({ exhibit }: { exhibit: Exhibit }) {
           </h3>
           <p className="ex-why">Recent news the court may cite as context. It never changes a number, a limit or the maximum size.</p>
           {wv.snippet && <blockquote className="ex-quote">{wv.snippet}</blockquote>}
-          <p className="ex-source">Source: {wv.source ?? "web"}{wv.published ? ` · ${newsDate(wv.published)}` : ""} · found with Amazon Bedrock AgentCore Web Search</p>
+          <p className="ex-source">Source: {wv.source ?? "web"}{wv.published ? ` · ${newsDate(wv.published)}` : ""}</p>
         </>
       ) : d && (
         <>
@@ -152,26 +151,23 @@ export function ExhibitCard({ exhibit }: { exhibit: Exhibit }) {
           {d.key && <p className="ex-key"><strong>{d.key}</strong>{d.keyNote && <span> {d.keyNote}</span>}</p>}
           <Bars d={d} />
           <p className="ex-source">
-            Source: {sourceLabels(exhibit).join("; ") || "pinned data snapshot"}
+            Source: {sourceLabels(exhibit).join("; ") || "market data"}
             {exhibit.period_start ? ` · ${day(exhibit.period_start)} to ${day(exhibit.period_end)}` : ""}{exhibit.currency ? ` · in ${exhibit.currency}` : ""}
           </p>
         </>
       )}
-      <details className="ex-tech">
-        <summary>View technical details</summary>
-        <dl>
-          <dt>Data snapshot</dt><dd data-testid="exhibit-snapshot-id">{exhibit.snapshot_id ?? "none"}</dd>
-          {exhibit.snapshot_retrieved_at && (<><dt>Data retrieved</dt><dd>{exhibit.snapshot_retrieved_at}</dd></>)}
-          {exhibit.period_start && (<><dt>Period</dt><dd>{exhibit.period_start} to {exhibit.period_end}</dd></>)}
-          {exhibit.assets && exhibit.assets.length > 0 && (<><dt>Assets</dt><dd>{exhibit.assets.join(", ")}</dd></>)}
-          {!web && (<><dt>Metric</dt><dd><code>{exhibit.metric}</code></dd></>)}
-          {!web && typeof exhibit.value === "number" && (<><dt>Exact value</dt><dd><code>{exhibit.value}</code></dd></>)}
-          {typeof query === "string" && (<><dt>Search query</dt><dd><code>{query}</code></dd></>)}
-          {exhibit.source_files && exhibit.source_files.length > 0 && (<><dt>Source files</dt><dd>{exhibit.source_files.join(", ")}</dd></>)}
-          {exhibit.processing_notes && exhibit.processing_notes.length > 0 && (<><dt>Processing</dt><dd>{exhibit.processing_notes.join("; ")}</dd></>)}
-          {!web && exhibit.inputs && (<><dt>Calculation inputs</dt><dd><code className="ex-json">{JSON.stringify(exhibit.inputs)}</code></dd></>)}
-        </dl>
-      </details>
+      {!web && (
+        <details className="ex-tech">
+          <summary>Method and limits</summary>
+          <dl>
+            {exhibit.period_start && (<><dt>Period</dt><dd>{day(exhibit.period_start)} to {day(exhibit.period_end)}</dd></>)}
+            {exhibit.currency && (<><dt>Currency</dt><dd>{exhibit.currency}{(exhibit.processing_notes ?? []).some((n) => /converted from USD/i.test(n)) ? "; US-dollar prices converted at the Bank of Canada daily rate" : ""}</dd></>)}
+            {exhibit.assets && exhibit.assets.length > 0 && (<><dt>Securities</dt><dd>{exhibit.assets.join(", ")}</dd></>)}
+            <dt>Prices</dt><dd>Daily closing prices adjusted for splits and dividends.</dd>
+            <dt>Limits</dt><dd>Measured on past prices over this period only. Past results do not predict future ones, and the securities covered all still exist today.</dd>
+          </dl>
+        </details>
+      )}
     </article>
   );
 }

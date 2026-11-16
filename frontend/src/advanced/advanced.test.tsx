@@ -17,31 +17,31 @@ const view: SessionView = {
 };
 
 describe("Advanced_Mode", () => {
-  it("shows rules, sensitivity, trace with Instruction_Hash and a JSON download", () => {
+  it("shows limits and sensitivity, and no execution trace", () => {
     render(<AdvancedMode view={view} focus={null} onFocus={() => {}} />);
     expect(screen.getByTestId("rule-speculative_limit")).toHaveTextContent("fail");
     expect(screen.getByTestId("rule-speculative_limit")).toHaveTextContent("5.0%");
     expect(screen.getByTestId("sensitivity-speculative_limit")).toHaveTextContent("accept");
-    expect(screen.getByTestId("instruction-hash")).toHaveTextContent("deadbeef");
-    expect(screen.getByTestId("trace-2")).toHaveAttribute("data-kind", "guardrail_block");
-    expect(screen.getByTestId("trace-download")).toHaveAttribute("download", "trace.json");
+    expect(screen.queryByTestId("instruction-hash")).toBeNull();
+    expect(screen.queryByTestId("trace-2")).toBeNull();
+    expect(screen.queryByTestId("trace-download")).toBeNull();
   });
 
-  it("opens the focused Exhibit with Snapshot_Id and citations call onFocus", () => {
+  it("opens the focused Exhibit without its snapshot id; citations call onFocus", () => {
     const onFocus = vi.fn();
     const { rerender } = render(<AdvancedMode view={view} focus={null} onFocus={onFocus} />);
     expect(screen.queryByTestId("exhibit-details-2")).toBeNull();
     fireEvent.click(screen.getAllByRole("button", { name: "[Exhibit 2]" })[0]);
     expect(onFocus).toHaveBeenCalledWith({ kind: "exhibit", number: 2 });
     rerender(<AdvancedMode view={view} focus={{ kind: "exhibit", number: 2 }} onFocus={onFocus} />);
-    expect(screen.getByTestId("exhibit-snapshot-id")).toHaveTextContent("snap-abc");
+    expect(screen.getByTestId("exhibit-details-2")).not.toHaveTextContent("snap-abc");
   });
 
-  it("marks and scrolls to focused rule and trace entries", () => {
+  it("marks and scrolls to the focused rule", () => {
     const scroll = vi.fn();
     Element.prototype.scrollIntoView = scroll;
-    render(<AdvancedMode view={view} focus={{ kind: "trace", seq: 2 }} onFocus={() => {}} />);
-    expect(screen.getByTestId("trace-2")).toHaveAttribute("data-focused", "true");
+    render(<AdvancedMode view={view} focus={{ kind: "rule", rule: "speculative_limit" }} onFocus={() => {}} />);
+    expect(screen.getByTestId("rule-speculative_limit")).toHaveAttribute("data-focused", "true");
     expect(scroll).toHaveBeenCalled();
   });
 });
