@@ -3,33 +3,37 @@ import type { SessionView } from "../model/sessionView";
 import { courtState } from "./CourtroomScene";
 import { ExhibitLink } from "./ExhibitLinks";
 import { SPEAKER_NAME, hearingOf, type Speaker, type Speech } from "./hearing";
+import { Character, type Mood } from "./Characters";
 
-/** Where each member stands in the 1200 x 560 scene, and how they look. */
-const CAST: Record<Exclude<Speaker, "objection">, { x: number; y: number; robe: string; trim: string; icon: string; role: string }> = {
-  judge: { x: 600, y: 196, robe: "#141821", trim: "#e7b75f", icon: "🏛", role: "Weighs preferences, rules" },
-  advocate: { x: 230, y: 410, robe: "#123447", trim: "#4fd1e8", icon: "⚖", role: "Pleads for the investor's goal" },
-  investigator: { x: 970, y: 410, robe: "#2a2350", trim: "#8b7bff", icon: "🔎", role: "Names the risks" },
-  clerk: { x: 600, y: 420, robe: "#123a2e", trim: "#34d399", icon: "📜", role: "Writes the ruling" },
-  bailiff: { x: 80, y: 340, robe: "#3a2f1a", trim: "#d6a756", icon: "⚙", role: "The code: your limits" },
+/** Where each member stands in the 1200 x 560 scene (x, y = where the body meets the desk). */
+const CAST: Record<Exclude<Speaker, "objection">, { x: number; y: number; trim: string; role: string; scale: number }> = {
+  judge: { x: 600, y: 232, trim: "#e7b75f", role: "Weighs your preferences and rules", scale: 1 },
+  advocate: { x: 250, y: 420, trim: "#4fd1e8", role: "Argues for your goal", scale: 1.05 },
+  investigator: { x: 950, y: 420, trim: "#a99bff", role: "Examines the risks", scale: 1.05 },
+  clerk: { x: 600, y: 440, trim: "#34d399", role: "Keeps the record", scale: 0.92 },
+  bailiff: { x: 90, y: 330, trim: "#d6a756", role: "The code: checks your limits", scale: 0.85 },
 };
-const INVESTOR = { x: 900, y: 252 };
+const INVESTOR = { x: 1090, y: 330 };
 const anchor = (s: Speaker) => (s === "objection" ? CAST.bailiff : CAST[s]);
+
+/** The phases of a hearing, in order, and which speeches belong to each. */
+export const PHASES = ["Opening", "Advocate", "Investigator", "Evidence check", "Ruling"] as const;
+export function phaseOf(speeches: Speech[], index: number): number {
+  const s = speeches[index];
+  if (!s) return 0;
+  if (s.speaker === "advocate") return 1;
+  if (s.speaker === "investigator") return 2;
+  if (s.speaker === "judge" || s.speaker === "clerk") return 4;
+  if (s.speaker === "objection") return 3;
+  return speeches.slice(0, index).some((x) => x.speaker === "advocate") ? 3 : 0; // bailiff
+}
+
+/** Pause before the Judge speaks, so the ruling lands. */
+const ANTICIPATION_MS = 1600;
 
 /** Characters per second for the typewriter; a pause between speeches. */
 const CPS = 42;
 const PAUSE_MS = 1300;
-
-function Person({ robe, trim, judge = false }: { robe: string; trim: string; judge?: boolean }) {
-  return (
-    <g className="person">
-      <path d="M -34 0 Q -34 -46 0 -48 Q 34 -46 34 0 Z" fill={robe} stroke={trim} strokeOpacity=".55" />
-      <path d="M -10 -46 L 0 -30 L 10 -46" fill="none" stroke={trim} strokeWidth="3" />
-      <circle cx="0" cy="-66" r="17" fill="#e8c9a8" />
-      {judge && <path d="M -19 -70 Q -20 -90 0 -88 Q 20 -90 19 -70 Q 22 -58 16 -52 L -16 -52 Q -22 -58 -19 -70 Z" fill="#f2efe6" opacity=".9" />}
-      <circle className="mouth" cx="0" cy="-58" r="2.6" fill="#7a3b2e" />
-    </g>
-  );
-}
 
 /** The courtroom: every member takes the floor in turn. Speeches come from the session's own
  * outputs (no model call). Plays live while the court sits, then replays the whole hearing. */
@@ -48,6 +52,7 @@ export function Courtroom({ view, onOpen, speak }: {
   const [voice, setVoice] = useState(false);
   const [replaying, setReplaying] = useState(false);
   const [voiceDone, setVoiceDone] = useState(true);
+  const [held, setHeld] = useState(false); // the hush before the Judge rules
   const seenCompleted = useRef(view.status === "completed");
 
   // Live: follow the latest speech. On completion: replay the whole hearing once.
@@ -65,7 +70,14 @@ export function Courtroom({ view, onOpen, speak }: {
 
   // Typewriter, then (when playing and not live) the next speech.
   useEffect(() => {
-    if (!current) return;
+    if (!current || running || current.speaker !== "judge") { setHeld(false); return; }
+    setHeld(true);
+    const id = setTimeout(() => setHeld(false), ANTICIPATION_MS);
+    return () => clearTimeout(id);
+  }, [current?.id, running]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!current || held) return;
     if (typed < full) {
       const id = setTimeout(() => setTyped((t) => Math.min(full, t + 2)), 2000 / CPS);
       return () => clearTimeout(id);
@@ -73,120 +85,147 @@ export function Courtroom({ view, onOpen, speak }: {
     if (!playing || index >= speeches.length - 1 || !voiceDone) return;
     const id = setTimeout(() => { setIndex((i) => i + 1); setTyped(0); }, PAUSE_MS);
     return () => clearTimeout(id);
-  }, [typed, full, playing, index, speeches.length, current, voiceDone]);
+  }, [typed, full, playing, index, speeches.length, current, voiceDone, held]);
 
   // Voice: start the speech's audio when it takes the floor (optional).
   useEffect(() => {
-    if (!(voice && speak && current && playing)) { setVoiceDone(true); return; }
+    if (!(voice && speak && current && playing) || held) { setVoiceDone(true); return; }
     let live = true;
     setVoiceDone(false);
     speak(current).catch(() => undefined).finally(() => { if (live) setVoiceDone(true); });
     return () => { live = false; };
-  }, [voice, speak, current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [voice, speak, current?.id, held]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const speaker = current?.speaker;
-  const seatOn = (agent: string) => (running ? working === agent : speaker === agent || (speaker === "objection" && agent === "bailiff"));
-  const gavel = speaker === "judge" && typed >= full;
-  const pos = speaker ? anchor(speaker) : null;
-  // The Judge's bubble sits to the right of the bench, so it never hides the Judge.
-  const bubbleLeft = speaker === "judge" ? 57 : pos ? Math.min(Math.max(pos.x / 12 - 18, 1), 62) : 0;
-  const bubbleTop = speaker === "judge" ? 3 : pos ? Math.max(pos.y / 5.6 - 50, 1) : 0;
   const finished = !running && index >= speeches.length - 1 && typed >= full;
+  const talking = !!current && !held && typed < full;
+  const onFloor = (agent: string) => speaker === agent || (speaker === "objection" && agent === "bailiff");
+  const seatOn = (agent: string) => (running ? working === agent || (talking && onFloor(agent)) : onFloor(agent));
+  const gavel = speaker === "judge" && !held && typed >= full;
+  const pos = speaker ? anchor(speaker) : null;
+  // The camera moves to whoever has the floor, and pulls back when the hearing is over.
+  const zoomed = !!pos && !finished && (talking || held);
+  const camera = zoomed && pos
+    ? { transform: `scale(${held ? 1.5 : 1.32})`, transformOrigin: `${Math.min(80, Math.max(20, (pos.x / 1200) * 100))}% ${((pos.y - 70) / 560) * 100}%` }
+    : { transform: "scale(1)", transformOrigin: "50% 40%" };
+  const mood = (agent: string): Mood =>
+    held ? (agent === "judge" ? "stern" : "listening")
+      : onFloor(agent) && talking ? "speaking"
+      : speaker === "objection" && agent === "judge" ? "stern" : "idle";
+  const phase = running ? Math.min(4, ["request_rules", "advocate", "investigator", "judge"].filter((x) => view.stages_done.includes(x)).length)
+    : phaseOf(speeches, index);
+  const go = (i: number) => { setIndex(i); setTyped(0); setPlaying(false); };
 
   return (
     <section className="card courtroom court-full" aria-label="Courtroom">
-      <div className="court-stage">
-        <svg role="img" aria-label="Courtroom scene" viewBox="0 0 1200 560" width="100%">
+      <ol className="phase-rail" aria-label="Phases of the hearing">
+        {PHASES.map((p, i) => (
+          <li key={p} data-state={i < phase ? "done" : i === phase ? "active" : "pending"}>{p}</li>
+        ))}
+      </ol>
+      <div className={`court-stage${held ? " hush" : ""}${speaker === "objection" && !running ? " objection" : ""}`}>
+        <div className="court-view">
+        <svg role="img" aria-label="Courtroom scene" viewBox="0 0 1200 560" width="100%" className="court-camera" style={camera}>
           <defs>
-            <linearGradient id="cWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2a1d12" /><stop offset="1" stopColor="#140d07" /></linearGradient>
-            <linearGradient id="cWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#6b4426" /><stop offset="1" stopColor="#3a2414" /></linearGradient>
-            <linearGradient id="cFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1b1410" /><stop offset="1" stopColor="#070504" /></linearGradient>
-            <radialGradient id="cLight" cx=".5" cy="0" r=".9"><stop offset="0" stopColor="#ffe3a3" stopOpacity=".35" /><stop offset="1" stopColor="#ffe3a3" stopOpacity="0" /></radialGradient>
-            <radialGradient id="cGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#f6d58e" stopOpacity=".55" /><stop offset="1" stopColor="#f6d58e" stopOpacity="0" /></radialGradient>
+            <linearGradient id="cWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a2a4a" /><stop offset="1" stopColor="#1e1830" /></linearGradient>
+            <linearGradient id="cWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#8a5a34" /><stop offset="1" stopColor="#56341c" /></linearGradient>
+            <linearGradient id="cFloor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2a2238" /><stop offset="1" stopColor="#120e1c" /></linearGradient>
+            <radialGradient id="cLight" cx=".5" cy="0" r=".9"><stop offset="0" stopColor="#ffe3a3" stopOpacity=".3" /><stop offset="1" stopColor="#ffe3a3" stopOpacity="0" /></radialGradient>
           </defs>
-          {/* back wall, panels and seal */}
-          <rect width="1200" height="330" fill="url(#cWall)" />
-          {Array.from({ length: 10 }, (_, i) => (
-            <rect key={i} x={20 + i * 118} y="30" width="96" height="230" rx="6" fill="none" stroke="#e7b75f" strokeOpacity=".09" />
+          <rect width="1200" height="340" fill="url(#cWall)" />
+          {/* tall windows and columns */}
+          {[150, 370, 830, 1050].map((x) => (
+            <g key={x}>
+              <rect x={x - 46} y="40" width="92" height="210" rx="46" fill="#5b6aa8" opacity=".28" />
+              <path d={`M ${x} 40 L ${x} 250 M ${x - 46} 140 L ${x + 46} 140`} stroke="#1e1830" strokeWidth="4" opacity=".6" />
+            </g>
           ))}
-          <circle cx="600" cy="52" r="34" fill="#1d140b" stroke="#e7b75f" strokeOpacity=".7" strokeWidth="3" />
-          <text x="600" y="58" textAnchor="middle" fontSize="22">⚖</text>
-          <text x="600" y="104" textAnchor="middle" fontSize="10" fill="#f6d58e" letterSpacing="4" opacity=".8">DECISION TRIBUNAL</text>
-          <rect y="330" width="1200" height="230" fill="url(#cFloor)" />
-          <polygon points="430,0 770,0 980,560 220,560" fill="url(#cLight)" />
-          {/* door for the bailiff */}
-          <rect x="30" y="170" width="90" height="160" rx="4" fill="#24170c" stroke="#e7b75f" strokeOpacity=".25" />
-          {/* raised bench */}
-          <rect x="400" y="230" width="400" height="100" rx="8" fill="url(#cWood)" stroke="#e7b75f" strokeOpacity=".45" />
-          <rect x="400" y="230" width="400" height="10" rx="4" fill="#e7b75f" opacity=".55" />
+          {[40, 260, 480, 720, 940, 1160].map((x) => <rect key={x} x={x - 12} y="0" width="24" height="340" fill="#2a2038" />)}
+          <circle cx="600" cy="62" r="38" fill="#241b33" stroke="#e7b75f" strokeWidth="3" />
+          <text x="600" y="72" textAnchor="middle" fontSize="30">⚖</text>
+          <rect y="340" width="1200" height="220" fill="url(#cFloor)" />
+          <polygon className="spot" points="460,0 740,0 940,560 260,560" fill="url(#cLight)" />
+          {/* the Judge sits behind the raised bench */}
+          <g data-testid="seat-judge" data-active={seatOn("judge") ? "true" : "false"} className={`seat${seatOn("judge") ? " seat-active" : ""}`}
+            transform={`translate(${CAST.judge.x} ${CAST.judge.y})`}>
+            <Character who="judge" mood={mood("judge")} />
+          </g>
+          <rect x="380" y="232" width="440" height="108" rx="10" fill="url(#cWood)" stroke="#2a1a0e" strokeWidth="3" />
+          <rect x="380" y="232" width="440" height="12" rx="6" fill="#e7b75f" />
+          <text x="600" y="296" textAnchor="middle" fontSize="18" fontWeight="800" fill="#f6d58e" letterSpacing="5">JUDGE</text>
+          <text x="600" y="318" textAnchor="middle" fontSize="12" fill="#e9d9b8" opacity=".85">{CAST.judge.role}</text>
+          <g className={`gavel${gavel ? " strike" : ""}`} transform="translate(740 226)">
+            <rect x="-4" y="-40" width="8" height="40" rx="3" fill="#8a5a2b" transform="rotate(-35)" />
+            <rect x="-24" y="-54" width="34" height="18" rx="5" fill="#b9814a" stroke="#2a1a0e" strokeWidth="2" transform="rotate(-35)" />
+          </g>
           {/* witness box with the investor */}
-          <rect x="845" y="257" width="120" height="58" rx="6" fill="url(#cWood)" stroke="#e7b75f" strokeOpacity=".3" />
-          <g transform={`translate(${INVESTOR.x + 5} ${INVESTOR.y + 4})`} opacity=".9"><Person robe="#3b4252" trim="#9aa4b8" /></g>
-          <text x={INVESTOR.x + 5} y="335" textAnchor="middle" fontSize="12" fill="#8b95ad">Investor</text>
-          {/* the court members */}
-          {(Object.keys(CAST) as (keyof typeof CAST)[]).map((key) => {
+          <g transform={`translate(${INVESTOR.x} ${INVESTOR.y}) scale(.8)`}><Character who="investor" mood={held ? "listening" : "idle"} /></g>
+          <rect x={INVESTOR.x - 62} y={INVESTOR.y - 4} width="124" height="62" rx="8" fill="url(#cWood)" stroke="#2a1a0e" strokeWidth="3" />
+          <text x={INVESTOR.x} y={INVESTOR.y + 32} textAnchor="middle" fontSize="13" fontWeight="700" fill="#f6d58e">YOU</text>
+          {(["bailiff", "advocate", "investigator", "clerk"] as const).map((key) => {
             const c = CAST[key];
             const on = seatOn(key);
-            const speaking = !running && speaker === key && typed < full;
             return (
               <g key={key} data-testid={`seat-${key}`} data-active={on ? "true" : "false"}
-                className={`seat${on ? " seat-active" : ""}${speaking ? " speaking" : ""}`} transform={`translate(${c.x} ${c.y})`}>
-                {on && <ellipse cx="0" cy="-40" rx="95" ry="80" fill="url(#cGlow)" />}
-                <Person robe={c.robe} trim={c.trim} judge={key === "judge"} />
-                {key !== "judge" && <rect x="-52" y="-6" width="104" height="40" rx="5" fill="url(#cWood)" stroke={c.trim} strokeOpacity={on ? .9 : .3} />}
-                <text x="0" y={key === "judge" ? 78 : 52} textAnchor="middle" fontSize="15" fontWeight="700" fill={on ? c.trim : "#e9edf6"}>
-                  {c.icon} {SPEAKER_NAME[key]}
+                className={`seat${on ? " seat-active" : ""}`} transform={`translate(${c.x} ${c.y})`}>
+                <g transform={`scale(${c.scale})`}><Character who={key} mood={mood(key)} /></g>
+                <rect x="-74" y="-4" width="148" height="56" rx="8" fill="url(#cWood)" stroke={on ? c.trim : "#2a1a0e"} strokeWidth="3" />
+                <text x="0" y="22" textAnchor="middle" fontSize="15" fontWeight="800" fill={on ? c.trim : "#f6d58e"} letterSpacing="2">
+                  {SPEAKER_NAME[key].toUpperCase()}
                 </text>
-                <text x="0" y={key === "judge" ? 96 : 68} textAnchor="middle" fontSize="11" fill="#8b95ad">{c.role}</text>
+                <text x="0" y="40" textAnchor="middle" fontSize="11" fill="#e9d9b8" opacity=".85">{c.role}</text>
               </g>
             );
           })}
-          {/* gavel */}
-          <g className={`gavel${gavel ? " strike" : ""}`} transform="translate(700 222)">
-            <rect x="-4" y="-34" width="8" height="34" rx="3" fill="#8a5a2b" transform="rotate(-35)" />
-            <rect x="-22" y="-46" width="30" height="16" rx="4" fill="#a8743f" transform="rotate(-35)" />
-          </g>
           {/* gallery */}
-          {Array.from({ length: 14 }, (_, i) => (
-            <circle key={i} cx={60 + i * 82} cy="548" r="22" fill="#000" opacity=".55" />
+          {Array.from({ length: 13 }, (_, i) => (
+            <path key={i} d={`M ${40 + i * 92} 560 q 0 -42 30 -42 q 30 0 30 42 Z`} fill="#0b0812" opacity=".8" />
           ))}
         </svg>
-        {current && pos && (
-          <div className={`speech-bubble speaker-${current.speaker}`} style={{ left: `${bubbleLeft}%`, top: `${bubbleTop}%` }}
-            data-testid="speech-bubble" aria-live="polite">
-            <strong>{SPEAKER_NAME[current.speaker]}</strong>
+        {speaker === "objection" && !running && <div className="objection-stamp" aria-hidden="true">Objection sustained</div>}
+        </div>
+        {held && <div className="hush-caption" data-testid="anticipation">The court falls silent. The Judge is about to rule…</div>}
+        {current && !held && (
+          <div className={`speech-bubble speaker-${current.speaker}`} data-testid="speech-bubble" aria-live="polite">
+            <strong>{SPEAKER_NAME[current.speaker]}{current.speaker === "bailiff" || current.speaker === "objection" || current.speaker === "clerk" ? " · code" : " · AI agent"}</strong>
             {current.struck && <p className="struck">{current.struck}</p>}
             <p>{current.text.slice(0, typed)}<span className="caret" aria-hidden="true">{typed < full ? "▍" : ""}</span></p>
+            {typed >= full && current.exhibits.length > 0 && (
+              <p className="speech-evidence">Evidence: {current.exhibits.map((n) => <ExhibitLink key={n} number={n} onOpen={onOpen} />)}</p>
+            )}
           </div>
         )}
       </div>
       <div className="court-controls">
         <span className="court-caption"><span className="dot" style={{ color: running ? "#e7b75f" : "#34d399" }} />
-          {replaying && !finished && playing ? "The hearing is replayed from the court record…" : caption}</span>
+          {!running && !finished && speeches.length > 1 ? "The hearing, replayed from the court record…" : caption}</span>
         <span className="court-buttons">
-          <button type="button" disabled={running || index === 0} onClick={() => { setIndex((i) => Math.max(0, i - 1)); setTyped(0); }} aria-label="Previous speech">◀</button>
+          <button type="button" disabled={running || index === 0} onClick={() => go(Math.max(0, index - 1))} aria-label="Previous speech">◀</button>
           <button type="button" disabled={running || !speeches.length} data-testid="replay"
             onClick={() => { if (finished) { setIndex(0); setTyped(0); setPlaying(true); setReplaying(true); } else setPlaying((p) => !p); }}>
             {finished ? "↻ Replay the hearing" : playing ? "❚❚ Pause" : "▶ Play"}
           </button>
-          <button type="button" disabled={running || index >= speeches.length - 1} onClick={() => { setIndex((i) => i + 1); setTyped(0); }} aria-label="Next speech">▶</button>
-          <button type="button" disabled={running} onClick={() => { setIndex(Math.max(0, speeches.findIndex((s) => s.speaker === "judge"))); setTyped(0); setPlaying(false); }}>Skip to verdict</button>
+          <button type="button" disabled={running || index >= speeches.length - 1} onClick={() => go(index + 1)} aria-label="Next speech">▶</button>
+          <button type="button" disabled={running} onClick={() => go(Math.max(0, speeches.findIndex((s) => s.speaker === "judge")))}>Skip to verdict</button>
           {speak && <button type="button" aria-pressed={voice} onClick={() => setVoice((v) => !v)}>{voice ? "🔊 Voices on" : "🔈 Voices off"}</button>}
         </span>
       </div>
       {speeches.length > 0 && (
-        <ol className="court-record" aria-label="Court record" data-testid="court-record">
-          {speeches.slice(0, index + 1).map((s, i) => (
-            <li key={s.id} className={`record-${s.speaker}${i === index ? " current" : ""}`}>
-              <button type="button" className="record-speaker" onClick={() => { setIndex(i); setTyped(0); setPlaying(false); }}>{SPEAKER_NAME[s.speaker]}</button>
-              <span>
-                {s.struck && <del>{s.struck} </del>}
-                {s.text}{" "}
-                {s.exhibits.map((n) => <ExhibitLink key={n} number={n} onOpen={onOpen} />)}
-              </span>
-            </li>
-          ))}
-        </ol>
+        <details className="court-record-wrap" open={finished || undefined}>
+          <summary>Court record ({Math.min(index + 1, speeches.length)} of {speeches.length} statements)</summary>
+          <ol className="court-record" aria-label="Court record" data-testid="court-record">
+            {speeches.slice(0, index + 1).map((s, i) => (
+              <li key={s.id} className={`record-${s.speaker}${i === index ? " current" : ""}`}>
+                <button type="button" className="record-speaker" onClick={() => go(i)}>{SPEAKER_NAME[s.speaker]}</button>
+                <span>
+                  {s.struck && <del>{s.struck} </del>}
+                  {s.text}{" "}
+                  {s.exhibits.map((n) => <ExhibitLink key={n} number={n} onOpen={onOpen} />)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </details>
       )}
     </section>
   );
