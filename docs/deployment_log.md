@@ -99,3 +99,12 @@ CloudWatch Transaction Search is not enabled on the account (`aws xray get-trace
 | CloudWatch Transaction Search | trace segment destination `CloudWatchLogs`, indexing 100%, logs resource policy `AWSXRayTransactionSearch` | this log |
 
 Measured on a live Robert / 30% TSLA session (runtime v24): 45,597 tokens in 4 Converse calls (Advocate 2, Investigator 1, Judge 1); the Advocate read 7,341 tokens back from its cache.
+
+## UX redesign (2026-11-15, about 19:30 ET)
+
+| Change | Live value | Source in `main` |
+|---|---|---|
+| Amplify Deployment 16 | cartoon courtroom with camera focus, plain-language profile form with the three-way ESG choice, Exhibit cards with "View technical details", evidence drawer, one-click what-if appeals | PR #54 |
+| Amplify Deployment 17 | same, plus the viewport meta tag so phones lay the page out at device width | PR #55 |
+
+Checked live on Deployment 16 with Robert / 30% TSLA: ruling in about 70 s (accepted with conditions, 2.5%); Exhibit 7 opened in the drawer with its snapshot id and source files; the what-if "What if I asked for 5%?" showed "The original ruling stands until the new one is in", then a real second hearing returned in about 57 s and the comparison reported that the verdict did not change. Deployment 17 checked at 375 px: no horizontal overflow.
