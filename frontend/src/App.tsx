@@ -6,11 +6,27 @@ import { ApiError, type ContractValues, type CustomProfile, type PersonaEntry, t
 import type { AuthService } from "./api/auth";
 import { sessionStore, useSessionStore, type SessionStore, type SessionView } from "./model/sessionView";
 import { AppealControl, AppealView, type AppealChange } from "./appeal";
-import { EMPTY_VALUES, HoldingsField, ProfileForm, parseHoldings, valuesFromPersona } from "./ProfileForm";
+import { EMPTY_VALUES, FOSSIL, HoldingsField, ProfileForm, parseHoldings, valuesFromPersona } from "./ProfileForm";
 import { SignInGate } from "./SignInGate";
+import { SecuritySearch, parseAllocation } from "./SecuritySearch";
+import type { Security } from "./universe";
 
 export const POLL_MS = 2000;
-const EXAMPLES = ["Should I put 30% of my portfolio in Tesla?", "Should I put 10% in Exxon (XOM)?", "Would adding 10% SPY improve diversification?"];
+const LAST_PROFILE = "verdict.lastProfile";
+const remember = (id: string) => { try { if (id) localStorage.setItem(LAST_PROFILE, id); } catch { /* storage is a convenience only */ } };
+const remembered = () => { try { return localStorage.getItem(LAST_PROFILE) ?? ""; } catch { return ""; } };
+const RISK_WORD: Record<string, string> = { low: "Low risk", low_to_moderate: "Low to moderate risk", moderate: "Moderate risk", high: "High risk", very_high: "Very high risk" };
+const pct = (v: number | null) => (v === null ? null : `${Number((v * 100).toFixed(1))}%`);
+
+/** One line that tells a returning investor which constraints the tribunal will apply. */
+export function profileSummary(v: ContractValues): string {
+  const parts = [RISK_WORD[v.risk_level] ?? v.risk_level];
+  if (v.horizon_min !== null) parts.push(v.horizon_max !== null && v.horizon_max !== v.horizon_min ? `${v.horizon_min} to ${v.horizon_max} years` : `${v.horizon_min}-year horizon`);
+  if (pct(v.max_drawdown)) parts.push(`max drawdown ${pct(v.max_drawdown)}`);
+  if (pct(v.max_volatility)) parts.push(`max volatility ${pct(v.max_volatility)}`);
+  if (v.esg_exclusions.includes(FOSSIL)) parts.push("avoids fossil fuels");
+  return parts.join(" · ");
+}
 export const STAGES = ["advocate", "investigator", "judge", "clerk"];
 
 export function Banners({ view }: { view: SessionView | null }) {
@@ -58,6 +74,9 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
   const [selected, setSelected] = useState("");
   const [values, setValues] = useState<ContractValues>(EMPTY_VALUES);
   const [requestText, setRequestText] = useState("");
+  const [security, setSecurity] = useState<Security | null>(null);
+  const [allocation, setAllocation] = useState("");
+  const allocationInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [holdings, setHoldings] = useState("");
@@ -79,8 +98,25 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
+  // A returning investor does not configure anything again: the last profile used on this device is reselected.
+  useEffect(() => {
+    if (selected !== "") return;
+    const id = remembered();
+    const p = personas.find((x) => x.id === id);
+    const c = profiles.find((x) => x.profile_id === id);
+    if (p) { setSelected(id); setValues(valuesFromPersona(p)); }
+    else if (c) { setSelected(id); setValues(c.values); }
+  }, [personas, profiles, selected]);
+
+  const alloc = parseAllocation(allocation);
+  // The structured request is turned into the sentence the deterministic parser reads; no model call is involved.
+  const structured = security && alloc.ok ? `Should I put ${alloc.value}% of my portfolio in ${security.ticker}?` : null;
+  const request = structured ?? requestText.trim();
+  const hasProfile = selected !== "" || values.horizon_min !== null;
+
   const pick = (id: string) => {
     setSelected(id);
+    remember(id);
     const p = personas.find((x) => x.id === id);
     if (p) { setValues(valuesFromPersona(p)); return; }
     const c = profiles.find((x) => x.profile_id === id);
@@ -117,7 +153,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
       const { session_id } = await api.startSession({
         persona_id: isProfile ? savedProfile.base_persona_id : selected || null,
         profile_id: isProfile ? selected : null,
-        values, request_text: requestText,
+        values, request_text: request,
         ...(parsedHoldings.value ? { base_portfolio: parsedHoldings.value } : {}),
       });
       store.setView({
@@ -164,6 +200,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
       const saved = await api.saveProfile(profile);
       setProfiles((ps) => [...ps, saved]);
       setSelected(saved.profile_id);
+      remember(saved.profile_id);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Could not save the profile");
     }
@@ -183,38 +220,56 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
       <Banners view={view} />
       <div className="layout">
         <aside aria-label="Inputs" className="sidebar">
-          <div className="card">
-            <div className="section-title"><h2>1. The investor</h2></div>
-            <label>Start from a profile{" "}
-              <select aria-label="Persona" value={selected} disabled={!!personaError && personas.length === 0}
-                onChange={(e) => pick(e.target.value)}>
-                <option value="">Choose a profile…</option>
-                {personas.map((p) => <option key={p.id} value={p.id}>{p.display_name}</option>)}
-                {profiles.map((p) => <option key={p.profile_id} value={p.profile_id}>Custom: {p.profile_id}</option>)}
-              </select>
-            </label>
-            {personaError && <p role="alert" data-testid="persona-error" className="alert">Persona file: {personaError}</p>}
+          <div className="card decision">
+            <form onSubmit={submit} aria-label="Your decision">
+              <h2>Your decision</h2>
+              <label>Investor profile{" "}
+                <select aria-label="Persona" value={selected} disabled={!!personaError && personas.length === 0}
+                  onChange={(e) => pick(e.target.value)}>
+                  <option value="">Choose a profile…</option>
+                  {personas.map((p) => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+                  {profiles.map((p) => <option key={p.profile_id} value={p.profile_id}>Custom: {p.profile_id}</option>)}
+                </select>
+              </label>
+              {personaError && <p role="alert" data-testid="persona-error" className="alert">Persona file: {personaError}</p>}
+              {hasProfile
+                ? <p className="profile-summary" data-testid="profile-summary">{profileSummary(values)}</p>
+                : <p className="profile-summary missing" data-testid="profile-missing">Choose a profile, or fill in your own under “Profile and limits”. The tribunal does not assume limits you have not given.</p>}
+              <div className="field">
+                <span className="field-label" id="sec-label">Stock or ETF</span>
+                <SecuritySearch value={security} autoFocus
+                  onPick={(s) => { setSecurity(s); if (s) setTimeout(() => allocationInput.current?.focus(), 0); }} />
+              </div>
+              <label>Portfolio allocation{" "}
+                <span className="unit-input">
+                  <input ref={allocationInput} aria-label="Portfolio allocation (%)" type="text" inputMode="decimal" autoComplete="off"
+                    placeholder="e.g. 30" value={allocation} aria-invalid={!alloc.ok && alloc.error !== null}
+                    aria-describedby="alloc-help" onChange={(e) => setAllocation(e.target.value)} />
+                  <span aria-hidden="true">%</span>
+                </span>
+                <small id="alloc-help" role={!alloc.ok && alloc.error ? "alert" : undefined}>
+                  {!alloc.ok && alloc.error ? alloc.error : "Share of your whole portfolio you are thinking of putting in this security."}
+                </small>
+              </label>
+              <button type="submit" className="btn-enter" disabled={busy || !request || !hasProfile}>
+                {busy ? "The tribunal is in session…" : "Enter the Tribunal"}
+              </button>
+              <details className="own-words">
+                <summary>Ask in your own words instead</summary>
+                <label>Your question{" "}
+                  <textarea aria-label="Request" value={requestText} onChange={(e) => setRequestText(e.target.value)}
+                    placeholder="e.g. Should I put 30% of my portfolio in Tesla?" />
+                </label>
+                <small>Used only when no security is selected above. The same code reads the asset and the percentage from your sentence.</small>
+              </details>
+            </form>
+          </div>
+          <details className="card profile-card" open={!hasProfile || undefined}>
+            <summary><h2>Profile and limits</h2><span>Saved once, reused for every decision</span></summary>
             <ProfileForm values={values} onChange={setValues} fromProfile={selected !== ""} />
             <HoldingsField text={holdings} onChange={setHoldings} />
             <button type="button" onClick={save} style={{ width: "100%" }}>Save this profile</button>
-          </div>
-          <div className="card">
-            <form onSubmit={submit}>
-              <div className="section-title"><h2>2. The request</h2></div>
-              <label>What do you want to do?{" "}
-                <textarea aria-label="Request" value={requestText} onChange={(e) => setRequestText(e.target.value)}
-                  placeholder="e.g. Should I put 30% of my portfolio in Tesla?" />
-              </label>
-              <p className="chips examples" aria-label="Examples">
-                {EXAMPLES.map((ex) => (
-                  <button key={ex} type="button" className="chip-example" onClick={() => setRequestText(ex)}>{ex}</button>
-                ))}
-              </p>
-              <button type="submit" disabled={busy || !requestText.trim()} style={{ width: "100%", padding: ".7rem" }}>
-                {busy ? "The tribunal is in session…" : "Open the hearing"}
-              </button>
-            </form>
-          </div>
+          </details>
           <div className="card">
             <div role="group" aria-label="Mode" className="mode-switch">
               <button type="button" aria-pressed={mode === "friendly"} onClick={() => store.setMode("friendly")}>Friendly</button>
@@ -225,12 +280,11 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
         <div>
           {message && <p role="alert" data-testid="error-message" className="alert">{message}</p>}
           {!view && (
-            <div className="card" style={{ textAlign: "center", padding: "3rem 1.5rem" }}>
-              <div style={{ fontSize: "2.6rem" }} aria-hidden="true">⚖</div>
-              <h1>Bring your case to the tribunal</h1>
-              <p style={{ color: "var(--muted)", maxWidth: 520, margin: "0 auto" }}>
-                Pick an investor, state a request such as "30% in TSLA", and watch the Advocate, the Investigator
-                and the Judge argue it out. Every number comes from an Exhibit computed by code.
+            <div className="card intro" style={{ textAlign: "center", padding: "3rem 1.5rem" }}>
+              <h1>Should this investment be in your portfolio?</h1>
+              <p style={{ color: "var(--muted)", maxWidth: 560, margin: "0 auto" }}>
+                Pick a stock or ETF and the share of your portfolio you have in mind. A defense and a prosecution argue
+                the case against your own limits, and a judge rules. Every number comes from evidence you can open.
               </p>
             </div>
           )}
@@ -269,8 +323,7 @@ export function App({ auth, makeApi }: { auth: AuthService; makeApi: () => Sessi
         <div className="shell">
           <nav className="topbar">
             <div className="brand">
-              <span className="brand-mark" aria-hidden="true">⚖</span>
-              <span>Decision Tribunal<small>Agentic investment guide · simulation</small></span>
+                            <span>VERDICT<small>Investment decisions, argued and ruled on evidence</small></span>
             </div>
             <p className="user-chip" style={{ margin: 0 }}>
               Signed in as {user}{" "}

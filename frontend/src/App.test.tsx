@@ -49,13 +49,55 @@ describe("Workspace", () => {
     await user.selectOptions(screen.getByLabelText("Persona"), "robert");
     expect((screen.getByLabelText(/Max volatility/) as HTMLInputElement).value).toBe("12");
     await user.type(screen.getByLabelText("Request"), "30% in TSLA");
-    await user.click(screen.getByRole("button", { name: "Open the hearing" }));
+    await user.click(screen.getByRole("button", { name: "Enter the Tribunal" }));
     await waitFor(() => expect(screen.getByTestId("data-badge").textContent).toContain("snap-1"));
     expect(screen.getByTestId("fallback-notice")).toBeTruthy();
     expect(screen.getByTestId("simulation-banner")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Advanced" }));
     expect(screen.getByTestId("advanced-mode")).toBeTruthy();
     expect(screen.getByTestId("guidance-statement")).toBeTruthy();
+  });
+
+  it("starts a hearing from a security and an allocation in two clicks, reusing the remembered profile", async () => {
+    localStorage.setItem("verdict.lastProfile", "robert");
+    const startSession = vi.fn(async () => ({ session_id: "s1" }));
+    render(<Workspace api={fakeApi({ startSession })} store={createSessionStore()} pollMs={5} />);
+    const user = userEvent.setup();
+    expect(await screen.findByTestId("profile-summary")).toHaveTextContent("5-year horizon");
+    const search = screen.getByRole("combobox", { name: "Stock or ETF" });
+    expect(search).toHaveFocus();
+    await user.keyboard("tesla");
+    await user.click(screen.getByRole("option", { name: /Tesla/ }));          // click 1
+    expect(screen.getByLabelText("Portfolio allocation (%)")).toHaveFocus();
+    await user.keyboard("30");
+    await user.click(screen.getByRole("button", { name: "Enter the Tribunal" })); // click 2
+    expect(startSession).toHaveBeenCalledWith(expect.objectContaining({ persona_id: "robert", request_text: "Should I put 30% of my portfolio in TSLA?" }));
+    localStorage.clear();
+  });
+
+  it("offers nothing for a security outside the dataset and refuses impossible allocations", async () => {
+    localStorage.setItem("verdict.lastProfile", "robert");
+    render(<Workspace api={fakeApi()} store={createSessionStore()} />);
+    const user = userEvent.setup();
+    await screen.findByTestId("profile-summary");
+    await user.keyboard("SpaceX");
+    expect(screen.getByTestId("security-none")).toHaveTextContent("not among the 31 securities");
+    expect(screen.getByRole("button", { name: "Enter the Tribunal" })).toBeDisabled();
+    await user.clear(screen.getByRole("combobox", { name: "Stock or ETF" }));
+    await user.keyboard("apple{Enter}150");
+    expect(screen.getByRole("alert")).toHaveTextContent("cannot exceed 100%");
+    expect(screen.getByRole("button", { name: "Enter the Tribunal" })).toBeDisabled();
+    localStorage.clear();
+  });
+
+  it("asks for a profile instead of assuming limits", async () => {
+    localStorage.clear();
+    render(<Workspace api={fakeApi()} store={createSessionStore()} />);
+    const user = userEvent.setup();
+    await screen.findByRole("option", { name: "Robert" });
+    await user.keyboard("tesla{Enter}30");
+    expect(screen.getByTestId("profile-missing")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Enter the Tribunal" })).toBeDisabled();
   });
 
   it("disables the picker and shows the error when the Persona_File fails", async () => {
@@ -70,8 +112,10 @@ describe("Workspace", () => {
     const api = fakeApi({ startSession: async () => { throw new ApiError(422, "cannot parse", "asset"); } });
     render(<Workspace api={api} store={createSessionStore()} />);
     const user = userEvent.setup();
+    await screen.findByRole("option", { name: "Robert" });
+    await user.selectOptions(screen.getByLabelText("Persona"), "robert");
     await user.type(screen.getByLabelText("Request"), "invest some");
-    await user.click(screen.getByRole("button", { name: "Open the hearing" }));
+    await user.click(screen.getByRole("button", { name: "Enter the Tribunal" }));
     expect((await screen.findByTestId("error-message")).textContent).toContain("asset");
     expect((screen.getByLabelText("Request") as HTMLTextAreaElement).value).toBe("invest some");
   });

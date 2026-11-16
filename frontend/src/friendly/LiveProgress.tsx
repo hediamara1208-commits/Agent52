@@ -3,7 +3,7 @@ import type { SessionView } from "../model/sessionView";
 import { RULE_NAMES } from "./CourtroomTimeline";
 
 /** The five steps a session goes through, in order. */
-export const STEPS = ["Limits", "Advocate", "Investigator", "Judge", "Clerk"] as const;
+export const STEPS = ["Limits", "Defense", "Prosecutor", "Judge", "Clerk"] as const;
 /** Typical length of a live session (benchmark median ~70 s). */
 export const TYPICAL_SECONDS = 70;
 
@@ -38,23 +38,23 @@ export function progressOf(view: SessionView): Progress {
     if (news) done.push(`${news} recent news article${news === 1 ? "" : "s"} found for the court.`);
     const tools = view.trace.filter((e) => e.kind === "tool_call").length;
     if (tools) done.push(`${tools} portfolio comparison${tools === 1 ? "" : "s"} computed from the price history.`);
-    done.push("The Advocate proposed its options.");
+    done.push("The Defense proposed its options.");
   }
   if (finished.has("option_rules")) {
     const batches = view.trace.filter((e) => e.kind === "judge_check" && e.name === "per_asset_cap").length;
     const options = Math.max(0, batches - 1);
     if (options) done.push(`Each of the ${options} option${options === 1 ? "" : "s"} checked against your limits.`);
   }
-  if (finished.has("investigator")) done.push("The Investigator named the risks.");
+  if (finished.has("investigator")) done.push("The Prosecutor named the risks.");
   if (finished.has("judge")) done.push("The Judge ruled.");
 
   let step = 0;
   let current = "Pinning the market data and checking your request against your limits…";
   if (finished.has("judge")) { step = 4; current = "The Clerk is checking every number against its Exhibit and writing the ruling…"; }
   else if (finished.has("investigator")) { step = 3; current = "The Judge is weighing your preferences against the rules…"; }
-  else if (finished.has("option_rules")) { step = 2; current = "The Investigator is naming the risks that matter for you…"; }
+  else if (finished.has("option_rules")) { step = 2; current = "The Prosecutor is naming the risks that matter for you…"; }
   else if (finished.has("advocate")) { step = 1; current = "The code is checking each option against your limits…"; }
-  else if (finished.has("request_rules")) { step = 1; current = "The Advocate is reading recent news and building options that serve your goal…"; }
+  else if (finished.has("request_rules")) { step = 1; current = "The Defense is reading recent news and building options that serve your goal…"; }
   return { step, current, done };
 }
 

@@ -27,11 +27,11 @@ describe("live progress (what the tribunal is doing while you wait)", () => {
     expect(p.done).toEqual(["Market data pinned: prices up to Nov 12, 2026."]);
   });
 
-  it("names the broken limits once the request is checked, then shows the Advocate at work", () => {
+  it("names the broken limits once the request is checked, then shows the Defense at work", () => {
     const v = at(S, { active_agent: "advocate", rule_results: [rule("per_asset_cap", "fail"), rule("crypto_cap", "pass"), rule("max_volatility", "fail")] as never });
     const p = progressOf(v);
     expect(p.step).toBe(1);
-    expect(p.current).toMatch(/Advocate is reading recent news/);
+    expect(p.current).toMatch(/Defense is reading recent news/);
     expect(p.done[1]).toBe("Your request checked against 3 limits: it breaks the cap per holding and volatility limit.");
   });
 

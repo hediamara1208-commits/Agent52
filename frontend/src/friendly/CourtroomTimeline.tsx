@@ -39,9 +39,9 @@ export function timelineOf(view: SessionView): Step[] {
   const request = options.find((o) => o.source === "request");
   const proposed = options.filter((o) => o.source === "advocate");
   steps.push({
-    agent: "advocate", title: "Advocate proposed options",
+    agent: "advocate", title: "The Defense proposed options",
     lines: failed.has("advocate")
-      ? ["The Advocate could not run; the code added the largest size within your limits."]
+      ? ["The Defense could not run; the code added the largest size within your limits."]
       : [proposed.length
           ? `Proposed ${proposed.length} option${proposed.length > 1 ? "s" : ""}: ${list(proposed.map(label))}.`
           : declined ? `Proposed no size above 0% for ${request?.ticker ?? "this asset"}.` : "Proposed no option beyond your request."],
@@ -52,8 +52,8 @@ export function timelineOf(view: SessionView): Step[] {
   const risks = ruling.material_risks ?? [];
   const newsRisks = risks.filter((r) => (r.exhibits ?? []).some((n) => web.has(n)));
   steps.push({
-    agent: "investigator", title: "Investigator named the risks",
-    lines: failed.has("investigator") ? ["The Investigator could not run; only the code checks apply."]
+    agent: "investigator", title: "The Prosecutor named the risks",
+    lines: failed.has("investigator") ? ["The Prosecutor could not run; only the code checks apply."]
       : [`Flagged ${risks.length} risk${risks.length === 1 ? "" : "s"}${newsRisks.length ? `, ${newsRisks.length} citing recent news` : ""}.`,
         ...risks.slice(0, 3).map((r) => r.risk)],
     exhibits: [...new Set(risks.slice(0, 3).flatMap((r) => r.exhibits ?? []))].slice(0, 6),
@@ -95,9 +95,8 @@ export function timelineOf(view: SessionView): Step[] {
   return steps;
 }
 
-const ICON: Record<string, string> = { advocate: "⚖", investigator: "🔎", code: "⚙", judge: "🏛" };
 
-/** "How the court decided": the Advocate's options, the Investigator's risks, the code's checks,
+/** "How the court decided": the Defense's options, the Prosecutor's risks, the code's checks,
  * the Judge's choice, in that order. Shown once the Ruling is in. */
 export function CourtroomTimeline({ view, onOpen }: { view: SessionView; onOpen: (n: number) => void }) {
   const steps = timelineOf(view);
@@ -108,7 +107,7 @@ export function CourtroomTimeline({ view, onOpen }: { view: SessionView; onOpen:
       <ol className="timeline-steps">
         {steps.map((s, i) => (
           <li key={s.agent} data-testid={`timeline-${s.agent}`} className={`timeline-step step-${s.agent}`}>
-            <span className="timeline-dot" aria-hidden="true">{ICON[s.agent] ?? i + 1}</span>
+            <span className="timeline-dot" aria-hidden="true">{i + 1}</span>
             <div>
               <h3>{s.title}</h3>
               {s.note && <p className="timeline-note">{s.note}</p>}

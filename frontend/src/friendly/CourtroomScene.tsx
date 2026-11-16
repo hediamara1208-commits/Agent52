@@ -1,15 +1,15 @@
 import type { SessionView } from "../model/sessionView";
 
 export const SEATS = [
-  { agent: "investigator", label: "Investigator", role: "Names the risks", x: 120, y: 214, color: "#8b7bff", icon: "🔎" },
-  { agent: "advocate", label: "Advocate", role: "Proposes options", x: 300, y: 214, color: "#4fd1e8", icon: "⚖" },
+  { agent: "investigator", label: "Prosecutor", role: "Names the risks", x: 120, y: 214, color: "#8b7bff", icon: "🔎" },
+  { agent: "advocate", label: "Defense", role: "Proposes options", x: 300, y: 214, color: "#4fd1e8", icon: "⚖" },
   { agent: "judge", label: "Judge", role: "Weighs preferences", x: 600, y: 120, color: "#e7b75f", icon: "🏛" },
   { agent: "clerk", label: "Clerk", role: "Writes the ruling", x: 900, y: 214, color: "#34d399", icon: "📜" },
 ] as const;
 
 export const CAPTION: Record<string, string> = {
-  advocate: "The Advocate is building options that serve your goal…",
-  investigator: "The Investigator is naming the risks that matter for you…",
+  advocate: "The Defense is building options that serve your goal…",
+  investigator: "The Prosecutor is naming the risks that matter for you…",
   judge: "The Judge is weighing your preferences against the rules…",
   clerk: "The Clerk is writing the ruling…",
 };
@@ -28,7 +28,7 @@ function Figure({ color, icon }: { color: string; icon: string }) {
 export function CourtroomScene({ activeAgent, running = false, stage, stagesDone = [] }: {
   activeAgent: SessionView["active_agent"]; running?: boolean; stage?: string; stagesDone?: string[];
 }) {
-  // Options are checked by code only between the Advocate's stage and the option_rules stage.
+  // Options are checked by code only between the Defense's stage and the option_rules stage.
   const checkingOptions = stagesDone.includes("advocate") && !stagesDone.includes("option_rules");
   // After the Judge, active_agent is null while the Clerk still works: the tribunal has not risen yet.
   const active = activeAgent?.toLowerCase() ?? (running && stage === "judge" ? "clerk" : null);
