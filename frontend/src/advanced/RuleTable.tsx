@@ -47,7 +47,7 @@ export function RuleTable({ rules, focusedRule, onExhibit }: {
 }) {
   return (
     <section aria-label="Rules">
-      <div className="section-title"><h2>Hard rules</h2><span className="pill">observed vs limit</span></div>
+      <div className="section-title"><h2>Your limits</h2></div>
       {rules.length === 0 ? <p style={{ color: "var(--muted)" }}>No rule results yet.</p> : (
         <table>
           <thead>

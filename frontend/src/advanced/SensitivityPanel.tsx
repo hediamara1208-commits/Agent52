@@ -1,4 +1,5 @@
 import type { SensitivityResult } from "../model/sessionView";
+import { plain } from "../friendly/VerdictPanel";
 
 const fmt = (t: SensitivityResult["threshold"]) =>
   typeof t === "number" ? (Math.abs(t) <= 1.5 ? `${(t * 100).toFixed(1)}%` : String(t)) : t ?? "";
@@ -9,7 +10,7 @@ export function SensitivityPanel({ results, onExhibit }: {
 }) {
   return (
     <section aria-label="Sensitivity">
-      <div className="section-title"><h2>What-if</h2><span className="pill">sensitivity</span></div>
+      <div className="section-title"><h2>What would change the decision</h2></div>
       {results.length === 0 ? <p style={{ color: "var(--muted)" }}>No sensitivity results.</p> : (
         <ul className="sens-list">
           {results.map((s) => (
@@ -17,12 +18,12 @@ export function SensitivityPanel({ results, onExhibit }: {
               <strong>{s.variable.replace(/^contract\./, "").replace(/_/g, " ")}</strong>{" "}
               {s.changed ? (
                 <span>
-                  {s.baseline_verdict ?? "baseline"} <span className="arrow">→</span> {s.verdict_at_threshold ?? "unknown"}
+                  {(s.baseline_verdict ?? "baseline").replace(/_/g, " ")} <span className="arrow">→</span> {(s.verdict_at_threshold ?? "unknown").replace(/_/g, " ")}
                   {s.threshold != null ? <> at <code>{fmt(s.threshold)}</code></> : null}
                 </span>
               ) : <span style={{ color: "var(--muted)" }}>verdict does not change</span>}{" "}
               <button type="button" className="exhibit-link" onClick={() => onExhibit(s.exhibit)}>[Exhibit {s.exhibit}]</button>
-              {s.text ? <div style={{ color: "var(--muted)", fontSize: ".78rem", marginTop: ".25rem" }}>{s.text}</div> : null}
+              {s.text ? <div style={{ color: "var(--muted)", fontSize: ".78rem", marginTop: ".25rem" }}>{plain(s.text)}</div> : null}
             </li>
           ))}
         </ul>
