@@ -154,3 +154,15 @@ The portfolio comparison is computed in the browser with the toolkit's own rule 
 Checked live on Deployment 22 from a browser with empty storage: Robert preselected with his six holdings; typing "exxon", Enter, "10" showed the before/after at once; Enter started a hearing whose progress and first argument appeared while it ran; the decision (accepted, 10.0%) arrived in about 59 s; the courtroom opened only on "Replay the hearing". Opening every section then showed table names and a snapshot id inside "Understand the reasoning", which Deployment 23 removes.
 
 Amplify Deployment 24 (PR #64, about 22:30 ET) is the live build: it also rewrites the internal words that remained in one statement of a live hearing ("Hard_Rules", "option_2"). On Deployment 23 a live Robert / 30% TSLA hearing (accepted with conditions, 2.5%, about 68 s) showed no technical pattern in the detailed analysis and that single statement in the summary view; `frontend/src/plainLanguage.test.tsx` now covers it. Deployment 24 was checked to load with Robert and his portfolio; no further live hearing was run on it.
+
+## Own portfolio, arguments by member, role seats, evidence by topic (2026-11-15, about 22:35 ET)
+
+| Change | Live value | Source in `main` |
+|---|---|---|
+| Amplify Deployment 25 | bundle `index-D8FGgMjZ.js`; page title "VERDICT"; "My portfolio" offers the example or the investor's own holdings (search-and-add, share fields, running total, remove, paste import); "View the arguments" with one tab per member of the court; the hearing shows role seats instead of the illustrated scene; evidence grouped by topic with a source line; no "Guest session" label; example investors labelled fictional | PR #66 |
+
+No Lambda, API Gateway, IAM or runtime change. The anonymous-session design, caps and throttle are unchanged.
+
+Checked live on Deployment 25 after clearing the browser's storage: Robert preselected and labelled a fictional example; no "guest", "demo" or "prototype" wording on the page. Own portfolio: XIU.TO 50 showed "50% left to allocate" and kept "Enter the Tribunal" disabled; adding XBB.TO 30 and RY.TO 25 showed "5% over 100%"; correcting RY.TO to 20 showed "Total 100% Ready." A hearing on that portfolio (10% MSFT) completed in about 58 s with "Rejected" (cap per holding), and the comparison table showed the investor's own three holdings today and at 10% MSFT. "View the arguments" listed Defense, Prosecutor, Bailiff, Judge and Clerk, each with a main argument and supporting evidence; the hearing view showed the five role seats and no audio element; none of the internal patterns checked for (rule ids, snapshot ids, table names, service names) appeared in the investor view.
+
+Known gap: agent statements still say "Exhibit 2" in running text while the links read "Evidence 2". Not checked live on this build: the paste import, the appeal flow, a phone-sized screen, a second browser.
