@@ -17,6 +17,7 @@ const RUNNING = "verdict.running";
 const rememberSession = (id: string) => { try { sessionStorage.setItem(RUNNING, id); } catch { /* convenience only */ } };
 const forgetSession = () => { try { sessionStorage.removeItem(RUNNING); } catch { /* convenience only */ } };
 const runningSession = () => { try { return sessionStorage.getItem(RUNNING); } catch { return null; } };
+const DEFAULT_PROFILE = "robert";
 const LAST_PROFILE = "verdict.lastProfile";
 const remember = (id: string) => { try { if (id) localStorage.setItem(LAST_PROFILE, id); } catch { /* storage is a convenience only */ } };
 const remembered = () => { try { return localStorage.getItem(LAST_PROFILE) ?? ""; } catch { return ""; } };
@@ -114,8 +115,8 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
   // A returning investor does not configure anything again: the last profile used on this device is reselected.
   useEffect(() => {
     if (selected !== "") return;
-    // First visit: the first persona (Robert) is ready, so a hearing can start straight away.
-    const id = remembered() || personas[0]?.id || "";
+    // First visit: Robert (or the first persona) is ready, so a hearing can start straight away.
+    const id = remembered() || (personas.find((x) => x.id === DEFAULT_PROFILE) ?? personas[0])?.id || "";
     const p = personas.find((x) => x.id === id);
     const c = profiles.find((x) => x.profile_id === id);
     if (p) { setSelected(id); setValues(valuesFromPersona(p)); }
@@ -273,7 +274,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
               <div className="field">
                 <span className="field-label" id="sec-label">Stock or ETF</span>
                 <SecuritySearch value={security} autoFocus
-                  onPick={(s) => { setSecurity(s); if (s) setTimeout(() => allocationInput.current?.focus(), 0); }} />
+                  onPick={(s) => { setSecurity(s); if (s) allocationInput.current?.focus(); }} />
               </div>
               <label>Portfolio allocation{" "}
                 <span className="unit-input">

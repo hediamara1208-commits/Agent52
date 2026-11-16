@@ -119,3 +119,21 @@ Checked live on Deployment 16 with Robert / 30% TSLA: ruling in about 70 s (acce
 The build needs the three `@fontsource/ibm-plex-*` packages listed in `frontend/package.json` (`npm install` before `vite build`).
 
 Checked live on Deployment 18: with Robert remembered, typing "tesla", Enter, "30", Enter started a hearing with no pointer click; the ruling (accepted with conditions, 2.5%) arrived in about 67 s. The page title, the IBM Plex fonts and the Defense and Prosecutor labels were present.
+
+## Guest access for the jury (2026-11-15, about 21:35 ET)
+
+The jury opens the site and uses it with no account. Approved by the team before it was applied.
+
+| Change | Live value | Source in `main` |
+|---|---|---|
+| Session_API Lambda | code from PR #59; environment variable `GUIDE_GUEST_ACCESS=1` added (the other six variables unchanged) | PR #59, `api/handler.py` |
+| API Gateway `z5mq66xo98` | `authorizationType` set to `NONE` on the 7 non-OPTIONS methods (was `COGNITO_USER_POOLS`); stage `prod` throttling 20 requests/s, burst 40; deployment `obyo8p` | this log (CDK still describes the Cognito authorizer) |
+| Amplify Deployments 20 and 21 | `config.json` is `{"apiUrl": ..., "guest": true, "region": ...}`; no sign-in screen; Robert preselected; New case; refresh resumes a running hearing | PR #59, PR #60 |
+
+How a guest is identified: the browser creates a random 128-bit id, keeps it in its own storage and sends `Authorization: Guest <id>`. The Lambda files everything under `guest-<id>`, so one visitor cannot read another's hearings, traces or saved profiles. Anything else in that header gets 401.
+
+Limits on spend: 40 hearings per guest id per UTC day and 500 for all guests together (`GUIDE_GUEST_DAILY_CAP`, `GUIDE_GUESTS_DAILY_CAP`), counted atomically in the session table; beyond that the API answers 429 with a plain sentence. A guest id is chosen by the browser, so the per-guest cap only stops accidents; the overall cap and the API throttle are what bound the cost. There is no CAPTCHA and no WAF.
+
+To close it again: set `authorizationType` back to `COGNITO_USER_POOLS` with authorizer `rmovit` on the same methods, redeploy the stage, remove `GUIDE_GUEST_ACCESS`, and publish a `config.json` with the Cognito identifiers.
+
+Checked live on Deployment 20 from a browser with empty storage: no sign-in screen; a hearing (Amira, 20% Microsoft) started from the keyboard and ruled "accepted with conditions, 5.5%"; the hearing's own guest read it (200), another guest id got 404, a bearer token and a missing header got 401; a page refresh during the hearing resumed it; `POST /speech` returned audio.
