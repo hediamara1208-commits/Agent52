@@ -1,13 +1,9 @@
 import type { SessionView } from "../model/sessionView";
 import { ExhibitLink } from "./ExhibitLinks";
-import { plain } from "./VerdictPanel";
+import { RULE_NAMES, plain } from "./plain";
+export { RULE_NAMES };
 
 /** Plain names for the Hard_Rules (the investor's limits). */
-export const RULE_NAMES: Record<string, string> = {
-  per_asset_cap: "cap per holding", per_asset_class_caps: "asset-class caps", sector_caps: "sector caps",
-  crypto_cap: "crypto cap", max_volatility: "volatility limit", max_drawdown: "drawdown limit",
-  speculative_limit: "speculative limit", esg_exclusions: "ESG exclusion", esg_exclusion: "ESG exclusion",
-};
 const ruleName = (r: string) => RULE_NAMES[r] ?? r.replace(/_/g, " ");
 const pct = (w: number) => `${(w * 100).toFixed(1)}%`;
 const list = (xs: string[]) => xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
@@ -111,7 +107,7 @@ export function CourtroomTimeline({ view, onOpen }: { view: SessionView; onOpen:
             <span className="timeline-dot" aria-hidden="true">{i + 1}</span>
             <div>
               <h3>{s.title}</h3>
-              {s.note && <p className="timeline-note">{s.note}</p>}
+              {s.note && <p className="timeline-note">{plain(s.note)}</p>}
               {s.lines.map((l, j) => <p key={j} className={j === 0 ? "timeline-lead" : undefined}>{plain(l)}</p>)}
               {s.exhibits.length > 0 && (
                 <p className="timeline-exhibits">{s.exhibits.map((n) => <ExhibitLink key={n} number={n} onOpen={onOpen} />)}</p>

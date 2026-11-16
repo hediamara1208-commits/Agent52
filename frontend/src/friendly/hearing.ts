@@ -25,7 +25,9 @@ const list = (xs: string[]) => xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1)
 /** Keep a speech short enough to read aloud: whole sentences, at most `max` words. */
 /** The agents are named Advocate and Investigator in the runtime and its trace; on screen they are the
  * Defense and the Prosecutor. Only the role words change, never the content. Advanced mode shows the raw text. */
-export const courtWords = (text: string) => text.replace(/\bAdvocate\b/g, "Defense").replace(/\bInvestigator\b/g, "Prosecutor");
+export const courtWords = (text: string) => text.replace(/\bAdvocate\b/g, "Defense").replace(/\bInvestigator\b/g, "Prosecutor")
+  .replace(/Hard_Rules?/g, (m) => (m.endsWith("s") ? "limits" : "limit")).replace(/Soft_Preferences?/g, "preference")
+  .replace(/\boption_(\d+)\b/g, "option $1");
 
 export function trimSpeech(raw: string, max = 45): string {
   const text = courtWords(raw);
