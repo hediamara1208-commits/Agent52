@@ -12,6 +12,11 @@ import { SecuritySearch, parseAllocation } from "./SecuritySearch";
 import type { Security } from "./universe";
 
 export const POLL_MS = 2000;
+export const MAX_WAIT_MS = 5 * 60 * 1000;
+const RUNNING = "verdict.running";
+const rememberSession = (id: string) => { try { sessionStorage.setItem(RUNNING, id); } catch { /* convenience only */ } };
+const forgetSession = () => { try { sessionStorage.removeItem(RUNNING); } catch { /* convenience only */ } };
+const runningSession = () => { try { return sessionStorage.getItem(RUNNING); } catch { return null; } };
 const LAST_PROFILE = "verdict.lastProfile";
 const remember = (id: string) => { try { if (id) localStorage.setItem(LAST_PROFILE, id); } catch { /* storage is a convenience only */ } };
 const remembered = () => { try { return localStorage.getItem(LAST_PROFILE) ?? ""; } catch { return ""; } };
@@ -98,10 +103,19 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
+  const newCase = () => {
+    if (timer.current) clearTimeout(timer.current);
+    forgetSession();
+    store.setView(null);
+    setAppealBase(null); setMessage(null); setBusy(false);
+    setSecurity(null); setAllocation(""); setRequestText("");
+  };
+
   // A returning investor does not configure anything again: the last profile used on this device is reselected.
   useEffect(() => {
     if (selected !== "") return;
-    const id = remembered();
+    // First visit: the first persona (Robert) is ready, so a hearing can start straight away.
+    const id = remembered() || personas[0]?.id || "";
     const p = personas.find((x) => x.id === id);
     const c = profiles.find((x) => x.profile_id === id);
     if (p) { setSelected(id); setValues(valuesFromPersona(p)); }
@@ -123,22 +137,38 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
     if (c) setValues(c.values);
   };
 
-  const poll = useCallback((id: string) => {
+  const poll = useCallback((id: string, since = Date.now()) => {
     timer.current = setTimeout(async () => {
       try {
         const v = await api.getSession(id);
         store.setView(v);
-        if (v.status === "running") poll(id);
-        else {
+        if (v.status === "running") {
+          if (Date.now() - since > MAX_WAIT_MS) {
+            // Never leave the page loading for ever: release the form and say what happened.
+            setBusy(false); forgetSession();
+            setMessage("This hearing is taking much longer than usual and may have stopped. Start a new case to try again.");
+          } else poll(id, since);
+        } else {
+          forgetSession();
           setBusy(false);
           if (v.status === "failed") setMessage(`Session failed at stage "${v.error?.stage ?? v.stage}": ${v.error?.message ?? "unknown error"}`);
         }
       } catch (e) {
         setBusy(false);
-        setMessage(e instanceof Error ? e.message : "Polling failed");
+        setMessage(`The connection to the tribunal was lost (${e instanceof Error ? e.message : "network error"}). Start a new case to try again.`);
       }
     }, pollMs);
   }, [api, store, pollMs]);
+
+  // A page refresh during a hearing picks the same hearing up again instead of losing it.
+  useEffect(() => {
+    const id = runningSession();
+    if (!id || store.getState().view) return;
+    api.getSession(id).then((v) => {
+      store.setView(v);
+      if (v.status === "running") { setBusy(true); poll(id); } else forgetSession();
+    }).catch(forgetSession);
+  }, [api, store, poll]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,6 +191,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
         exhibits: [], verdict: null, ruling: null, rule_results: [], sensitivity: [], trace: [],
         summaries: {}, snapshot: null, data_notices: [], error: null,
       });
+      rememberSession(session_id);
       poll(session_id);
     } catch (err) {
       setBusy(false);
@@ -185,6 +216,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
         ...original, session_id, status: "running", stage: STAGES[0], stages_done: [], active_agent: null,
         exhibits: [], verdict: null, ruling: null, rule_results: [], sensitivity: [], trace: [], error: null,
       });
+      rememberSession(session_id);
       poll(session_id);
     } catch (err) {
       setBusy(false);
@@ -222,7 +254,10 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
         <aside aria-label="Inputs" className="sidebar">
           <div className="card decision">
             <form onSubmit={submit} aria-label="Your decision">
-              <h2>Your decision</h2>
+              <div className="section-title">
+                <h2>Your decision</h2>
+                {(view || message) && <button type="button" className="btn-quiet" onClick={newCase}>New case</button>}
+              </div>
               <label>Investor profile{" "}
                 <select aria-label="Persona" value={selected} disabled={!!personaError && personas.length === 0}
                   onChange={(e) => pick(e.target.value)}>
@@ -248,7 +283,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
                   <span aria-hidden="true">%</span>
                 </span>
                 <small id="alloc-help" role={!alloc.ok && alloc.error ? "alert" : undefined}>
-                  {!alloc.ok && alloc.error ? alloc.error : "Share of your whole portfolio you are thinking of putting in this security."}
+                  {!alloc.ok && alloc.error ? alloc.error : ""}
                 </small>
               </label>
               <button type="submit" className="btn-enter" disabled={busy || !request || !hasProfile}>
@@ -260,12 +295,11 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
                   <textarea aria-label="Request" value={requestText} onChange={(e) => setRequestText(e.target.value)}
                     placeholder="e.g. Should I put 30% of my portfolio in Tesla?" />
                 </label>
-                <small>Used only when no security is selected above. The same code reads the asset and the percentage from your sentence.</small>
               </details>
             </form>
           </div>
           <details className="card profile-card" open={!hasProfile || undefined}>
-            <summary><h2>Profile and limits</h2><span>Saved once, reused for every decision</span></summary>
+            <summary><h2>Profile and limits</h2></summary>
             <ProfileForm values={values} onChange={setValues} fromProfile={selected !== ""} />
             <HoldingsField text={holdings} onChange={setHoldings} />
             <button type="button" onClick={save} style={{ width: "100%" }}>Save this profile</button>
@@ -315,16 +349,27 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
   );
 }
 
-export function App({ auth, makeApi }: { auth: AuthService; makeApi: () => SessionApi }) {
+const Brand = () => (
+  <div className="brand"><span>VERDICT<small>Investment decisions, argued and ruled on evidence</small></span></div>
+);
+
+/** With `auth`, the workspace sits behind sign-in. Without it (public demonstration) it opens directly. */
+export function App({ auth, makeApi }: { auth?: AuthService; makeApi: () => SessionApi }) {
   const [api] = useState(makeApi);
+  if (!auth) {
+    return (
+      <div className="shell">
+        <nav className="topbar"><Brand /><p className="user-chip" style={{ margin: 0 }} data-testid="guest-chip">Guest session</p></nav>
+        <Workspace api={api} />
+      </div>
+    );
+  }
   return (
     <SignInGate auth={auth}>
       {(user, signOut) => (
         <div className="shell">
           <nav className="topbar">
-            <div className="brand">
-                            <span>VERDICT<small>Investment decisions, argued and ruled on evidence</small></span>
-            </div>
+            <Brand />
             <p className="user-chip" style={{ margin: 0 }}>
               <span className="user-id" title={user}>Signed in as {user}</span>
               <button type="button" onClick={() => { sessionStore.setView(null); signOut(); }}>Sign out</button>

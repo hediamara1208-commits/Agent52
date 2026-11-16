@@ -90,14 +90,28 @@ describe("Workspace", () => {
     localStorage.clear();
   });
 
-  it("asks for a profile instead of assuming limits", async () => {
+  it("asks for a profile instead of assuming limits when none can be loaded", async () => {
     localStorage.clear();
-    render(<Workspace api={fakeApi()} store={createSessionStore()} />);
+    render(<Workspace api={fakeApi({ getPersonas: async () => ({ personas: [] }) })} store={createSessionStore()} />);
     const user = userEvent.setup();
-    await screen.findByRole("option", { name: "Robert" });
     await user.keyboard("tesla{Enter}30");
     expect(screen.getByTestId("profile-missing")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Enter the Tribunal" })).toBeDisabled();
+  });
+
+  it("opens straight on the decision form for a guest, with a profile ready and no sign-in", async () => {
+    localStorage.clear();
+    const startSession = vi.fn(async () => ({ session_id: "s1" }));
+    render(<App makeApi={() => fakeApi({ startSession })} />);
+    const user = userEvent.setup();
+    expect(screen.queryByRole("form", { name: "Sign in" })).toBeNull();
+    expect(screen.getByTestId("guest-chip")).toBeInTheDocument();
+    expect(await screen.findByTestId("profile-summary")).toBeInTheDocument();   // Robert, the first persona
+    await user.keyboard("tesla{Enter}30{Enter}");
+    expect(startSession).toHaveBeenCalledWith(expect.objectContaining({ persona_id: "robert", request_text: "Should I put 30% of my portfolio in TSLA?" }));
+    await user.click(await screen.findByRole("button", { name: "New case" }));
+    expect(screen.getByRole("combobox", { name: "Stock or ETF" })).toHaveValue("");
+    sessionStorage.clear(); localStorage.clear();
   });
 
   it("disables the picker and shows the error when the Persona_File fails", async () => {
