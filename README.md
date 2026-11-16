@@ -1,12 +1,23 @@
-# Decision Tribunal: an agentic suitability check for investors
+# VERDICT: an agentic suitability check for investors
 
 **Simulation only. Not financial advice, no predictions.** The app never places an order, moves money or holds credentials.
 
-**Live demo:** https://main.d3nprpi8xxns73.amplifyapp.com (open to guests for the datathon: no account, no sign-in; pick a stock or ETF, an allocation, and enter the tribunal). PolyFinances Datathon 2026, AlphaForge AI case (National Bank).
+**Live app:** https://main.d3nprpi8xxns73.amplifyapp.com (public, no account: each browser gets its own isolated session). PolyFinances Datathon 2026, AlphaForge AI case (National Bank).
+
+## Quick start
+
+| Goal | Steps |
+| --- | --- |
+| Try it (1 minute) | Open the live app. A fictional example investor (Robert) is preselected. Type a stock or ETF (e.g. `tesla`), press Enter, type an allocation (e.g. `30`), press Enter. The ruling arrives in about a minute. Optional: "My own portfolio" to enter your holdings, "View the arguments" after the decision. |
+| Run the tests locally (no AWS) | `python3.11 -m venv .venv311 && source .venv311/bin/activate && pip install -e ".[dev]" && pytest`, then `cd frontend && npm ci && npm test` |
+| See the UI offline (no AWS) | `cd frontend && npm ci && npm run build:replay`, then open `frontend/dist-replay/index.html` (a recorded hearing) |
+| Run a hearing or deploy | Needs an AWS account with Bedrock access: see [Run it yourself](#run-it-yourself) below |
+
+In the code, the Defense agent is named `advocate` and the Prosecutor `investigator`; the interface uses Defense and Prosecutor.
 
 ## The problem
 
-An investor asks "Should I put 30% of my portfolio in Tesla?". A chatbot either says yes or refuses everything. A good advisor checks whether the request fits *this* person (horizon, risk limits, exclusions, current holdings), explains why with evidence, and says what would change the answer. The Decision Tribunal does that: AI agents argue the case, and code enforces the investor's own limits.
+An investor asks "Should I put 30% of my portfolio in Tesla?". A chatbot either says yes or refuses everything. A good advisor checks whether the request fits *this* person (horizon, risk limits, exclusions, current holdings), explains why with evidence, and says what would change the answer. VERDICT does that: AI agents argue the case, and code enforces the investor's own limits.
 
 ## How it works
 
@@ -18,15 +29,14 @@ An investor asks "Should I put 30% of my portfolio in Tesla?". A chatbot either 
 6. **Clerk** (code) writes the ruling in plain language. A citation validator removes any number not backed by an Exhibit. A guidance-only check removes buy/sell orders and predictions. Survivorship-bias and data limits are added to every ruling.
 7. **Appeal.** The investor changes one input (horizon, a limit) and the court rules again; the screen shows what changed and why.
 
-Every number is an **Exhibit**: computed by code from a pinned dataset snapshot, with its file, column, period and processing notes, or a web article with its source and link. The UI shows a live progress card while the court sits (about a minute), then the verdict, "How the court decided" (who contributed what), the four answers, and news cards.
+Every number is an **Exhibit** (shown as "Evidence N"): computed by code from a pinned dataset snapshot, with its period, currency, securities and processing notes, or a web article with its source and link. While the court sits (about a minute) the screen shows real progress and the arguments as they arrive; then a short decision (verdict, largest size within the investor's limits, why), with optional layers: the portfolio before and after (hypothetical, funded by reducing every holding in proportion), what would change the decision, the hearing replay, the arguments of each member of the court, and the detailed analysis with evidence grouped by topic.
 
 ## Architecture on AWS
 
 ```mermaid
 flowchart LR
   U[Investor browser] --> AMP[Amplify Hosting<br/>React app]
-  U --> COG[Cognito<br/>sign-in]
-  AMP --> APIGW[API Gateway<br/>Cognito authorizer]
+  U --> APIGW[API Gateway<br/>throttled, per-browser session]
   APIGW --> L[Lambda<br/>Session_API]
   L --> DDB[(DynamoDB<br/>sessions, precedents)]
   L --> RT[AgentCore Runtime<br/>tribunal container]
@@ -43,7 +53,7 @@ flowchart LR
 | Service | Why it is here |
 | --- | --- |
 | Amplify Hosting | Serves the React app over HTTPS with no server to run. |
-| Cognito | Sign-in for users. Switched off on the public demonstration, where each browser is an isolated guest with daily caps (see `docs/deployment_log.md`); the user pool and the sign-in screen remain for a signed-in deployment. |
+| Cognito | Sign-in for users. Not used on the public app, where each browser is an isolated session with daily caps (40 hearings per browser, 500 in total) and API Gateway throttling (see `docs/deployment_log.md`); the user pool and the sign-in screen remain for a signed-in deployment. |
 | API Gateway + Lambda (Session_API) | Validates the profile and request (incl. custom holdings), starts a session, serves its live state for polling. |
 | Bedrock AgentCore Runtime | Hosts the tribunal container (agents + code checks); a session runs about a minute, longer than an API call should. |
 | Amazon Bedrock (Claude Sonnet 5.5) | The Advocate, Investigator and Judge. |
@@ -79,6 +89,8 @@ Starter dataset (Yahoo Finance prices, Bank of Canada FX and rates, FRED), 2021-
 | Document | Contents |
 | --- | --- |
 | [docs/data_sources.md](docs/data_sources.md) | Every data source: origin, retrieval, processing, limits, terms |
+| [docs/data_audit.md](docs/data_audit.md) | Dataset inventory, treatment, what each analysis needs versus what the data supports |
+| [docs/data_quality_report.md](docs/data_quality_report.md) | Measured data checks (duplicates, gaps, bad prices, FX coverage) |
 | [docs/benchmark.md](docs/benchmark.md) | Tribunal vs single agent: method, results, limits |
 | [docs/deployment_log.md](docs/deployment_log.md) | What is live, and changes made by hand during the event |
 | `.kiro/specs/agentic-investment-guide/` | Requirements, design and task list |
