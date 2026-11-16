@@ -31,7 +31,7 @@ describe("news cards (AgentCore Web Search terms: title, source, date, link)", (
     expect(card).toHaveTextContent("reuters.com");
     expect(card).toHaveTextContent("Nov 13, 2026");
     expect(card).toHaveTextContent("Context");
-    fireEvent.click(within(card).getByRole("button", { name: "[Exhibit 41]" }));
+    fireEvent.click(within(card).getByRole("button", { name: "Evidence 41" }));
     expect(onSee).toHaveBeenCalledWith({ kind: "exhibit", number: 41 });
   });
 

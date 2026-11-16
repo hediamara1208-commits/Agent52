@@ -34,7 +34,7 @@ function Row({ r, focused, onExhibit }: { r: RuleResult; focused: boolean; onExh
       <td className="meter-label">{fmtValue(r, r.limit)}</td>
       <td>
         {(r.exhibits ?? []).map((n) => (
-          <button key={n} type="button" className="exhibit-link" onClick={() => onExhibit(n)}>[Exhibit {n}]</button>
+          <button key={n} type="button" className="exhibit-link" onClick={() => onExhibit(n)}>Evidence {n}</button>
         ))}
       </td>
     </tr>

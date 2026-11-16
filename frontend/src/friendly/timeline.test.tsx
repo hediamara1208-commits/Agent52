@@ -55,7 +55,7 @@ describe("courtroom timeline (who contributed what)", () => {
     const onSee = vi.fn();
     render(<FriendlyMode view={view} onSeeDetails={onSee} />);
     const inv = screen.getByTestId("timeline-investigator");
-    fireEvent.click(within(inv).getByRole("button", { name: "[Exhibit 41]" }));
+    fireEvent.click(within(inv).getByRole("button", { name: "Evidence 41" }));
     expect(onSee).toHaveBeenCalledWith({ kind: "exhibit", number: 41 });
   });
 

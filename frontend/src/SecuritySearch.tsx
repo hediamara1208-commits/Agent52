@@ -6,8 +6,8 @@ import { KIND_LABEL, UNIVERSE, searchSecurities, type Security } from "./univers
  * Keyboard: arrows move, Enter picks, Escape closes. A query with no match explains why
  * nothing is offered rather than accepting an asset that cannot be analysed.
  */
-export function SecuritySearch({ value, onPick, autoFocus = false }: {
-  value: Security | null; onPick: (s: Security | null) => void; autoFocus?: boolean;
+export function SecuritySearch({ value, onPick, autoFocus = false, label = "Stock or ETF", placeholder = "Search by name or ticker, e.g. Tesla" }: {
+  value: Security | null; onPick: (s: Security | null) => void; autoFocus?: boolean; label?: string; placeholder?: string;
 }) {
   const id = useId();
   const [query, setQuery] = useState("");
@@ -39,11 +39,11 @@ export function SecuritySearch({ value, onPick, autoFocus = false }: {
   };
   return (
     <div className="sec-search">
-      <input ref={input} id={id} type="text" role="combobox" aria-label="Stock or ETF" aria-expanded={open} aria-controls={`${id}-list`}
+      <input ref={input} id={id} type="text" role="combobox" aria-label={label} aria-expanded={open} aria-controls={`${id}-list`}
         aria-autocomplete="list" aria-activedescendant={open && results[active] ? `${id}-opt-${active}` : undefined}
-        autoComplete="off" spellCheck={false} autoFocus={autoFocus} placeholder="Search by name or ticker, e.g. Tesla"
+        autoComplete="off" spellCheck={false} autoFocus={autoFocus} placeholder={placeholder}
         value={query} onChange={(e) => { setQuery(e.target.value); setOpen(true); setActive(0); }}
-        onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 120)} onKeyDown={onKey} />
+        onClick={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 120)} onKeyDown={onKey} />
       {open && (
         results.length > 0 ? (
           <ul id={`${id}-list`} role="listbox" aria-label="Securities" className="sec-list">

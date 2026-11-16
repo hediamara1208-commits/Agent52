@@ -9,6 +9,7 @@ import { LiveProgress } from "./LiveProgress";
 import { FourAnswersCard, answersOf } from "./FourAnswersCard";
 import { NewsCards, newsOf } from "./NewsCards";
 import { VerdictPanel } from "./VerdictPanel";
+import { TribunalArguments } from "./Arguments";
 
 
 /** The investor's view: real progress and arguments while the hearing runs, then the decision.
@@ -59,6 +60,12 @@ export function FriendlyMode({
       </div>
       {follow && <Courtroom view={view} onOpen={openExhibit} />}
       {view.status === "completed" && (
+        <details className="card more reasoning" data-testid="view-arguments">
+          <summary><h2>View the arguments</h2></summary>
+          <TribunalArguments view={view} onOpen={openExhibit} />
+        </details>
+      )}
+      {view.status === "completed" && (
         <details className="card more reasoning" data-testid="reasoning">
           <summary><h2>Understand the reasoning</h2></summary>
           <CourtroomTimeline view={view} onOpen={openExhibit} />
@@ -68,7 +75,7 @@ export function FriendlyMode({
       )}
       {shown && (
         <div className="drawer-backdrop" onClick={() => setOpen(null)}>
-          <aside className="drawer" role="dialog" aria-modal="true" aria-label={`Exhibit ${shown.number}`} onClick={(e) => e.stopPropagation()}>
+          <aside className="drawer" role="dialog" aria-modal="true" aria-label={`Evidence ${shown.number}`} onClick={(e) => e.stopPropagation()}>
             <div className="drawer-head">
               <span>Evidence</span>
               <button type="button" onClick={() => setOpen(null)} aria-label="Close evidence">Close</button>

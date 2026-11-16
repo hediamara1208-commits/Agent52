@@ -5,7 +5,8 @@ import { ApiError, type ContractValues, type CustomProfile, type PersonaEntry, t
 import type { AuthService } from "./api/auth";
 import { sessionStore, useSessionStore, type SessionStore, type SessionView } from "./model/sessionView";
 import { AppealControl, AppealView, type AppealChange } from "./appeal";
-import { EMPTY_VALUES, FOSSIL, HoldingsField, ProfileForm, parseHoldings, valuesFromPersona } from "./ProfileForm";
+import { EMPTY_VALUES, FOSSIL, ProfileForm, valuesFromPersona } from "./ProfileForm";
+import { PortfolioBuilder, checkRows, type HoldingRow } from "./PortfolioBuilder";
 import { SignInGate } from "./SignInGate";
 import { SecuritySearch, parseAllocation } from "./SecuritySearch";
 import { PortfolioComparison, asFractions, personaPortfolio, type Weights } from "./Portfolio";
@@ -87,7 +88,8 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
   const allocationInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [holdings, setHoldings] = useState("");
+  const [own, setOwn] = useState(false);
+  const [rows, setRows] = useState<HoldingRow[]>([]);
   const [appealBase, setAppealBase] = useState<{ original: SessionView; change: AppealChange } | null>(null);
   const [caseBase, setCaseBase] = useState<Weights | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -124,11 +126,11 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
     else if (c) { setSelected(id); setValues(c.values); }
   }, [personas, profiles, selected]);
 
-  // Holdings shown and compared: the ones typed under "Profile and limits", else the profile's own.
-  const typed = parseHoldings(holdings);
+  // Holdings shown and compared: the example profile's, or the investor's own once "My own portfolio" is chosen.
   const savedBase = profiles.find((p) => p.profile_id === selected)?.base_persona_id;
-  const basePortfolio: Weights | null = typed.ok && typed.value ? asFractions(typed.value)
-    : personaPortfolio(personas.find((p) => p.id === (savedBase ?? selected)));
+  const example = personaPortfolio(personas.find((p) => p.id === (savedBase ?? selected)));
+  const ownCheck = checkRows(rows);
+  const basePortfolio: Weights | null = own ? (ownCheck.ok ? asFractions(ownCheck.value) : null) : example;
   const alloc = parseAllocation(allocation);
   // The structured request is turned into the sentence the deterministic parser reads; no model call is involved.
   const structured = security && alloc.ok ? `Should I put ${alloc.value}% of my portfolio in ${security.ticker}?` : null;
@@ -180,8 +182,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
-    const parsedHoldings = parseHoldings(holdings);
-    if (!parsedHoldings.ok) { setMessage(parsedHoldings.error); return; }
+    if (own && !ownCheck.ok) { setMessage(`Your portfolio is not complete yet: ${ownCheck.error}`); return; }
     setBusy(true);
     try {
       const savedProfile = profiles.find((p) => p.profile_id === selected);
@@ -192,7 +193,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
         persona_id: isProfile ? savedProfile.base_persona_id : selected || null,
         profile_id: isProfile ? selected : null,
         values, request_text: request,
-        ...(parsedHoldings.value ? { base_portfolio: parsedHoldings.value } : {}),
+        ...(own && ownCheck.ok ? { base_portfolio: ownCheck.value } : {}),
       });
       store.setView({
         session_id, status: "running", contract: null, stage: STAGES[0], stages_done: [], active_agent: null,
@@ -257,7 +258,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
                 <h2>Your decision</h2>
                 {(view || message) && <button type="button" className="btn-quiet" onClick={newCase}>New case</button>}
               </div>
-              <label>Investor profile{" "}
+              <label>Example investor{" "}
                 <select aria-label="Persona" value={selected} disabled={!!personaError && personas.length === 0}
                   onChange={(e) => pick(e.target.value)}>
                   <option value="">Choose a profile…</option>
@@ -267,7 +268,8 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
               </label>
               {personaError && <p role="alert" data-testid="persona-error" className="alert">Persona file: {personaError}</p>}
               {hasProfile
-                ? <p className="profile-summary" data-testid="profile-summary">{profileSummary(values)}</p>
+                ? <><p className="profile-summary" data-testid="profile-summary">{profileSummary(values)}</p>
+                  {personas.some((p) => p.id === selected) && <p className="profile-note" data-testid="fictional-note">A fictional example. Change the limits or the portfolio below to match your own.</p>}</>
                 : <p className="profile-summary missing" data-testid="profile-missing">Choose a profile, or fill in your own under “Profile and limits”. The tribunal does not assume limits you have not given.</p>}
               <div className="field">
                 <span className="field-label" id="sec-label">Stock or ETF</span>
@@ -285,7 +287,7 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
                   {!alloc.ok && alloc.error ? alloc.error : ""}
                 </small>
               </label>
-              <button type="submit" className="btn-enter" disabled={busy || !request || !hasProfile}>
+              <button type="submit" className="btn-enter" disabled={busy || !request || !hasProfile || (own && !ownCheck.ok)}>
                 {busy ? "The tribunal is in session…" : "Enter the Tribunal"}
               </button>
               <details className="own-words">
@@ -297,16 +299,20 @@ export function Workspace({ api, store = sessionStore, pollMs = POLL_MS }: {
               </details>
             </form>
           </div>
-          {basePortfolio && (
-            <details className="card profile-card" open data-testid="my-portfolio">
-              <summary><h2>My portfolio</h2></summary>
-              <PortfolioComparison base={basePortfolio} ticker={security?.ticker ?? null} requested={alloc.ok ? alloc.value / 100 : null} />
-            </details>
-          )}
+          <details className="card profile-card" open data-testid="my-portfolio">
+            <summary><h2>My portfolio</h2></summary>
+            <div role="group" aria-label="Portfolio to use" className="mode-switch pf-switch">
+              <button type="button" aria-pressed={!own} onClick={() => setOwn(false)}>Example portfolio</button>
+              <button type="button" aria-pressed={own} onClick={() => setOwn(true)}>My own portfolio</button>
+            </div>
+            {own && <PortfolioBuilder rows={rows} onChange={setRows} example={example} />}
+            {basePortfolio
+              ? <PortfolioComparison base={basePortfolio} ticker={security?.ticker ?? null} requested={alloc.ok ? alloc.value / 100 : null} />
+              : !own && <p className="profile-summary missing">This profile has no example portfolio. Choose “My own portfolio” to enter one.</p>}
+          </details>
           <details className="card profile-card" open={!hasProfile || undefined}>
             <summary><h2>Profile and limits</h2></summary>
             <ProfileForm values={values} onChange={setValues} fromProfile={selected !== ""} />
-            <HoldingsField text={holdings} onChange={setHoldings} />
             <button type="button" onClick={save} style={{ width: "100%" }}>Save this profile</button>
           </details>
           <div className="card">
@@ -359,7 +365,7 @@ export function App({ auth, makeApi }: { auth?: AuthService; makeApi: () => Sess
   if (!auth) {
     return (
       <div className="shell">
-        <nav className="topbar"><Brand /><p className="user-chip" style={{ margin: 0 }} data-testid="guest-chip">Guest session</p></nav>
+        <nav className="topbar"><Brand /></nav>
         <Workspace api={api} />
       </div>
     );

@@ -30,7 +30,7 @@ describe("Friendly_Mode", () => {
     expect(screen.getByTestId("verdict")).toHaveTextContent("Accepted with conditions");
     fireEvent.click(screen.getByTestId("follow-toggle"));
     expect(screen.getByTestId("court-record")).toHaveTextContent("So ordered.");
-    fireEvent.click(screen.getByRole("button", { name: "[Exhibit 3]" }));
+    fireEvent.click(screen.getByRole("button", { name: "Evidence 3" }));
     expect(onSee).toHaveBeenCalledWith({ kind: "exhibit", number: 3 });
   });
 });
@@ -57,7 +57,7 @@ describe("four answers card (Req. 33.4)", () => {
       expect(screen.getByRole("heading", { name: h })).toBeInTheDocument();
     const text = screen.getByTestId("answer-text-why_this_choice").textContent ?? "";
     expect(text.split(/\s+/).length).toBeLessThanOrEqual(60);
-    fireEvent.click(within(screen.getByTestId("answer-which_data")).getByRole("button", { name: "[Exhibit 2]" }));
+    fireEvent.click(within(screen.getByTestId("answer-which_data")).getByRole("button", { name: "Evidence 2" }));
     expect(onSee).toHaveBeenCalledWith({ kind: "exhibit", number: 2 });
   });
 

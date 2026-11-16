@@ -42,8 +42,8 @@ group("Exhibit cards (plain reading first, trace one click away)", () => {
       ruling: { what_would_change: [{ text: "A smaller size.", citations: [2] }] } } as unknown as SessionView;
     const onSee = vi.fn();
     render(<FriendlyMode view={view} onSeeDetails={onSee} inlineExhibits />);
-    fireEvent.click(screen.getByRole("button", { name: /Exhibit 2/ }));
-    expect(screen.getByRole("dialog", { name: "Exhibit 2" })).toHaveTextContent("Where the portfolio's risk comes from");
+    fireEvent.click(screen.getByRole("button", { name: /Evidence 2/ }));
+    expect(screen.getByRole("dialog", { name: "Evidence 2" })).toHaveTextContent("Where the portfolio's risk comes from");
     expect(onSee).not.toHaveBeenCalled();
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();

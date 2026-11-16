@@ -22,7 +22,7 @@ export function SensitivityPanel({ results, onExhibit }: {
                   {s.threshold != null ? <> at <code>{fmt(s.threshold)}</code></> : null}
                 </span>
               ) : <span style={{ color: "var(--muted)" }}>verdict does not change</span>}{" "}
-              <button type="button" className="exhibit-link" onClick={() => onExhibit(s.exhibit)}>[Exhibit {s.exhibit}]</button>
+              <button type="button" className="exhibit-link" onClick={() => onExhibit(s.exhibit)}>Evidence {s.exhibit}</button>
               {s.text ? <div style={{ color: "var(--muted)", fontSize: ".78rem", marginTop: ".25rem" }}>{plain(s.text)}</div> : null}
             </li>
           ))}

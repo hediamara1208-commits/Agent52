@@ -611,3 +611,60 @@ h3.news-title { margin: 0; font-size: .95rem; color: var(--text); text-transform
   .pf .pf-name { display: none; } .pf .pf-ticker { font-size: .82rem; color: var(--text); }
   .pf-bar { min-width: 26px; } .pf th, .pf td, .verdict .pf th, .verdict .pf td { padding: .4rem .25rem; font-size: .8rem; }
 }
+
+/* ---------- the hearing: role seats in the product's own style (no stage, no characters) ---------- */
+.hearing { padding: 1rem; }
+.hearing .phase-rail li { background: var(--surface-2); color: var(--muted); }
+.hearing .phase-rail li[data-state="done"] { color: var(--pass); }
+.hearing .phase-rail li[data-state="active"] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.bench { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin: .8rem 0; }
+.bench .seat { display: grid; justify-items: center; gap: .15rem; text-align: center; padding: .8rem .5rem; border: 1px solid var(--border);
+  border-radius: 12px; background: var(--surface); color: var(--muted); transition: border-color .4s ease, background .4s ease, color .4s ease; }
+.bench .seat b { color: var(--text); font-family: var(--serif, inherit); font-size: 1rem; font-weight: 600; }
+.bench .seat small { font-size: .74rem; line-height: 1.3; }
+.bench .seat .kind { font-size: .66rem; letter-spacing: .06em; text-transform: uppercase; }
+.bench .avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-strong); margin-bottom: .2rem; }
+.bench .seat-advocate .avatar { color: var(--defense); border-color: var(--defense); }
+.bench .seat-investigator .avatar { color: var(--prosecutor); border-color: var(--prosecutor); }
+.bench .seat-judge .avatar { color: var(--judge); border-color: var(--judge); }
+.bench .seat-bailiff, .bench .seat-clerk { grid-template-columns: auto 1fr; justify-items: start; text-align: left; column-gap: .6rem; padding: .5rem .7rem; }
+.bench .seat-bailiff { grid-column: 1 / span 1; } .bench .seat-clerk { grid-column: 3 / span 1; }
+.bench .seat-bailiff .avatar, .bench .seat-clerk .avatar { grid-row: span 3; width: 34px; height: 34px; margin: 0; }
+.bench .seat-active { border-color: var(--accent); background: var(--accent-bg); }
+.bench .seat-active .avatar { background: var(--surface); }
+.bench.hush .seat:not(.seat-judge) { opacity: .55; }
+.floor { min-height: 6.5rem; padding: .9rem 1rem; border-radius: 12px; background: var(--surface-2); }
+.floor .speech strong { display: block; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: .25rem; }
+.floor .speech p { margin: 0; font-family: var(--serif, inherit); font-size: 1.02rem; line-height: 1.5; }
+.floor .speaker-advocate strong { color: var(--defense); } .floor .speaker-investigator strong { color: var(--prosecutor); }
+.floor .speaker-judge strong { color: var(--judge); } .floor .speaker-objection strong { color: var(--fail); }
+.floor .struck { text-decoration: line-through; color: var(--muted); font-style: italic; }
+.floor .speech-evidence { margin-top: .5rem !important; }
+.floor .hush-line { margin: 0; color: var(--muted); font-style: italic; text-align: center; padding-top: 1.6rem; }
+.hearing .court-caption { color: var(--muted); font-size: .82rem; } .hearing .court-caption .dot { color: var(--accent); }
+@media (max-width: 700px) { .bench { grid-template-columns: 1fr 1fr; } .bench .seat-judge { grid-column: 1 / -1; order: -1; } .bench .seat-bailiff, .bench .seat-clerk { grid-column: auto; } }
+
+/* ---------- own portfolio ---------- */
+.pf-switch { margin: .2rem 0 .7rem; } .pf-switch button { font-size: .82rem; padding: .4rem .3rem; }
+.builder-rows { list-style: none; margin: 0 0 .5rem; padding: 0; }
+.builder-rows li { display: grid; grid-template-columns: 1fr 5.2rem auto; gap: .5rem; align-items: center; padding: .3rem 0; border-bottom: 1px solid var(--border); }
+.builder-name { display: grid; min-width: 0; } .builder-name b { font-weight: 500; font-size: .86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.builder-name small { font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+.builder-rows input { width: 100%; text-align: right; }
+.builder-total { margin: .6rem 0 .2rem; font-size: .86rem; color: var(--warn); } .builder-total.ok { color: var(--pass); }
+.builder-actions { display: flex; gap: .8rem; flex-wrap: wrap; margin-bottom: .3rem; }
+.builder-note { font-size: .82rem; color: var(--muted); margin: .5rem 0 0; }
+.profile-note { margin: -.3rem 0 .6rem; font-size: .76rem; color: var(--muted); }
+
+/* ---------- view the arguments ---------- */
+.args-tabs { display: flex; flex-wrap: wrap; gap: .3rem; border-bottom: 1px solid var(--border); margin-bottom: .8rem; }
+.args-tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: .45rem .7rem; color: var(--muted); }
+.args-tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+.args-panel h3 { margin: .9rem 0 .2rem; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.args-panel p { margin: 0; } .args-panel ul { margin: 0; padding-left: 1.1rem; } .args-panel li { margin: .2rem 0; }
+.args-role { color: var(--muted); font-size: .88rem; } .args-role span { margin-left: .4rem; font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--border); border-radius: 999px; padding: .05rem .45rem; }
+
+/* ---------- evidence by topic ---------- */
+.evidence-group { margin-top: 1.1rem; } .evidence-group h3 { margin: 0; font-size: 1rem; }
+.evidence-source { margin: .1rem 0 .5rem; font-size: .78rem; color: var(--muted); }
+.exhibit-link { font-family: inherit; }
