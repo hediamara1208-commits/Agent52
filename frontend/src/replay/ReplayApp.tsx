@@ -17,8 +17,7 @@ export function ReplayApp({ view = recorded as unknown as SessionView, store }: 
     <div className="shell">
       <nav className="topbar">
         <div className="brand">
-          <span className="brand-mark" aria-hidden="true">⚖</span>
-          <span>Decision Tribunal<small>Recorded session replay</small></span>
+          <span>VERDICT<small>Recorded session replay</small></span>
         </div>
       </nav>
       <header className="banners">

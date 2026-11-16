@@ -30,18 +30,11 @@ export function SizeGauge({ allowed, requested }: { allowed: number; requested: 
   return (
     <svg className="gauge" viewBox="0 0 200 130" width="100%" role="img"
       aria-label={`Allowed ${pct(allowed)}${requested != null ? ` of requested ${pct(requested)}` : ""}`}>
-      <defs>
-        <linearGradient id="gaugeGrad" x1="0" x2="1">
-          <stop offset="0" stopColor="#34d399" />
-          <stop offset="0.6" stopColor="#fbbf24" />
-          <stop offset="1" stopColor="#f6d58e" />
-        </linearGradient>
-      </defs>
-      <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="14" strokeLinecap="round" />
-      <path className="gauge-arc" d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="url(#gaugeGrad)" strokeWidth="14"
+      <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="var(--surface-2)" strokeWidth="14" strokeLinecap="round" />
+      <path className="gauge-arc" d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="var(--accent)" strokeWidth="14"
         strokeLinecap="round" strokeDasharray={len} strokeDashoffset={len * (1 - frac)} />
-      <text x="100" y="92" textAnchor="middle" fontSize="28" fontWeight="800" fill="#e9edf6">{pct(allowed)}</text>
-      <text x="100" y="114" textAnchor="middle" fontSize="11" fill="#8b95ad">
+      <text x="100" y="92" textAnchor="middle" fontSize="28" fontWeight="600" fill="var(--text)">{pct(allowed)}</text>
+      <text x="100" y="114" textAnchor="middle" fontSize="11" fill="var(--muted)">
         {requested != null ? `max allowed · requested ${pct(requested)}` : "max allowed"}
       </text>
     </svg>

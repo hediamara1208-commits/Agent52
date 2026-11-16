@@ -17,7 +17,7 @@ const INVESTOR = { x: 1090, y: 330 };
 const anchor = (s: Speaker) => (s === "objection" ? CAST.bailiff : CAST[s]);
 
 /** The phases of a hearing, in order, and which speeches belong to each. */
-export const PHASES = ["Opening", "Advocate", "Investigator", "Evidence check", "Ruling"] as const;
+export const PHASES = ["Opening", "Defense", "Prosecutor", "Evidence check", "Ruling"] as const;
 export function phaseOf(speeches: Speech[], index: number): number {
   const s = speeches[index];
   if (!s) return 0;

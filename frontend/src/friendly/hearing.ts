@@ -14,7 +14,7 @@ export interface Speech {
 }
 
 export const SPEAKER_NAME: Record<Speaker, string> = {
-  bailiff: "Bailiff", advocate: "Advocate", investigator: "Investigator",
+  bailiff: "Bailiff", advocate: "Defense", investigator: "Prosecutor",
   judge: "Judge", clerk: "Clerk", objection: "Objection",
 };
 
@@ -23,7 +23,12 @@ const ruleName = (r: string) => RULE_NAMES[r] ?? r.replace(/_/g, " ");
 const list = (xs: string[]) => xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 
 /** Keep a speech short enough to read aloud: whole sentences, at most `max` words. */
-export function trimSpeech(text: string, max = 45): string {
+/** The agents are named Advocate and Investigator in the runtime and its trace; on screen they are the
+ * Defense and the Prosecutor. Only the role words change, never the content. Advanced mode shows the raw text. */
+export const courtWords = (text: string) => text.replace(/\bAdvocate\b/g, "Defense").replace(/\bInvestigator\b/g, "Prosecutor");
+
+export function trimSpeech(raw: string, max = 45): string {
+  const text = courtWords(raw);
   const clean = text.replace(/\s+/g, " ").trim();
   // Split at a full stop followed by a space and a capital, never inside "30.0%".
   const sentences = clean.split(/(?<=[.!?])\s+(?=[A-Z"(])/).map((x) => `${x} `);
@@ -81,7 +86,7 @@ export function hearingOf(view: SessionView): Speech[] {
   // 2. Advocate: the goal, then the sizes it pleads for.
   if (done.has("advocate")) {
     const proposed = options.filter((o) => o.source === "advocate");
-    // Live summary: "The Advocate sees the goal as: <goal>. It proposes N options for the court."
+    // Live summary: "The Defense sees the goal as: <goal>. It proposes N options for the court."
     const summary = view.summaries.advocate ?? "";
     const goal = /goal as:\s*(.+?\.)(?:\s|$)/i.exec(summary)?.[1] ?? "";
     const count = Number(/proposes (\d+) option/i.exec(summary)?.[1] ?? 0);

@@ -38,7 +38,7 @@ const view = {
 } as unknown as SessionView;
 
 describe("courtroom timeline (who contributed what)", () => {
-  it("lists the Advocate, Investigator, code and Judge in order", () => {
+  it("lists the Defense, Investigator, code and Judge in order", () => {
     const steps = timelineOf(view);
     expect(steps.map((s) => s.agent)).toEqual(["advocate", "investigator", "code", "judge"]);
     expect(steps[0].lines[0]).toBe("Proposed 2 options: TSLA 5.0% and TSLA 2.5%.");
