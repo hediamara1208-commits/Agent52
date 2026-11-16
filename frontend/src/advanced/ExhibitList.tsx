@@ -23,7 +23,7 @@ function ExhibitItem({ exhibit, focused, onFocus }: { exhibit: Exhibit; focused:
 function counts(exhibits: Exhibit[]): string {
   const web = exhibits.filter((e) => e.metric === WEB_METRIC).length;
   const code = exhibits.length - web;
-  return web ? `${code} computed by code · ${web} news` : `${code} computed by code`;
+  return web ? `${code} calculations · ${web} news` : `${code} calculations`;
 }
 
 /** Exhibit browser; the focused Exhibit opens its details, including Snapshot_Id (Req. 7.6, 7.17). */

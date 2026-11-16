@@ -37,11 +37,9 @@ const PAUSE_MS = 1300;
 
 /** The courtroom: every member takes the floor in turn. Speeches come from the session's own
  * outputs (no model call). Plays live while the court sits, then replays the whole hearing. */
-export function Courtroom({ view, onOpen, speak }: {
+export function Courtroom({ view, onOpen }: {
   view: SessionView;
   onOpen: (n: number) => void;
-  /** Optional voice: resolves when the speech's audio has finished. */
-  speak?: (speech: Speech) => Promise<void>;
 }) {
   const running = view.status === "running";
   const speeches = useMemo(() => hearingOf(view), [view]);
@@ -49,9 +47,7 @@ export function Courtroom({ view, onOpen, speak }: {
   const [index, setIndex] = useState(0);
   const [typed, setTyped] = useState(0);
   const [playing, setPlaying] = useState(true);
-  const [voice, setVoice] = useState(false);
   const [replaying, setReplaying] = useState(false);
-  const [voiceDone, setVoiceDone] = useState(true);
   const [held, setHeld] = useState(false); // the hush before the Judge rules
   const seenCompleted = useRef(view.status === "completed");
 
@@ -82,19 +78,10 @@ export function Courtroom({ view, onOpen, speak }: {
       const id = setTimeout(() => setTyped((t) => Math.min(full, t + 2)), 2000 / CPS);
       return () => clearTimeout(id);
     }
-    if (!playing || index >= speeches.length - 1 || !voiceDone) return;
+    if (!playing || index >= speeches.length - 1) return;
     const id = setTimeout(() => { setIndex((i) => i + 1); setTyped(0); }, PAUSE_MS);
     return () => clearTimeout(id);
-  }, [typed, full, playing, index, speeches.length, current, voiceDone, held]);
-
-  // Voice: start the speech's audio when it takes the floor (optional).
-  useEffect(() => {
-    if (!(voice && speak && current && playing) || held) { setVoiceDone(true); return; }
-    let live = true;
-    setVoiceDone(false);
-    speak(current).catch(() => undefined).finally(() => { if (live) setVoiceDone(true); });
-    return () => { live = false; };
-  }, [voice, speak, current?.id, held]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [typed, full, playing, index, speeches.length, current, held]);
 
   const speaker = current?.speaker;
   const finished = !running && index >= speeches.length - 1 && typed >= full;
@@ -207,7 +194,6 @@ export function Courtroom({ view, onOpen, speak }: {
           </button>
           <button type="button" disabled={running || index >= speeches.length - 1} onClick={() => go(index + 1)} aria-label="Next speech">▶</button>
           <button type="button" disabled={running} onClick={() => go(Math.max(0, speeches.findIndex((s) => s.speaker === "judge")))}>Skip to verdict</button>
-          {speak && <button type="button" aria-pressed={voice} onClick={() => setVoice((v) => { if (v) (speak as { stop?: () => void }).stop?.(); return !v; })}>{voice ? "Sound on" : "Sound off"}</button>}
         </span>
       </div>
       {speeches.length > 0 && (

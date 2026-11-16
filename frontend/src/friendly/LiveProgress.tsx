@@ -25,7 +25,7 @@ export function progressOf(view: SessionView): Progress {
   const done: string[] = [];
   const finished = new Set(view.stages_done);
   const snapDate = dateOf(view.snapshot?.coverage_end);
-  if (finished.has("snapshot") && snapDate) done.push(`Market data pinned: prices up to ${snapDate}.`);
+  if (finished.has("snapshot") && snapDate) done.push(`Market prices loaded, up to ${snapDate}.`);
 
   if (finished.has("request_rules") && view.rule_results.length) {
     const failing = view.rule_results.filter((r) => r.status === "fail").map((r) => ruleName(r.rule));
@@ -49,11 +49,11 @@ export function progressOf(view: SessionView): Progress {
   if (finished.has("judge")) done.push("The Judge ruled.");
 
   let step = 0;
-  let current = "Pinning the market data and checking your request against your limits…";
-  if (finished.has("judge")) { step = 4; current = "The Clerk is checking every number against its Exhibit and writing the ruling…"; }
+  let current = "Checking your request against your limits…";
+  if (finished.has("judge")) { step = 4; current = "The Clerk is checking every number against its evidence and writing the decision…"; }
   else if (finished.has("investigator")) { step = 3; current = "The Judge is weighing your preferences against the rules…"; }
   else if (finished.has("option_rules")) { step = 2; current = "The Prosecutor is naming the risks that matter for you…"; }
-  else if (finished.has("advocate")) { step = 1; current = "The code is checking each option against your limits…"; }
+  else if (finished.has("advocate")) { step = 1; current = "Checking each proposed size against your limits…"; }
   else if (finished.has("request_rules")) { step = 1; current = "The Defense is reading recent news and building options that serve your goal…"; }
   return { step, current, done };
 }

@@ -1,6 +1,6 @@
 """Session_API Lambda handler (Req. 22, 23.6).
 
-Seven routes, nothing else. The owner is the Cognito ``sub`` claim that the API Gateway
+Six routes, nothing else. The owner is the Cognito ``sub`` claim that the API Gateway
 authorizer validated. When guest access is switched on (``GUIDE_GUEST_ACCESS=1``, for the public
 demonstration) a request without that claim may instead carry ``Authorization: Guest <id>``, a
 random 128-bit id made by the browser; the owner is then ``guest-<id>`` and guests are capped per
@@ -35,7 +35,6 @@ ROUTES: tuple[tuple[str, str], ...] = (
     ("POST", "/sessions"),
     ("GET", "/sessions/{id}"),
     ("GET", "/sessions/{id}/trace"),
-    ("POST", "/speech"),
 )
 _PROFILE_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 _SESSION_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
@@ -51,7 +50,6 @@ class Deps:
     cors_origin: str
     universe: Callable[[], set[str]]
     personas: Callable[[], dict[str, Any]] = lambda: dict(load_personas().personas)
-    polly: Any = None  # Amazon Polly client for the court's voices (POST /speech)
 
 
 _deps: Deps | None = None
@@ -76,7 +74,6 @@ def _default_deps() -> Deps:
         _deps = Deps(
             store=DynamoSessionStore(config.session_table),
             runtime=boto3.client("bedrock-agentcore"),
-            polly=boto3.client("polly"),
             runtime_arn=config.agent_runtime_arn,
             cors_origin=config.cors_origin,
             universe=universe,
@@ -327,32 +324,6 @@ def _get_trace(deps: Deps, owner: str, event: dict[str, Any], params: dict[str, 
     return 200, {"session_id": view.session_id, "trace": view.trace}
 
 
-# One neural voice per court member (Amazon Polly, en-US).
-VOICES = {"judge": "Gregory", "advocate": "Joanna", "investigator": "Matthew",
-          "bailiff": "Stephen", "clerk": "Ruth", "objection": "Stephen"}
-MAX_SPEECH_CHARS = 600
-
-
-def _speech(deps: Deps, owner: str, event: dict[str, Any], params: dict[str, str]):
-    """Voice one court speech with Amazon Polly. The text comes from the session's own outputs
-    (built in the browser); it is capped and spoken as is. Returns base64 MP3."""
-    import base64
-
-    body = _json_body(event)
-    speaker, text = body.get("speaker"), body.get("text")
-    if speaker not in VOICES:
-        raise _HttpError(422, "invalid speaker", fields=["speaker"])
-    if not isinstance(text, str) or not text.strip() or len(text) > MAX_SPEECH_CHARS:
-        raise _HttpError(422, f"text must be 1 to {MAX_SPEECH_CHARS} characters", fields=["text"])
-    if deps.polly is None:
-        raise _HttpError(503, "voices unavailable")
-    out = deps.polly.synthesize_speech(Text=text.strip(), VoiceId=VOICES[speaker], Engine="neural",
-                                       OutputFormat="mp3", SampleRate="24000")
-    audio = out["AudioStream"].read()
-    return 200, {"speaker": speaker, "voice": VOICES[speaker], "content_type": "audio/mpeg",
-                 "audio": base64.b64encode(audio).decode("ascii")}
-
-
 def _load_view(deps: Deps, owner: str, params: dict[str, str]) -> sv.SessionView:
     session_id = params.get("id", "")
     view = deps.store.get_view(owner, session_id) if _SESSION_ID.match(session_id) else None
@@ -368,7 +339,6 @@ _HANDLERS = {
     ("POST", "/sessions"): _create_session,
     ("GET", "/sessions/{id}"): _get_session,
     ("GET", "/sessions/{id}/trace"): _get_trace,
-    ("POST", "/speech"): _speech,
 }
 
 

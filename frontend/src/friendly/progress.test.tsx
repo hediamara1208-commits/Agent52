@@ -1,4 +1,4 @@
-import { render, screen, act } from "@testing-library/react";
+import { fireEvent, render, screen, act } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { FriendlyMode, progressOf, LiveProgress } from "./index";
 import type { SessionView } from "../model/sessionView";
@@ -24,7 +24,7 @@ describe("live progress (what the tribunal is doing while you wait)", () => {
   it("starts with the limits check and the pinned data date", () => {
     const p = progressOf(base);
     expect(p.step).toBe(0);
-    expect(p.done).toEqual(["Market data pinned: prices up to Nov 12, 2026."]);
+    expect(p.done).toEqual(["Market prices loaded, up to Nov 12, 2026."]);
   });
 
   it("names the broken limits once the request is checked, then shows the Defense at work", () => {
@@ -52,6 +52,7 @@ describe("live progress (what the tribunal is doing while you wait)", () => {
     const v = at([...S, "advocate", "option_rules", "investigator", "judge"]);
     expect(progressOf(v).step).toBe(4);
     render(<FriendlyMode view={v} onSeeDetails={() => {}} />);
+    fireEvent.click(screen.getByTestId("follow-toggle"));
     expect(screen.getByText(/Clerk is writing the ruling/)).toBeInTheDocument();
     expect(screen.queryByText("The tribunal has risen.")).toBeNull();
     expect(screen.getByTestId("seat-clerk")).toHaveAttribute("data-active", "true");
@@ -70,11 +71,13 @@ describe("live progress (what the tribunal is doing while you wait)", () => {
 
   it("opens with 'in session', not an options check, before the first update arrives", () => {
     render(<FriendlyMode view={{ ...base, stage: "advocate", stages_done: [], snapshot: null } as SessionView} onSeeDetails={() => {}} />);
+    fireEvent.click(screen.getByTestId("follow-toggle"));
     expect(screen.getByText("The tribunal is in session…")).toBeInTheDocument();
   });
 
   it("disappears once the session completes", () => {
     render(<FriendlyMode view={{ ...base, status: "completed" } as SessionView} onSeeDetails={() => {}} />);
+    fireEvent.click(screen.getByTestId("follow-toggle"));
     expect(screen.queryByTestId("live-progress")).toBeNull();
     expect(screen.getByText("The tribunal has risen.")).toBeInTheDocument();
   });
