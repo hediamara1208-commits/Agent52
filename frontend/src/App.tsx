@@ -326,7 +326,7 @@ export function App({ auth, makeApi }: { auth: AuthService; makeApi: () => Sessi
                             <span>VERDICT<small>Investment decisions, argued and ruled on evidence</small></span>
             </div>
             <p className="user-chip" style={{ margin: 0 }}>
-              Signed in as {user}{" "}
+              <span className="user-id" title={user}>Signed in as {user}</span>
               <button type="button" onClick={() => { sessionStore.setView(null); signOut(); }}>Sign out</button>
             </p>
           </nav>

@@ -108,3 +108,14 @@ Measured on a live Robert / 30% TSLA session (runtime v24): 45,597 tokens in 4 C
 | Amplify Deployment 17 | same, plus the viewport meta tag so phones lay the page out at device width | PR #55 |
 
 Checked live on Deployment 16 with Robert / 30% TSLA: ruling in about 70 s (accepted with conditions, 2.5%); Exhibit 7 opened in the drawer with its snapshot id and source files; the what-if "What if I asked for 5%?" showed "The original ruling stands until the new one is in", then a real second hearing returned in about 57 s and the comparison reported that the verdict did not change. Deployment 17 checked at 375 px: no horizontal overflow.
+
+## VERDICT refinement (2026-11-15, about 21:45 ET)
+
+| Change | Live value | Source in `main` |
+|---|---|---|
+| Amplify Deployment 18 | security search → allocation → Enter the Tribunal; light design system with IBM Plex; shown as VERDICT with Defense and Prosecutor | PR #57 |
+| Amplify Deployment 19 | same, plus the sign-out button kept visible on narrow screens and the page title | PR #58 |
+
+The build needs the three `@fontsource/ibm-plex-*` packages listed in `frontend/package.json` (`npm install` before `vite build`).
+
+Checked live on Deployment 18: with Robert remembered, typing "tesla", Enter, "30", Enter started a hearing with no pointer click; the ruling (accepted with conditions, 2.5%) arrived in about 67 s. The page title, the IBM Plex fonts and the Defense and Prosecutor labels were present.
