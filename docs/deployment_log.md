@@ -137,3 +137,18 @@ Limits on spend: 40 hearings per guest id per UTC day and 500 for all guests tog
 To close it again: set `authorizationType` back to `COGNITO_USER_POOLS` with authorizer `rmovit` on the same methods, redeploy the stage, remove `GUIDE_GUEST_ACCESS`, and publish a `config.json` with the Cognito identifiers.
 
 Checked live on Deployment 20 from a browser with empty storage: no sign-in screen; a hearing (Amira, 20% Microsoft) started from the keyboard and ruled "accepted with conditions, 5.5%"; the hearing's own guest read it (200), another guest id got 404, a bearer token and a missing header got 401; a page refresh during the hearing resumed it; `POST /speech` returned audio.
+
+## Investor-first pass and removal of audio (2026-11-15, about 22:15 ET)
+
+| Change | Live value | Source in `main` |
+|---|---|---|
+| Amplify Deployments 22 and 23 | My portfolio with a live before/after; simple hearing with "Follow the hearing"; short decision screen with a three-way portfolio comparison; no audio controls; no table names, snapshot ids, rule ids or service names in investor views | PR #61, PR #62 |
+| Session_API Lambda | `POST /speech` removed (six routes) | PR #61 |
+| API Gateway `z5mq66xo98` | resource `/speech` deleted; deployment `fsinz5` to `prod`; Lambda permission `apigw-speech-post` removed | PR #61 |
+| IAM role `guide-session-api-role` | inline policy `PollyVoices` deleted (the two CDK-managed policies remain) | `infra/iam.py` |
+
+This supersedes the "Court voices" rows above: Amazon Polly is no longer used anywhere.
+
+The portfolio comparison is computed in the browser with the toolkit's own rule (`guide/toolkit/risk_panel.py`, `_proposed`): a new position of weight w scales every current holding by (1 - w), so the weights still sum to 100%. `frontend/src/portfolio.test.tsx` checks this.
+
+Checked live on Deployment 22 from a browser with empty storage: Robert preselected with his six holdings; typing "exxon", Enter, "10" showed the before/after at once; Enter started a hearing whose progress and first argument appeared while it ran; the decision (accepted, 10.0%) arrived in about 59 s; the courtroom opened only on "Replay the hearing". Opening every section then showed table names and a snapshot id inside "Understand the reasoning", which Deployment 23 removes.
